@@ -44,6 +44,30 @@ public final class Pipeline {
     /// A helper that only points, when one was named for this run; nil: the language model points.
     public var pointer: PointerHelper?
     private var pointerRestsUntil = Date.distantPast      // after a slow failure it is left alone for a while
+    /// Whether the helper answered the last time it was asked anything (its health at start, a point, a read).
+    public private(set) var pointerAnswered = false
+    public func pointerSaid(_ answered: Bool) { pointerAnswered = answered }
+
+    /// Has the screenshot read before any question about it is known, by whoever will point
+    /// at things on it: the helper when it has answered (the language model's long read of the
+    /// picture is then not spent), else the language model as always. If the helper does not
+    /// take it, the language model reads it and the note says why.
+    public func readAheadForPointing(imageURL: String) async throws -> (seconds: Double, by: String, note: String?) {
+        var note: String?
+        if let pointer, pointerAnswered, Date() >= pointerRestsUntil {
+            let start = Date()
+            switch await pointer.read(imageURL: imageURL) {
+            case .read(let seconds, let cached):
+                return (seconds, PointerHelper.name, cached ? "the helper had already read this picture" : nil)
+            case .unusable(let why):
+                pointerAnswered = false
+                if Date().timeIntervalSince(start) > 5 { pointerRestsUntil = Date().addingTimeInterval(60) }
+                note = "the pointer helper did not take the screenshot (\(why)): read ahead by the language model instead"
+            }
+        }
+        let chat = try await readAhead(imageURL: imageURL)
+        return (chat.seconds, PointerHelper.languageModel, note)
+    }
 
     public init(client: LMClient, model: String) {
         self.client = client
@@ -72,6 +96,7 @@ public final class Pipeline {
             switch await pointer.point(imageURL: imageURL, request: instruction, looks: looks) {
             case .point(let x, let y, let seconds, let read, let cached):
                 let g = PointerHelper.grid(x: x, y: y)
+                pointerAnswered = true
                 var chat = ChatResult()
                 chat.content = "[\(Int(g.x.rounded())), \(Int(g.y.rounded()))]"
                 chat.seconds = Date().timeIntervalSince(start)
@@ -81,6 +106,7 @@ public final class Pipeline {
                 return PointOutcome(answer: .point(g), chat: chat, asked: instruction, note: note, pointer: PointerHelper.name)
             case .unusable(let why):
                 let took = Date().timeIntervalSince(start)
+                pointerAnswered = false
                 if took > 5 { pointerRestsUntil = Date().addingTimeInterval(60) }       // a helper that hangs is not waited for again at once
                 fellBack = "the pointer helper could not be used (\(why)): the language model points instead"
                     + (took > 5 ? "; the helper is left alone for the next minute" : "")

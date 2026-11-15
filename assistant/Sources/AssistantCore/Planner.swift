@@ -252,8 +252,7 @@ public enum Recipes {
     /// The steps of one part of a request, or nil when it is not one of the plain ones.
     /// `app` resolves a name the user might say ("Brave", "Chrome", "settings") to an app on this Mac.
     public static func steps(of clause: String, app: (String) -> String?) -> [PlannedStep]? {
-        var c = clause.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: ".!")))
-        while let m = Commands.match(#"^(?:please|now|next|first|finally|and|also|can you|could you|then)[,\s]+(.+)$"#, c) { c = m[1] }
+        let c = Skills.stripped(clause)                                     // "hey, can you … please?" is the order inside it
         if let m = Commands.match(#"^(?:draft|write|compose|start|prepare)\s+(?:an?\s+)?(?:new\s+)?(?:e-?mail|mail|message)\s+to\s+(.+?)\s+(?:about|regarding|on|re:?|saying|asking|telling)\s+(.+)$"#, c) {
             return [PlannedStep(action: draftEmail, target: m[1], text: m[2])]
         }

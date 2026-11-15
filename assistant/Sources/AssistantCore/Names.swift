@@ -52,6 +52,10 @@ public enum AppNames {
             if let known = aliases[s], names.contains(known) { return known }
         }
         for s in whole == short || short.isEmpty ? [whole] : [whole, short] {
+            let squeezed = s.replacingOccurrences(of: " ", with: "")              // "photobooth", "face time", "textedit"
+            if squeezed.count >= 4, let same = names.first(where: { $0.lowercased().replacingOccurrences(of: " ", with: "") == squeezed }) { return same }
+        }
+        for s in whole == short || short.isEmpty ? [whole] : [whole, short] {
             let starts = names.filter { $0.lowercased().hasPrefix(s) }.sorted { $0.count < $1.count }
             if let first = starts.first { return first }
             let within = names.filter { $0.lowercased().split(separator: " ").contains(Substring(s)) }.sorted { $0.count < $1.count }
@@ -82,6 +86,16 @@ public enum AppNames {
             return Commands.match("(?<![\\p{L}\\p{N}.])" + escaped + "(?![\\p{L}\\p{N}]|\\.\\p{L})", text) != nil      // not "notes.txt"
         }
         found = found.filter { name in !found.contains { $0 != name && $0.lowercased().contains(name.lowercased()) } }
+        if found.isEmpty {                                                  // a name said as one word: "photobooth", "textedit"
+            let said = Set(text.split(whereSeparator: { !$0.isLetter && !$0.isNumber }).map(String.init))
+            found = apps.filter { $0.contains(" ") && $0.count >= 6 && said.contains($0.lowercased().replacingOccurrences(of: " ", with: "")) }
+        }
+        if found.isEmpty {                                                  // a browser said by its short name: "on brave", "in chrome"
+            let words = Set(text.split(whereSeparator: { !$0.isLetter }).map(String.init))
+            found = apps.filter { name in
+                Places.browsers.contains(name) && name.lowercased().split(separator: " ").contains { !["browser", "google", "microsoft"].contains(String($0)) && words.contains(String($0)) }
+            }
+        }
         if !found.isEmpty { return found }
         var meant: [String] = []
         for hint in hints where apps.contains(hint.app) && !meant.contains(hint.app) && Commands.match(hint.pattern, text) != nil {

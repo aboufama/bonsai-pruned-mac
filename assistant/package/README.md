@@ -19,6 +19,7 @@ is off, the log file says where.
 | `requests-example.txt` | A file of requests to try. |
 | `planner-system-candidate.txt` | A wording of the planner's system text under test (not the default). Use it with `BONSAI_PLANNER_SYSTEM_FILE`. |
 | `voice-example-open-notes.wav`, `voice-example-dark-mode.wav`, `voice-example-silence.wav` | Three small sound files (the system voice saying "Open Notes" and "Turn on dark mode", and two seconds of silence) for trying the voice path with no microphone. |
+| `demo/` | For rehearsing the demo video: `requests-demo.txt` (its spoken lines as a batch), `say-*.wav` (each line in the system voice, for `--mic-file` or `--voice-file`), `Presentation (stand-in).pdf` (replaced by the real deck), `recording-example.mp4` (a clip with a voice on it, for the captioning). |
 | `VERSION` | Commit, build time, checksum of the executable. |
 
 Not included: the speech model (about 150 MB). A batch never listens, so it is not needed.
@@ -122,6 +123,7 @@ nothing is stored.
 | `--second-look` | `BONSAI_SECOND_LOOK=1` | off | A closer second look for things found on a screenshot. See below. |
 | `--speak` | `BONSAI_SPEAK=1` | off | Spoken replies for this run (the system voice). Never in a batch. |
 | `--pointer-url URL` | `BONSAI_POINTER_URL` | none | A helper that only points. See "A helper that only points". |
+| `--presentation FILE-or-LINK` | `BONSAI_PRESENTATION` | the deck in `~/Bonsai-demo/demo` or `demo/` beside the program | What "bring up the presentation" shows. |
 | `--mic-file FILE` | `BONSAI_MIC_FILE` | none | A sound file read in place of the microphone whenever the app listens. See "Speaking". |
 | `--voice-file FILE` | `BONSAI_VOICE_FILE` | none | A batch run whose first request is what the sound file says. Turns on unattended running, with or without `--batch`. |
 | `--own-models DIR` | `BONSAI_OWN_MODELS` | `~/Bonsai-demo/models/argmax` | The folder the speech model is kept in. |
@@ -304,6 +306,94 @@ These were added after the first package; all show in the steps file.
   the steps file has `before: …`. If it still changes nothing the line ends `(nothing
   changed)` as before.
 
+## The pointer always shows what is done
+
+Accessibility decides where a thing is; the pointer goes there and does it. No step that acts
+on the screen is carried out with the pointer parked.
+
+- **Clicks** (by the planner's number, by name, by the pointing model) fly the pointer to the
+  control and click there with a real click.
+- **Opening an app** flies to its Dock icon and clicks it, when it is in the Dock. The app is
+  then brought to the front whatever the click did.
+- **A window's own buttons** (close, minimize, full screen) are clicked in the window's corner.
+- **A menu command** (`menu File > New Window`, or a request that names one): the pointer
+  goes to the menu's title and clicks it, the menu opens on the screen, the pointer goes to
+  the item and clicks it. If the menu or the item cannot be placed, the menu is closed again
+  and the item is chosen through Accessibility as before. Two-level paths only.
+- **Typing** with no control named: the pointer goes to the field that has the keyboard first.
+- **A file on the Desktop** (the presentation, a video) is double-clicked on its icon when the
+  icon is not covered; **dark mode** is chosen by clicking Dark or Light in System Settings
+  (the first row of choices), read back, with the system's own switch as the fallback.
+- **A step with no place of its own** (the volume, a Dock setting, a new folder, a key, a
+  link) still gets a flight, to where its result shows: the Dock, the controls at the right of
+  the menu bar, the new folder's icon, else the title bar of the window in front.
+- **Steps file:** every step has `flew` (true when the pointer flew for it), and then
+  `flight_from` and `flight_to` as `[x, y]` in the screen points clicks use.
+- A flight to a target takes 0.55 to 1.0 s by distance; a flight back to the cursor 0.35 to 0.9 s.
+
+## Pointing: Accessibility first
+
+For every request that points at or presses one thing ("where is…", "show me…", a `look`
+step, a click or a drag named in words), in this order:
+
+1. **By name, no model, no screenshot.** The names the Mac itself gives are searched: the
+   front window's controls (an open menu's items first), the menus of the menu bar, the Dock's
+   icons. Words for the kind of thing, its place and the asking ("the", "button", "in the
+   toolbar", "where is") are left out of the comparison. One control whose name is exactly the
+   remaining words, or failing that one whose name holds them all: its centre is used at once.
+2. **Several could be meant** (two of the same name, or names that only share a word): one
+   planning turn in text over just those, as `Controls`, picks one. No screenshot. If it
+   chooses none, the next step is taken.
+3. **No name fits**: the pointer reads the screenshot (the helper if it is up, else the
+   language model), and the answer still snaps to the control under it.
+
+The log line of each pointing says which was used, and the step in the steps file has
+`found_by`: `accessibility`, `planner over accessibility` or `pointer`. "Find Controls by
+Name First" in the leaf menu switches steps 1 and 2 off. The planner's format is unchanged.
+
+## For the demo video
+
+- **A spoken name is dropped**: "Clicky, bring up the presentation", "hey Bonsai, open Notes".
+- **"Bring up the presentation"** (also "show my slides", "start the slideshow", "go back to
+  the presentation"), `kind` direct, tool `present`: the app in front is hidden; the deck is
+  opened in its own app (a link: in the browser); its window is made to fill the screen. The
+  deck is `--presentation` (a file or a link), else the newest file named like presentation,
+  slides or deck in `~/Bonsai-demo/demo`, else in `demo/` beside the program (Keynote,
+  PowerPoint, PDF, web page, picture, in that order). The user's own folders are not searched.
+  In Keynote the slideshow is started in a window (`Play > Play Slideshow in Window`, else
+  `Play > In Window` then `Play > Play Slideshow`); in Preview the sidebar is hidden and the
+  page fitted. The Keynote part has not been tried: Keynote is on neither Mac.
+- **"Write down what you can help me with"** (also "write some things you can help me do",
+  "make a note of what you can do", "write a note about <something>"), tool `write_note`:
+  the model writes four short lines as a language model (the same every time: nothing is
+  random), and the app opens Notes, makes a new note and types a title and the lines a word
+  at a time. If the model writes nothing usable, four lines of the app's own are typed and the
+  step's note says so. A note whose words are given ("a note that says …") is unchanged.
+- **"Caption the video I just recorded"** (also "put subtitles on my last recording"), tool
+  `caption_video`, no language model: the newest `.mov`/`.mp4` in Movies, on the Desktop or in
+  Downloads has its sound read by Argmax WhisperKit with the time of each stretch; the words
+  become subtitles of at most 42 characters; they are drawn on a copy written to
+  `~/Movies/<name> (captioned).mov` with a `.srt` beside it; the copy is opened in QuickTime
+  Player and played. The recording itself is not changed. Photo Booth's own library cannot be
+  read without Full Disk Access, so a clip recorded there has to be dragged out first.
+  Without the app: `bonsai-assistant --caption-video VIDEO [OUT]` does the whole of it and
+  prints the subtitles; `--burn-captions VIDEO OUT` draws three made-up lines with no speech
+  model (tried on this Mac: the lines show at their times and the copy keeps its sound).
+
+## From the demo-beats check on build c483346
+
+- **A site named with a browser** ("open apple.com in Safari", "go to example.com/docs in
+  Chrome", "open YouTube in Brave") opens exactly that address in that browser. It used to
+  become `www.applecom.com`.
+- **An email draft is checked.** After the mail link is opened, a window of the mail app must
+  show a message with the draft's subject. If the mail app shows its add-an-account sheet
+  instead, the step fails with `Mail has no account set up, so no draft could be opened`, the
+  user is told that, and the planner does not take over. A browser named in the request
+  ("… in Safari"), or one just opened, takes the draft as Gmail's compose page; the step's
+  note says which it was.
+- **A question about a menu is answered from the menu itself**, with no model: its enabled
+  items in order, eight at most, then how many more. `how` is `the menu itself`.
+
 ## A helper that only points
 
 Optional, and off unless named. With `BONSAI_POINTER_URL=http://127.0.0.1:1235` (or
@@ -328,6 +418,14 @@ rewriting stay with the language model. Unset, nothing changes.
   helper that hangs does not cost 30 s on every step. The helper is never required.
 - Steps file: every step that had something pointed at has `pointer`: `bonsai-pruned-4b` or
   `language model`.
+- **Reading ahead.** While the helper is answering (its health check at start, or its last
+  call), the screen is not read ahead through the language model: the screenshot goes to the
+  helper instead, `POST /read` with `{"image_b64": …}`, which returns `{"read_seconds",
+  "cached"}` and keeps the read, so a later `/point` costs only its decoder. If `/read` fails
+  (no such path, a bad status, a late reply), the language model reads the screen ahead as
+  before and the log says why, and it goes on doing so until the helper answers a call again.
+  With the helper unset or silent, reading ahead is exactly as it was.
+  `bonsai-assistant --read-ahead IMAGE` shows who reads, with no screen.
 
 ## Speaking: hold the key
 
@@ -343,6 +441,20 @@ rewriting stay with the language model. Unset, nothing changes.
 - Less than 0.3 s of voice in the recording: it is not read at all (a speech model makes
   words out of silence), the caption says "I did not catch that", nothing is done.
 - Esc while the key is held, or while the recording is being read: cancelled.
+- **A meter of the microphone** stands beside "Listening…" while the app listens (the held key
+  and control-option-V): seven small bars, filled by how loud the last tenth of a second was,
+  quick to rise and slower to fall; all empty in silence. After a second and a half with
+  nothing the words change to "I can't hear anything" and go back when sound arrives. With a
+  sound file in the microphone's place the meter follows the file at its own pace. The steps
+  file has `peak_level` (0 to 1) for a spoken request.
+- **A short command is read twice if need be.** When a clip under three seconds comes back as
+  nothing ("Open Notes" is 0.84 s), it is read once more with silence before and after it (to
+  at least 1.5 s, half each side); the log says when that was done.
+- **The pointer keeps company with the cursor as its own thing.** While the mouse moves it
+  stays where it is; when the mouse has been still for about 0.3 s, or is more than about
+  250 pt away, it takes one flight to its place beside the cursor (0.35 to 0.9 s by distance,
+  the same curve as a flight to a target) and only then looks again. Moves under about 60 pt
+  are not followed.
 - Should the key's release ever go unreported (the app hears it through a Carbon hot key
   event), the hold still ends: once the system itself says the space key has been up for a
   second, or after 30 s. The log then says so.

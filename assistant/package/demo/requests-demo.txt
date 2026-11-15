@@ -1,0 +1,9 @@
+# The spoken lines of the demo video, in order, as a batch (one request per line).
+Clicky, bring up the presentation.
+Write down what you can help me with.
+Turn on dark mode.
+Put Safari and Notes side by side.
+Open Calculator and compute 25 times 4.
+Caption the video I just recorded.
+Is Wi-Fi on?
+Open Photo Booth.

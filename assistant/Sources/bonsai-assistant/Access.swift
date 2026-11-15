@@ -436,6 +436,7 @@ extension Access {
         let inWeb: Bool              // it is part of a web page
         let value: String
         let place: String            // where it is, as a mark of which element it is
+        var frame: CGRect? = nil     // and on the screen, for the pointer to go to
     }
 
     static func focus() -> Focus? {
@@ -455,7 +456,7 @@ extension Access {
         let f = frame(focused)
         return Focus(role: role, line: ["AXTextField", "AXSearchField", "AXComboBox"].contains(role) && !secure, inWeb: inWeb,
                      value: secure ? "" : ((value(focused, kAXValueAttribute) as? String) ?? ""),
-                     place: f.map { "\(Int($0.minX)),\(Int($0.minY))" } ?? "")
+                     place: f.map { "\(Int($0.minX)),\(Int($0.minY))" } ?? "", frame: f)
     }
 
     /// The text selected in the front app, when the app itself says what it is; nil otherwise.
@@ -509,6 +510,125 @@ extension Access {
         }
         guard !names.isEmpty else { return nil }
         return (title, names.prefix(40).enumerated().map { ListedControl(id: $0.offset + 1, role: "menu item", name: short($0.element, 48)) })
+    }
+
+    /// Everything on screen the Mac can name and place, for finding a thing by its name with
+    /// no screenshot: the front window's controls (an open menu's items first), the menus of
+    /// the menu bar, and the icons of the Dock.
+    static func everything() -> ScreenList {
+        let front = screenList()
+        var found: [(role: String, name: String, value: String, frame: CGRect)] = front.controls.map { ($0.role, $0.name, $0.value, $0.frame) }
+        let screen = CGRect(origin: .zero, size: NSScreen.screens.first?.frame.size ?? .zero)
+        if let app = NSWorkspace.shared.frontmostApplication {
+            let root = AXUIElementCreateApplication(app.processIdentifier)
+            AXUIElementSetMessagingTimeout(root, 0.4)
+            if let bar = element(root, kAXMenuBarAttribute) {
+                for item in children(bar).prefix(16) {
+                    if let title = value(item, kAXTitleAttribute) as? String, !title.isEmpty, title != "Apple", let f = frame(item), screen.intersects(f) {
+                        found.append(("menu item", title, "", f))
+                    }
+                }
+            }
+        }
+        if let dock = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.dock" }) {
+            let root = AXUIElementCreateApplication(dock.processIdentifier)
+            AXUIElementSetMessagingTimeout(root, 0.4)
+            for list in children(root).prefix(4) {
+                for item in children(list).prefix(80) where (value(item, kAXRoleAttribute) as? String) == "AXDockItem" {
+                    if let title = value(item, kAXTitleAttribute) as? String, !title.isEmpty, let f = frame(item), screen.intersects(f) {
+                        found.append(("button", title, "", f))
+                    }
+                }
+            }
+        }
+        let controls = found.enumerated().map { ListedControl(id: $0.offset + 1, role: $0.element.role, name: $0.element.name, value: $0.element.value, frame: $0.element.frame) }
+        return ScreenList(app: front.app, window: front.window, controls: controls)
+    }
+
+    /// Where a menu's title is in the front app's menu bar.
+    static func menuTitlePoint(_ menu: String) -> CGPoint? {
+        guard let app = NSWorkspace.shared.frontmostApplication else { return nil }
+        let root = AXUIElementCreateApplication(app.processIdentifier)
+        AXUIElementSetMessagingTimeout(root, 0.5)
+        guard let bar = element(root, kAXMenuBarAttribute) else { return nil }
+        let wanted = plain(menu)
+        let titled = { (e: AXUIElement) in plain((value(e, kAXTitleAttribute) as? String) ?? "") }
+        guard !wanted.isEmpty, let item = children(bar).first(where: { titled($0) == wanted }), let f = frame(item), f.minY < 60 else { return nil }
+        return CGPoint(x: f.midX, y: f.midY)
+    }
+
+    /// Where an item of a menu is while that menu is open on the screen.
+    static func openMenuItemPoint(menu: String, item: String) -> CGPoint? {
+        guard let app = NSWorkspace.shared.frontmostApplication else { return nil }
+        let root = AXUIElementCreateApplication(app.processIdentifier)
+        AXUIElementSetMessagingTimeout(root, 0.5)
+        guard let bar = element(root, kAXMenuBarAttribute) else { return nil }
+        let titled = { (e: AXUIElement) in plain((value(e, kAXTitleAttribute) as? String) ?? "") }
+        guard let top = children(bar).first(where: { titled($0) == plain(menu) }) else { return nil }
+        var entries = children(top)
+        if entries.count == 1, (value(entries[0], kAXRoleAttribute) as? String) == "AXMenu" { entries = children(entries[0]) }
+        let wanted = plain(item)
+        let screen = CGRect(origin: .zero, size: NSScreen.screens.first?.frame.size ?? .zero)
+        guard let found = entries.first(where: { titled($0) == wanted }) ?? entries.first(where: { !titled($0).isEmpty && titled($0).hasPrefix(wanted) }),
+              (value(found, kAXEnabledAttribute) as? Bool) != false, let f = frame(found), f.height > 6, screen.contains(CGPoint(x: f.midX, y: f.midY)) else { return nil }
+        return CGPoint(x: f.midX, y: f.midY)
+    }
+
+    /// One of the front window's own buttons (close, minimize, zoom): its centre.
+    static func windowButton(_ kind: String) -> CGPoint? {
+        guard let app = NSWorkspace.shared.frontmostApplication, let window = window(pid: app.processIdentifier) else { return nil }
+        let attribute = kind == "close" ? kAXCloseButtonAttribute : kind == "zoom" ? kAXZoomButtonAttribute : kAXMinimizeButtonAttribute
+        guard let button = element(window, attribute), let f = frame(button) else { return nil }
+        return CGPoint(x: f.midX, y: f.midY)
+    }
+
+    /// Whether what is on screen at a point belongs to the given app (nothing of another app lies over it).
+    static func shows(_ point: CGPoint, of bundle: String) -> Bool {
+        let system = AXUIElementCreateSystemWide()
+        AXUIElementSetMessagingTimeout(system, 0.35)
+        var hit: AXUIElement?
+        guard AXUIElementCopyElementAtPosition(system, Float(point.x), Float(point.y), &hit) == .success, let hit else { return false }
+        var pid: pid_t = 0
+        AXUIElementGetPid(hit, &pid)
+        return NSRunningApplication(processIdentifier: pid)?.bundleIdentifier == bundle
+    }
+
+    /// Where an app's icon sits in the Dock (its centre), when it is there and on screen.
+    static func dockIcon(_ name: String) -> CGPoint? {
+        guard let dock = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.dock" }) else { return nil }
+        let root = AXUIElementCreateApplication(dock.processIdentifier)
+        AXUIElementSetMessagingTimeout(root, 0.4)
+        let screen = CGRect(origin: .zero, size: NSScreen.screens.first?.frame.size ?? .zero)
+        for list in children(root).prefix(4) {
+            for item in children(list).prefix(80) where (value(item, kAXRoleAttribute) as? String) == "AXDockItem" {
+                if (value(item, kAXTitleAttribute) as? String) == name, let f = frame(item), screen.contains(CGPoint(x: f.midX, y: f.midY)) {
+                    return CGPoint(x: f.midX, y: f.midY)
+                }
+            }
+        }
+        return nil
+    }
+
+    /// Where a file's icon is on the Desktop (its centre), when the Finder shows it there.
+    static func desktopIcon(_ fileName: String) -> CGPoint? {
+        guard let finder = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) else { return nil }
+        let root = AXUIElementCreateApplication(finder.processIdentifier)
+        AXUIElementSetMessagingTimeout(root, 0.4)
+        let screen = CGRect(origin: .zero, size: NSScreen.screens.first?.frame.size ?? .zero)
+        let wanted = fileName.lowercased(), stem = (fileName as NSString).deletingPathExtension.lowercased()
+        let deadline = Date().addingTimeInterval(0.9)
+        var queue = children(root).filter { (value($0, kAXRoleAttribute) as? String) != "AXMenuBar" }.map { ($0, 0) }, seen = 0
+        while !queue.isEmpty, seen < 1500, Date() < deadline {
+            let (next, depth) = queue.removeFirst()
+            seen += 1
+            let v = values(next, [kAXTitleAttribute, kAXDescriptionAttribute, kAXValueAttribute, kAXFilenameAttribute])
+            let says = v.compactMap { ($0 as? String)?.lowercased() }
+            if says.contains(where: { $0 == wanted || $0 == stem }), let f = frame(next), f.width < 400, screen.contains(CGPoint(x: f.midX, y: f.midY)) {
+                return CGPoint(x: f.midX, y: f.midY)
+            }
+            if depth < 5 { queue.append(contentsOf: children(next).prefix(120).map { ($0, depth + 1) }) }
+        }
+        return nil
     }
 
     /// Presses the button that commits what was just typed in the front window: its default
@@ -672,6 +792,24 @@ extension Access {
         let wanted = text.lowercased()
         let deadline = Date().addingTimeInterval(1.0)
         var queue = [window], seen = 0
+        while !queue.isEmpty, seen < 3000, Date() < deadline {
+            let next = queue.removeFirst()
+            seen += 1
+            let v = values(next, [kAXTitleAttribute, kAXDescriptionAttribute, kAXValueAttribute])
+            if v.contains(where: { ($0 as? String)?.lowercased().contains(wanted) == true }) { return true }
+            queue.append(contentsOf: children(next).prefix(200))
+        }
+        return false
+    }
+
+    /// Whether any window of the app says the text (in a title, a description or a value).
+    static func anyWindowSays(_ pid: pid_t, _ text: String) -> Bool {
+        let root = AXUIElementCreateApplication(pid)
+        AXUIElementSetMessagingTimeout(root, 0.6)
+        let wanted = text.lowercased()
+        guard !wanted.isEmpty else { return false }
+        let deadline = Date().addingTimeInterval(1.0)
+        var queue = Array(((value(root, kAXWindowsAttribute) as? [AXUIElement]) ?? []).prefix(8)), seen = 0
         while !queue.isEmpty, seen < 3000, Date() < deadline {
             let next = queue.removeFirst()
             seen += 1

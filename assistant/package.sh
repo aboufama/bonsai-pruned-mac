@@ -16,6 +16,7 @@ for bundle in "$build"/release/*.bundle; do
 done
 cp "$here/package/README.md" "$here/package/run-batch.sh" "$here/package/requests-example.txt" "$here/package/planner-system-candidate.txt" "$target/"
 cp "$here"/package/voice-example-*.wav "$target/"
+rm -rf "$target/demo" && cp -R "$here/package/demo" "$target/demo"
 chmod +x "$target/bonsai-assistant" "$target/run-batch.sh"
 {
   echo "commit $(git -C "$here" rev-parse --short HEAD)$(git -C "$here" diff --quiet HEAD -- "$here" || echo ' plus uncommitted changes')"

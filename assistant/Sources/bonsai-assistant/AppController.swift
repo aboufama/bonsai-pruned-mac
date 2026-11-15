@@ -57,7 +57,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private struct Ahead {
         let sent: Sent
         let started: Date
-        let read: Task<Double?, Never>          // seconds the read took; nil if it failed
+        let read: Task<(seconds: Double, by: String)?, Never>      // how long the read took and who read it; nil if it failed
     }
     private var ahead: Ahead?
     private let voice = Voice()
@@ -68,8 +68,12 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var holdNumber = 0                 // goes up with every press, tap, release and Esc: what is older is dropped
     private var holdStarting: Task<Void, Never>?
     private var holdProblem: Error?
+    private var meterLevel = 0.0               // what the microphone meter shows (it falls more slowly than it rises)
     private var lastHeard: Voice.Heard?        // what the request in hand was heard as, when it was spoken
     private var lastPointer: String?           // what pointed for the step in hand: the helper, or the language model
+    private var lastFoundBy: String?           // how the step in hand found its place: accessibility, planner over accessibility, pointer
+    private var draftSubject: String?          // the subject of the email draft just asked of the mail app, to check it came up
+    private var draftNote: String?
     private var session: [[String: Any]] = []  // with --out and no batch: every request of this run, for the steps file
     private var watcher: Timer?
     private var refreshing = false
@@ -153,6 +157,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if let helper = pipeline.pointer {                                  // is the pointer helper there? asked once
             Task { @MainActor in
                 let health = await helper.health()
+                self.pipeline.pointerSaid(health.ok)
                 self.log.add(health.ok ? "Pointer helper at \(helper.base.absoluteString) answered (\(health.note))"
                                        : "Pointer helper at \(helper.base.absoluteString) did NOT answer (\(health.note)): the language model points until it does")
             }
@@ -599,6 +604,11 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// it: at start, on the timer, when the bar opens, when listening starts and after a request.
     /// Only with the screenshot in its own message: otherwise the read cannot be reused.
     private func refreshAhead() {
+        // Only when the pointer helper is answering (its read is cheap). Through the language
+        // model a read takes 10 to 18 s on an M4 laptop and holds up every planning turn behind
+        // it, and planning does not use the screenshot: there the screen is read only when a
+        // request needs the pointer.
+        guard pipeline.pointerAnswered else { return }
         guard ready, modelSees, settings.readAhead, !settings.labLayout, run == nil, !refreshing, Capture.allowed() else { return }
         refreshing = true
         Task { @MainActor in
@@ -613,10 +623,19 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             self.pipeline.model = self.settings.model
             self.pipeline.separateImage = true
             let pipeline = self.pipeline
-            let read = Task { () -> Double? in (try? await pipeline.readAhead(imageURL: sent.url))?.seconds }
+            // by the pointer helper when it has answered (the language model's long read of the
+            // picture is then saved), else by the language model as always
+            let read = Task { () -> (seconds: Double, by: String)? in
+                guard let done = try? await pipeline.readAheadForPointing(imageURL: sent.url) else { return nil }
+                if let note = done.note { await MainActor.run { self.log.add("    " + note) } }
+                return (done.seconds, done.by)
+            }
             self.ahead = Ahead(sent: sent, started: Date(), read: read)
             Task { @MainActor in
-                if let seconds = await read.value { self.log.add("screen read ahead in \(self.sec(seconds)); the next request about it takes about a second") }
+                guard let done = await read.value else { return }
+                self.log.add(done.by == PointerHelper.name
+                    ? "screen read ahead by the pointer helper in \(self.sec(done.seconds)); pointing at something on it now costs only its decoder (the language model was not asked)"
+                    : "screen read ahead in \(self.sec(done.seconds)); the next request about it takes about a second")
             }
         }
     }
@@ -633,11 +652,12 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             return (try await look(reuse: now), "the screen changed since it was read ahead (\(differing) differing pixels): read again")
         }
         let waitStart = Date()
-        let seconds = await early.read.value
+        let done = await early.read.value
         let waited = Date().timeIntervalSince(waitStart)
         let lead = waitStart.timeIntervalSince(early.started)
-        guard let seconds else { return (early.sent, "the read ahead failed; the screen is read now") }
-        return (early.sent, "read ahead: started \(sec(lead)) before the request, took \(sec(seconds)), waited \(sec(waited)) for it")
+        guard let done else { return (early.sent, "the read ahead failed; the screen is read now") }
+        return (early.sent, "read ahead" + (done.by == PointerHelper.name ? " by the pointer helper" : "")
+                + ": started \(sec(lead)) before the request, took \(sec(done.seconds)), waited \(sec(waited)) for it")
     }
 
     // MARK: spoken requests (Argmax WhisperKit)
@@ -661,9 +681,16 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         HotKeys.shared.register(id: HotKey.escape, keyCode: kVK_Escape) { [weak self] in self?.cancelHold() }
         listenTimer?.invalidate()
         var upSince: Date?
+        var shown = 0.0, lastSound = Date()
         listenTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30, repeats: true) { [weak self] timer in
             guard let self, let pressed = self.held, self.holdNumber == me else { return timer.invalidate() }
-            self.overlay.hover(.listening, "Listening…")                    // stays with the mouse
+            // a meter of the microphone beside the words: quick to rise, slower to fall; empty
+            // bars in silence; and after a second and a half with nothing, it says so
+            let level = self.voice.level()
+            shown = max(level, shown * 0.84)
+            if level > 0.07 { lastSound = Date() }
+            let deaf = self.voice.listening && Date().timeIntervalSince(lastSound) > 1.5
+            self.overlay.hover(.listening, (deaf ? "I can't hear anything  " : "Listening…  ") + PushToTalk.meter(shown))
             // Should the key's release ever go unreported, the hold must still end: when the key
             // has been up for a second by the system's own account, or after 30 s.
             if CGEventSource.keyState(.combinedSessionState, key: CGKeyCode(kVK_Space)) { upSince = nil } else if upSince == nil { upSince = Date() }
@@ -732,7 +759,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             let heard = try await voice.finish()
             guard holdNumber == me else { return }                          // Esc while it was being read
             log.add("VOICE (held)  \"\(heard.text)\"", [
-                "Argmax WhisperKit \(Voice.modelName): \(sec(heard.heard)) of sound, \(sec(heard.voiced)) of it voice, read in \(sec(heard.seconds))",
+                "Argmax WhisperKit \(Voice.modelName): \(sec(heard.heard)) of sound, \(sec(heard.voiced)) of it voice, loudest \(String(format: "%.2f", heard.peak)) of 1, read in \(sec(heard.seconds))"
+                    + (voice.paddedRead ? " (nothing came of the short clip as it was: read again with silence around it)" : ""),
                 Voice.micFile.map { "the sound came from the file \($0), in place of the microphone" } ?? "",
                 heard.text.isEmpty ? (PushToTalk.caught(voiced: heard.voiced) ? "no words were made out" : "less than \(PushToTalk.voiceSeconds) s of voice: not read, nothing is done") : ""])
             guard !heard.text.isEmpty else {
@@ -781,7 +809,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 self.listenTimer?.invalidate()
                 self.listenTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30, repeats: true) { [weak self] timer in
                     guard let self, self.voice.listening else { return timer.invalidate() }
-                    self.overlay.hover(.listening)                         // stays with the mouse
+                    self.meterLevel = max(self.voice.level(), self.meterLevel * 0.84)
+                    self.overlay.hover(.listening, "Listening…  " + PushToTalk.meter(self.meterLevel))
                     if self.voice.saidAndQuiet || Date().timeIntervalSince(began) > 25 {
                         timer.invalidate()
                         Task { @MainActor in await self.finishVoice() }
@@ -930,7 +959,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// summarise); answered in words, or by pointing when it asks where something is; carried
     /// out as spelled ("click …, then type …"); or planned by the model one step at a time.
     /// `showOnly` never acts.
-    private func ask(_ request: String, showOnly: Bool, keepPointer: Bool = false) {
+    private func ask(_ said: String, showOnly: Bool, keepPointer: Bool = false) {
+        let request = Router.addressed(said)                                // "Clicky, …": the name is not part of the request
         stop(note: nil, keepPointer: keepPointer)
         overlay.say(.thinking, "", thinking: true)                          // out beside the cursor if it is not already
         runID += 1
@@ -1001,6 +1031,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             entry["heard_seconds"] = (heard.seconds * 100).rounded() / 100
             entry["sound_seconds"] = (heard.heard * 100).rounded() / 100
             entry["voiced_seconds"] = heard.voiced
+            entry["peak_level"] = (heard.peak * 100).rounded() / 100
         }
         session.append(entry)
         let path = (out as NSString).expandingTildeInPath
@@ -1021,7 +1052,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             }
         }
         var needsModel = true                                               // what needs no model does not wait for one
-        if case .direct(let steps) = route, !steps.contains(where: { $0.action == Recipes.draftEmail }) { needsModel = false }
+        if case .direct(let steps) = route, !steps.contains(where: { $0.action == Recipes.draftEmail || $0.action == "write_note" }) { needsModel = false }
         if case .answer = route, Talk.fact(request) != nil { needsModel = false }
         if case .text(let skill) = route, skill.instruction.isEmpty { needsModel = false }
         if needsModel { guard await makeReady(id: id) else { return } }
@@ -1073,7 +1104,9 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let item = before[i], path = "\(item.menu) > \(item.title)"
         let start = Date()
         overlay.say(.acting, captioned(1, "Choosing \(path)"))
-        guard await Task.detached(operation: { Access.menu(path: path) }).value else { return (false, nil) }
+        var chosen = await chooseMenuWithPointer(path)                      // with the pointer, on the screen
+        if !chosen { chosen = await Task.detached(operation: { Access.menu(path: path) }).value }
+        guard chosen else { return (false, nil) }
         try? await Task.sleep(nanoseconds: 900_000_000)
         guard alive(id) else { return (true, nil) }
         let after = await Task.detached { Access.menuCommands() }.value
@@ -1118,7 +1151,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             try? await Task.sleep(nanoseconds: 700_000_000)
             return
         }
-        let seconds = Launch.unattended ? min(seconds, 0.8) : seconds          // nobody is reading it
+        let seconds = Launch.unattended ? min(seconds, Launch.showRequests ? 2.0 : 0.8) : seconds     // nobody is reading it, unless it is being filmed
         try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
         guard alive(id) else { return }
         HotKeys.shared.unregister(id: HotKey.escape)
@@ -1210,6 +1243,27 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @MainActor private func showMe(_ request: String, id: Int) async {
         let start = Date()
         overlay.say(.thinking, "", thinking: true)
+        // What the Mac can name is found by its name, with no screenshot and (when one control
+        // is meant) no model: the pointer goes straight there.
+        if let found = await locate(NameSearch.target(of: request), request: "Click " + NameSearch.target(of: request)) {
+            guard alive(id) else { return }
+            let total = Date().timeIntervalSince(start)
+            log.add("SHOW ME  \"\(request)\"", ["found through Accessibility (\(found.by)): the \(found.role) named \"\(found.name)\" at screen \(pt(found.point)) pt; the screen was not read",
+                                               "total \(sec(total))"])
+            lastEnding = "Done: pointed at screen \(pt(found.point)) pt"
+            trace.append(["step": 1, "tool": "point", "line": request, "result": "ok", "x": (found.point.x * 10).rounded() / 10, "y": (found.point.y * 10).rounded() / 10,
+                          "plan_seconds": (total * 100).rounded() / 100, "found_by": found.by])
+            lastFoundBy = nil
+            overlay.point(at: found.point, .answer, "here!")
+            stampFlight()
+            let text = "The \(found.role) \"\(found.name)\"."
+            try? await Task.sleep(nanoseconds: 900_000_000)
+            guard alive(id) else { return }
+            overlay.say(.answer, text)
+            say(text)
+            await linger(10, id: id)
+            return
+        }
         do {
             let (sent, aheadNote) = try await firstLook(id: id)
             guard alive(id) else { return }
@@ -1245,8 +1299,9 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             log.add("SHOW ME  \"\(request)\"", lines)
             lastEnding = "Done: pointed at screen \(pt(p)) pt"
             trace.append(["step": 1, "tool": "point", "line": request, "result": "ok", "x": (p.x * 10).rounded() / 10, "y": (p.y * 10).rounded() / 10,
-                          "plan_seconds": (out.chat.seconds * 100).rounded() / 100, "pointer": out.pointer])
+                          "plan_seconds": (out.chat.seconds * 100).rounded() / 100, "pointer": out.pointer, "found_by": "pointer"])
             overlay.point(at: p, .answer, "here!")
+            stampFlight()
 
             if settings.sentence {
                 let answer = try await pipeline.sentence(imageURL: sent.url, request: request)
@@ -1317,8 +1372,11 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 var controls = listed.controls
                 var about = "the front window's \(controls.count) controls"
                 if let name = Talk.menu(question), let menu = await Task.detached(operation: { Access.menuList(named: name) }).value {
-                    controls = menu.controls
-                    about = "the \(controls.count) items of the \(menu.title == "menu bar" ? "menu bar" : menu.title + " menu")"
+                    // A question about a menu is answered from the menu itself: its items by name, with no model.
+                    let text = Skills.menuAnswer(title: name.isEmpty && menu.title != "menu bar" ? "" : menu.title, items: menu.controls.map(\.name))
+                    log.add("ANSWER  \"\(question)\"", ["from the \(menu.controls.count) items of the \(menu.title == "menu bar" ? "menu bar" : menu.title + " menu") themselves, with no model"])
+                    await tell(text, question: question, id: id, how: "the menu itself")
+                    return
                 } else if Talk.asksDock(question), !Apps.dock.isEmpty {
                     controls = Apps.dock.prefix(Planner.maxControls).enumerated().map { ListedControl(id: $0.offset + 1, role: "button", name: $0.element) }
                     about = "the \(controls.count) apps in the Dock"
@@ -1564,6 +1622,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @MainActor private func find(_ target: String, url: String, region: CGRect, what: String, shot: Shot? = nil) async throws -> (CGPoint?, Double) {
         let out = try await pipeline.point(imageURL: url, instruction: target, looks: settings.secondLook ? 2 : 1)
         lastPointer = out.pointer
+        lastFoundBy = "pointer"
         let p = out.answer.point.map { Geometry.screenPoint(grid: $0, region: region) }
         var line = "    \(what) \"\(target)\" (\(sec(out.chat.seconds)), \(out.chat.tokenNote)): model wrote \(out.chat.written)"
         if let g = out.answer.point, let p { line += " -> grid \(grid(g)) -> screen \(pt(p)) pt" } else { line += " -> NO POINT" }
@@ -1615,9 +1674,66 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     /// A step's place on screen when it names its target in words: found on a screenshot.
     @MainActor private func place(of target: String, what: String) async throws -> CGPoint? {
+        if let found = await locate(target, request: "Click " + target) {
+            log.add("    \(what) \"\(target)\": found through Accessibility (\(found.by)): the \(found.role) named \"\(found.name)\" at screen \(pt(found.point)) pt; the screen was not read")
+            return found.point
+        }
         overlay.say(.thinking, "looking for it", thinking: true)
         let sent = try await look()
         return try await find(target, url: sent.url, region: sent.shot.region, what: what, shot: sent.shot).0
+    }
+
+    /// Where a thing is, from what the Mac itself can name (Accessibility), with no screenshot:
+    ///  1. one control whose name is the target's words: its centre, at once;
+    ///  2. several that could be meant: one planning turn in text over just those picks one;
+    ///  3. nothing fits (nil): the caller has the pointer read the screenshot.
+    private struct Located {
+        let point: CGPoint
+        let by: String
+        let role: String
+        let name: String
+    }
+
+    @MainActor private func locate(_ target: String, request: String) async -> Located? {
+        guard settings.useLabels else { return nil }
+        let list = await Task.detached { Access.everything() }.value
+        let screen = CGRect(origin: .zero, size: NSScreen.screens.first?.frame.size ?? .zero)
+        let at = { (c: ListedControl, by: String) -> Located? in
+            let p = CGPoint(x: c.frame.midX, y: c.frame.midY)
+            guard screen.contains(p) else { return nil }
+            self.lastFoundBy = by
+            return Located(point: p, by: by, role: c.role, name: c.name)
+        }
+        switch NameSearch.search(target, in: list.controls.map(\.name)) {
+        case .one(let i):
+            return at(list.controls[i], "accessibility")
+        case .several(let places):
+            guard ready, places.count <= 24 else { return nil }
+            let candidates = places.enumerated().map { n, i in
+                ListedControl(id: n + 1, role: list.controls[i].role, name: list.controls[i].name, value: list.controls[i].value, frame: list.controls[i].frame)
+            }
+            guard let out = try? await pipeline.question(user: Planner.user(task: request, apps: Apps.list, frontApp: list.app, window: list.window, done: [], controls: candidates)),
+                  let step = out.step, ["click", "double_click", "right_click", "type", "look"].contains(step.action),
+                  let chosen = candidates.first(where: { $0.id == step.id }) else {
+                log.add("    \(candidates.count) controls could be meant by \"\(target)\" and a planning turn over them chose none: the screen is read")
+                return nil
+            }
+            log.add("    \(candidates.count) controls could be meant by \"\(target)\"; a planning turn over them (\(sec(out.chat.seconds))) chose \(chosen.id): \"\(chosen.name)\"")
+            return at(chosen, "planner over accessibility")
+        case .none:
+            return nil
+        }
+    }
+
+    /// Notes on the step recorded last whether the pointer flew for it, and from where to where.
+    private func stampFlight() {
+        guard !trace.isEmpty else { return }
+        let flown = overlay.takeFlights()
+        trace[trace.count - 1]["flew"] = !flown.isEmpty
+        if let first = flown.first, let last = flown.last {
+            trace[trace.count - 1]["flight_from"] = [(first.from.x * 10).rounded() / 10, (first.from.y * 10).rounded() / 10]
+            trace[trace.count - 1]["flight_to"] = [(last.to.x * 10).rounded() / 10, (last.to.y * 10).rounded() / 10]
+        }
     }
 
     /// One step of a task, kept for the log file of a batch run.
@@ -1626,7 +1742,15 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                                     "plan_seconds": (planSeconds * 100).rounded() / 100, "step_seconds": (stepSeconds * 100).rounded() / 100]
         if !tokens.isEmpty { entry["tokens"] = tokens }
         if let lastPointer { entry["pointer"] = lastPointer }               // a step that had something pointed at
+        if let lastFoundBy { entry["found_by"] = lastFoundBy }
+        let flown = overlay.takeFlights()                                   // where the pointer went for this step
+        entry["flew"] = !flown.isEmpty
+        if let first = flown.first, let last = flown.last {
+            entry["flight_from"] = [(first.from.x * 10).rounded() / 10, (first.from.y * 10).rounded() / 10]
+            entry["flight_to"] = [(last.to.x * 10).rounded() / 10, (last.to.y * 10).rounded() / 10]
+        }
         lastPointer = nil
+        lastFoundBy = nil
         trace.append(entry)
     }
 
@@ -1638,10 +1762,12 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case "open_app":
             let said = step.app ?? ""
             if let name = Apps.resolve(said) ?? (Places.resolve(said) == nil ? Apps.nearest(said) : nil) {
+                await clickInDock(name)
                 let state = await Apps.openInFront(name)
                 guard state.opened else { return "\(name) could not be opened" }
                 lastOpened = name
                 guard state.front else { return "\(name) was opened but did not come to the front" }
+                await flyToWindow(of: name)
                 if !state.window, name == "Finder" {                           // the Finder is always running: a window is what was meant
                     await perform(Step(action: .key, keys: ["cmd", "n"]), at: nil, to: nil)
                     try? await Task.sleep(nanoseconds: 900_000_000)
@@ -1665,24 +1791,47 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             return await Apps.open(link: said, in: browser) ? nil : "that link could not be opened"
         case "menu":
             let path = step.path ?? ""
+            if await chooseMenuWithPointer(path) { return nil }             // with the pointer, on the screen
             return await Task.detached { Access.menu(path: path) }.value ? nil : "there is no menu item \(path)"
         case "side_by_side":
             let left = step.app ?? "", right = step.target ?? ""
+            await clickInDock(right)
             let openedRight = await Apps.openInFront(right).opened
+            await clickInDock(left)
             let openedLeft = await Apps.openInFront(left).opened
             guard openedRight, openedLeft else { return "\(openedLeft ? right : left) could not be opened" }
             try? await Task.sleep(nanoseconds: 400_000_000)
             let area = Mac.usableScreen()
             let half = CGSize(width: area.width / 2, height: area.height)
-            return await Task.detached {
-                Access.place(app: right, in: CGRect(origin: CGPoint(x: area.midX, y: area.minY), size: half))
-                    ?? Access.place(app: left, in: CGRect(origin: area.origin, size: half))
-            }.value
+            // the pointer goes with each window to its half
+            _ = overlay.point(at: CGPoint(x: area.minX + area.width * 0.75, y: area.minY + 60), .acting, "\(right) to the right")
+            let failedRight = await Task.detached { Access.place(app: right, in: CGRect(origin: CGPoint(x: area.midX, y: area.minY), size: half)) }.value
+            if let failedRight { return failedRight }
+            try? await Task.sleep(nanoseconds: 700_000_000)
+            _ = overlay.point(at: CGPoint(x: area.minX + area.width * 0.25, y: area.minY + 60), .acting, "\(left) to the left")
+            let failedLeft = await Task.detached { Access.place(app: left, in: CGRect(origin: area.origin, size: half)) }.value
+            try? await Task.sleep(nanoseconds: 600_000_000)
+            return failedLeft
+        case "window_button":
+            let kind = step.target ?? "minimize"
+            guard Events.allowed(prompt: true) else { return "Accessibility is not allowed, so nothing can be clicked" }
+            if let name = step.app, !name.isEmpty {                         // "minimize Safari": that app's window, so it comes to the front first
+                guard await Apps.open(name) else { return "\(name) could not be brought to the front" }
+                _ = await inFront(name)
+            }
+            let saying = kind == "close" ? "Closing the window" : kind == "zoom" ? "Going full screen" : "Minimizing the window"
+            if let p = await Task.detached(operation: { Access.windowButton(kind) }).value {
+                await fly(to: p, saying, click: true)                       // the pointer goes to the button in the window's corner and presses it
+            } else {                                                        // a window with no such button: the shortcut
+                await perform(Step(action: .key, keys: kind == "close" ? ["cmd", "w"] : kind == "zoom" ? ["ctrl", "cmd", "f"] : ["cmd", "m"]), at: nil, to: nil)
+            }
+            return nil
         case "window":
             let area = Mac.usableScreen(), side = step.direction ?? "full"
             return await Task.detached { Access.moveFrontWindow(to: side, within: area) }.value
         case "appearance":
             let dark = step.text == "toggle" ? !Mac.isDark : step.text == "dark"
+            if await clickAppearance(dark: dark) { return nil }             // chosen with the pointer in System Settings
             return await Task.detached { Mac.setAppearance(dark: dark) }.value
         case "volume": return Mac.setVolume(step.text ?? "")
         case "new_folder": return Mac.newFolder(named: step.text ?? "New Folder", in: step.target ?? "desktop")
@@ -1690,6 +1839,45 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             if let failure = Mac.reveal(step.target ?? "") { return failure }
             return await inFront("Finder") ? nil : "the Finder did not come to the front with the folder"
         case "calendar_event": return await addCalendarEvent(kind: step.target ?? "event", rest: step.text ?? "")
+        case "present": return await present()
+        case "caption_video": return await captionVideo()
+        case "play_video":
+            let place = step.target ?? ""
+            guard let movie = Media.newestMovie(in: place) else { return "there is no video " + (place.isEmpty ? "in Movies, on the Desktop or in Downloads" : "in \(place)") }
+            // the video alone on the screen: the other apps are hidden (they are not closed), which also uncovers the Desktop
+            let mine = ProcessInfo.processInfo.processIdentifier
+            for other in NSWorkspace.shared.runningApplications where other.activationPolicy == .regular && other.processIdentifier != mine
+                && other.bundleIdentifier != "com.apple.QuickTimePlayerX" && other.bundleIdentifier != "com.apple.finder" && !other.isHidden {
+                other.hide()
+            }
+            // its icon on the Desktop is double-clicked; if it cannot be seen there, the file is opened as it is
+            let clicked = await doubleClickOnDesktop(movie.path, caption: "Opening the video")
+            let player = URL(fileURLWithPath: "/System/Applications/QuickTime Player.app")
+            var opened = clicked ? await inFront("QuickTime Player") : false
+            if !opened {
+                opened = await withCheckedContinuation { done in
+                    NSWorkspace.shared.open([movie], withApplicationAt: player, configuration: NSWorkspace.OpenConfiguration()) { app, _ in done.resume(returning: app != nil) }
+                }
+                opened = opened ? await inFront("QuickTime Player") : false
+            }
+            guard opened else { return "the video could not be opened in QuickTime Player" }
+            try? await Task.sleep(nanoseconds: 700_000_000)
+            // whatever is still showing behind it goes too: the player's own Hide Others
+            await perform(Step(action: .key, keys: ["cmd", "alt", "h"]), at: nil, to: nil)
+            try? await Task.sleep(nanoseconds: 600_000_000)
+            let area = Mac.usableScreen()
+            _ = await Task.detached { Access.moveFrontWindow(to: "full", within: area) }.value
+            try? await Task.sleep(nanoseconds: 600_000_000)
+            // Play is pressed with the pointer when the player shows such a button; else the space bar
+            let controls = await Task.detached { Access.screenList().controls }.value
+            if let play = controls.first(where: { $0.name == "Play" || $0.name == "play" }) {
+                await fly(to: CGPoint(x: play.frame.midX, y: play.frame.midY), "Pressing Play", click: true)
+            } else {
+                await perform(Step(action: .key, keys: ["space"]), at: nil, to: nil)
+            }
+            stepNote = "\(movie.lastPathComponent) is playing in QuickTime Player"
+            return nil
+        case "write_note": return await writeNote(step.target ?? "abilities")
         case "rename_file":
             let name = step.target ?? "", place = step.app ?? "", new = step.text ?? ""
             return await Task.detached { Mac.renameFile(name, in: place, to: new) }.value
@@ -1700,6 +1888,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             let sum = step.text ?? ""
             guard let value = Arithmetic.value(sum) else { return "\(sum) is not a sum that can be worked out" }
             guard Events.allowed(prompt: true) else { return "Accessibility is not allowed, so keys cannot be pressed" }
+            await clickInDock("Calculator")
             let state = await Apps.openInFront("Calculator")
             guard state.opened, state.front, let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier else { return "Calculator could not be brought to the front" }
             await perform(Step(action: .key, keys: ["escape"]), at: nil, to: nil)          // clear what is there
@@ -1724,6 +1913,10 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             // a click the typing would be added to its end: "New FolderGroceries"). Not when the
             // step before was typing too and this one goes on where that left off.
             let focus = await Task.detached { Access.focus() }.value
+            if p == nil, let field = focus?.frame, field.width > 4 {         // typing where the keyboard already is: the pointer goes to that field
+                let flight = overlay.point(at: CGPoint(x: field.minX + min(field.width / 2, 60), y: field.midY), .acting, "Typing")
+                try? await Task.sleep(nanoseconds: UInt64((max(flight, 0.35) + 0.15) * 1_000_000_000))
+            }
             if let focus, focus.line, !focus.value.isEmpty, !(lastCarried == "type" && p == nil) {
                 log.add("    the field already holds \(focus.value.count) character(s): all selected first, so the typing replaces them")
                 await perform(Step(action: .key, keys: ["cmd", "a"]), at: nil, to: nil)
@@ -1756,6 +1949,87 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         default: await perform(Step(action: .click, target: "it"), at: p, to: nil)
         }
         return nil
+    }
+
+    /// A menu command chosen the way a person chooses it: the pointer goes to the menu's
+    /// title and clicks it, the menu opens on the screen, the pointer goes to the item and
+    /// clicks it. False when it could not be done so (the caller then chooses the item through
+    /// Accessibility); a menu that was opened and did not show the item is closed again.
+    @MainActor private func chooseMenuWithPointer(_ path: String) async -> Bool {
+        let parts = path.split(separator: ">").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        guard parts.count == 2, Events.allowed(prompt: false) else { return false }
+        let menu = parts[0], item = parts[1]
+        guard let title = await Task.detached(operation: { Access.menuTitlePoint(menu) }).value else { return false }
+        await fly(to: title, "Opening the \(menu) menu", click: true)
+        try? await Task.sleep(nanoseconds: 450_000_000)
+        guard let place = await Task.detached(operation: { Access.openMenuItemPoint(menu: menu, item: item) }).value else {
+            await perform(Step(action: .key, keys: ["esc"]), at: nil, to: nil)
+            try? await Task.sleep(nanoseconds: 250_000_000)
+            return false
+        }
+        await fly(to: place, "Choosing \(item)", click: true)
+        return true
+    }
+
+    /// A step that had no place on the screen of its own (a switch of the system, a key, a
+    /// link, a file made) still moves the pointer: to where its result shows. The Dock for a
+    /// Dock setting, the menu bar's controls for the volume and the appearance, a new folder's
+    /// icon on the Desktop, and otherwise the title bar of the window in front.
+    @MainActor private func showResult(of step: PlannedStep) async {
+        let screen = NSScreen.screens.first?.frame.size ?? .zero
+        guard screen.width > 0 else { return }
+        var p: CGPoint?
+        switch step.action {
+        case "dock":
+            let side = step.target == "position" ? (step.text ?? "bottom") : "bottom"
+            p = side == "left" ? CGPoint(x: 28, y: screen.height / 2) : side == "right" ? CGPoint(x: screen.width - 28, y: screen.height / 2)
+                : CGPoint(x: screen.width / 2, y: screen.height - 34)
+        case "volume", "appearance":
+            p = CGPoint(x: screen.width - 78, y: 13)
+        case "new_folder" where (step.target ?? "desktop") == "desktop":
+            let name = step.text ?? "New Folder"
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            p = await Task.detached { Access.desktopIcon(name) }.value
+        default: break
+        }
+        if p == nil, let name = NSWorkspace.shared.frontmostApplication?.localizedName,
+           let frame = await Task.detached(operation: { Access.windowFrame(app: name) }).value {
+            p = CGPoint(x: frame.midX, y: frame.minY + 15)
+        }
+        guard let p else { return }
+        let flight = overlay.point(at: p, .acting, Captions.step(step, control: nil))
+        try? await Task.sleep(nanoseconds: UInt64((max(flight, 0.35) + 0.3) * 1_000_000_000))
+    }
+
+    /// The pointer goes to where a step acts, so that what is done can be followed: it flies
+    /// there with the step's caption, and (with `click`) presses it.
+    @MainActor private func fly(to p: CGPoint, _ caption: String, click: Bool = false) async {
+        let flight = overlay.point(at: p, .acting, caption)
+        try? await Task.sleep(nanoseconds: UInt64((max(flight, 0.4) + 0.3) * 1_000_000_000))
+        if click {
+            await perform(Step(action: .click, target: "it"), at: p, to: nil)
+            try? await Task.sleep(nanoseconds: 250_000_000)
+        }
+    }
+
+    /// An app that is in the Dock is opened the way a person opens it: the pointer flies to
+    /// its icon and clicks it. (The app is then brought to the front whatever the click did.)
+    @MainActor private func clickInDock(_ name: String) async {
+        guard Events.allowed(prompt: false) else { return }
+        if let p = await Task.detached(operation: { Access.dockIcon(name) }).value {
+            await fly(to: p, "Opening \(name)", click: true)
+        } else {                                                            // a hidden Dock, or an app that is not in it: the pointer still goes down to where the Dock is
+            let area = Mac.usableScreen()
+            let flight = overlay.point(at: CGPoint(x: area.midX, y: area.maxY - 10), .acting, "Opening \(name)")
+            try? await Task.sleep(nanoseconds: UInt64((max(flight, 0.35) + 0.3) * 1_000_000_000))
+        }
+    }
+
+    /// After an app has come to the front the pointer goes up to its window, so it is seen arriving there.
+    @MainActor private func flyToWindow(of name: String) async {
+        guard let f = await Task.detached(operation: { Access.windowFrame(app: name) }).value, f.width > 40 else { return }
+        let flight = overlay.point(at: CGPoint(x: f.midX, y: f.minY + 30), .acting, "\(name) is open")
+        try? await Task.sleep(nanoseconds: UInt64((max(flight, 0.35) + 0.2) * 1_000_000_000))
     }
 
     /// Waits until the named app is in front (bringing it forward if it is running but behind).
@@ -1868,6 +2142,191 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         return wrong ? "System Settings has no \(pane.name) pane that could be opened (it shows \"\(title)\")" : nil
     }
 
+    /// A file whose icon is on the Desktop and not covered by a window is opened the way a
+    /// person opens it: the pointer flies to the icon and double-clicks it. False when the
+    /// icon cannot be seen (the caller then opens the file itself).
+    @MainActor private func doubleClickOnDesktop(_ path: String, caption: String) async -> Bool {
+        let url = URL(fileURLWithPath: path)
+        guard url.deletingLastPathComponent().path == NSHomeDirectory() + "/Desktop", Events.allowed(prompt: false) else { return false }
+        let name = url.lastPathComponent
+        try? await Task.sleep(nanoseconds: 500_000_000)                     // what was hidden is out of the way
+        guard let icon = await Task.detached(operation: { Access.desktopIcon(name) }).value,
+              await Task.detached(operation: { Access.shows(icon, of: "com.apple.finder") }).value else { return false }
+        let flight = overlay.point(at: icon, .acting, caption)
+        try? await Task.sleep(nanoseconds: UInt64((max(flight, 0.4) + 0.3) * 1_000_000_000))
+        await perform(Step(action: .double_click, target: "it"), at: icon, to: nil)
+        log.add("    the pointer double-clicked \(name) on the Desktop at screen \(pt(icon)) pt")
+        return true
+    }
+
+    /// Dark or light appearance chosen the way a person chooses it: System Settings is opened
+    /// at Appearance, and the pointer clicks Dark (or Light). True when the Mac then reads so;
+    /// false leaves it to the system's own switch.
+    @MainActor private func clickAppearance(dark: Bool) async -> Bool {
+        guard Events.allowed(prompt: false), let pane = Places.pane("Appearance") else { return false }
+        if Mac.darkNow() == dark { return true }
+        await clickInDock("System Settings")
+        guard await Apps.open(link: pane.url, in: nil), await inFront("System Settings"), await settled(on: pane.url) == nil else { return false }
+        try? await Task.sleep(nanoseconds: 900_000_000)
+        let wanted = dark ? "Dark" : "Light"
+        let list = await Task.detached { Access.screenList() }.value
+        // the first row of choices is the appearance (on macOS 26 a second row, for icons, has a Dark of its own)
+        guard let choice = list.controls.filter({ $0.name == wanted }).min(by: { $0.frame.minY < $1.frame.minY }) else { return false }
+        await fly(to: CGPoint(x: choice.frame.midX, y: choice.frame.midY), "Choosing \(wanted)", click: true)
+        try? await Task.sleep(nanoseconds: 1_200_000_000)
+        let took = Mac.darkNow() == dark
+        log.add("    \(wanted) was clicked in System Settings > Appearance; the Mac now reads \(took ? wanted.lowercased() : "as before")")
+        NSWorkspace.shared.runningApplications.first { $0.bundleIdentifier == "com.apple.systempreferences" }?.hide()
+        return took
+    }
+
+    /// "Bring up the presentation": what is in front is hidden, the deck is opened in its
+    /// own app (a link in the browser) and its window is made to fill the screen. In Keynote
+    /// the slideshow is started in a window, so that what comes next can be seen over it.
+    @MainActor private func present() async -> String? {
+        guard let target = Mac.presentation() else {
+            return "there is no presentation to show: put the deck in ~/Bonsai-demo/demo, or name a file or a link with --presentation"
+        }
+        let front = NSWorkspace.shared.frontmostApplication
+        let mine = ProcessInfo.processInfo.processIdentifier
+        var hidden: pid_t?
+        if let front, front.bundleIdentifier != "com.apple.finder", front.processIdentifier != mine {
+            front.hide()
+            hidden = front.processIdentifier
+        }
+        let isLink = target.contains("://")
+        var opened = false
+        if !isLink, await doubleClickOnDesktop(target, caption: "Opening the presentation") { opened = true }
+        if !opened { opened = isLink ? await Apps.open(link: target, in: nil) : NSWorkspace.shared.open(URL(fileURLWithPath: target)) }
+        guard opened else { return "the presentation could not be opened (\(target))" }
+        var shown: NSRunningApplication?
+        for i in 0..<40 {                                                   // up to 10 s for its app to come forward with a window
+            try? await Task.sleep(nanoseconds: 250_000_000)
+            guard let now = NSWorkspace.shared.frontmostApplication, now.processIdentifier != mine, Access.hasWindow(now.processIdentifier) else { continue }
+            if now.processIdentifier != hidden || i >= 8 { shown = now; break }
+        }
+        guard let shown else { return "the presentation was opened, but no window of it came to the front" }
+        try? await Task.sleep(nanoseconds: 700_000_000)
+        let name = shown.localizedName ?? "its app"
+        let choose = { (path: String) async -> Bool in await Task.detached { Access.menu(path: path) }.value }
+        var playing = false
+        if name == "Keynote" {
+            if await choose("Play > Play Slideshow in Window") { playing = true }
+            else {
+                _ = await choose("Play > In Window")
+                playing = await choose("Play > Play Slideshow")
+            }
+            try? await Task.sleep(nanoseconds: 900_000_000)
+        } else if name == "Preview" {
+            _ = await choose("View > Hide Sidebar")
+            _ = await choose("View > Single Page")
+        }
+        let area = Mac.usableScreen()
+        let moved = await Task.detached { Access.moveFrontWindow(to: "full", within: area) }.value
+        if name == "Preview" { _ = await choose("View > Zoom to Fit") }
+        stepNote = "the presentation is showing in \(name)" + (playing ? ", playing in a window" : "") + (moved == nil ? ", filling the screen" : "")
+        return nil
+    }
+
+    /// "Caption the video I just recorded": the newest recording's sound is read by the
+    /// speech model on this Mac (Argmax WhisperKit, with the time of each stretch), its words
+    /// are drawn on a copy as subtitles, a subtitle file is written beside the copy, and the
+    /// copy is opened playing. The recording itself is not changed.
+    @MainActor private func captionVideo() async -> String? {
+        guard let movie = Media.newestMovie() else { return "no recording was found in Movies, on the Desktop or in Downloads" }
+        let start = Date()
+        do {
+            overlay.say(.acting, captioned(1, "Listening to your recording"))
+            let samples = try await Media.samples(of: movie)
+            guard PushToTalk.caught(voiced: PushToTalk.voicedSeconds(samples)) else { return "nobody speaks in the newest recording" }
+            overlay.say(.acting, captioned(2, "Writing the subtitles, on this Mac"))
+            let heard = try await voice.captions(samples)
+            let lines = Subtitles.lines(heard)
+            guard !lines.isEmpty else { return "no words were made out in the newest recording" }
+            let read = Date().timeIntervalSince(start)
+            overlay.say(.acting, captioned(3, "Putting them on the video"))
+            let out = Media.captionedURL(for: movie)
+            try? Subtitles.srt(lines).write(to: out.deletingPathExtension().appendingPathExtension("srt"), atomically: true, encoding: .utf8)
+            if let failure = await Media.burn(lines, into: movie, to: out) { return failure }
+            log.add("    \(sec(Double(samples.count) / 16000)) of sound read by Argmax WhisperKit \(Voice.modelName) in \(sec(read)): \(lines.count) subtitles; "
+                    + "the copy was written in \(sec(Date().timeIntervalSince(start) - read))")
+            overlay.say(.acting, captioned(4, "Opening it"))
+            let player = URL(fileURLWithPath: "/System/Applications/QuickTime Player.app")
+            let opened: Bool = await withCheckedContinuation { done in
+                NSWorkspace.shared.open([out], withApplicationAt: player, configuration: NSWorkspace.OpenConfiguration()) { app, _ in done.resume(returning: app != nil) }
+            }
+            if opened, await inFront("QuickTime Player") {
+                try? await Task.sleep(nanoseconds: 900_000_000)
+                await perform(Step(action: .key, keys: ["space"]), at: nil, to: nil)        // play
+            }
+            stepNote = "\(lines.count) subtitles are on a copy in Movies, which is \(opened ? "open and playing" : "not open")"
+            return nil
+        } catch {
+            return "the recording could not be captioned (\(error))"
+        }
+    }
+
+    /// "Write down what you can help me with": the model writes a few short lines, and the
+    /// app opens a new note in Notes and types them so that they can be watched appearing.
+    @MainActor private func writeNote(_ topic: String) async -> String? {
+        guard Events.allowed(prompt: true) else { return "Accessibility is not allowed, so nothing can be typed" }
+        overlay.say(.thinking, "writing it", thinking: true)
+        var lines: [String] = []
+        var source = "written by the model"
+        if let written = try? await pipeline.write(Skills.notePrompt(topic), maxTokens: 140) {
+            lines = Skills.noteLines(written.content)
+            log.add("    the note's lines, by the model in \(sec(written.seconds)) (\(written.tokenNote)): \(written.written)")
+        }
+        if lines.count < 2 {
+            guard topic == "abilities" else { return "the model wrote nothing that could be used for the note" }
+            lines = Skills.abilityLines
+            source = "the model wrote nothing usable: the app's own four lines"
+        }
+        await clickInDock("Notes")
+        let state = await Apps.openInFront("Notes")
+        guard state.opened, state.front, let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier else { return "Notes could not be brought to the front" }
+        // a new note: the New Note button pressed with the pointer when it is there, else command-N
+        let buttons = await Task.detached { Access.screenList().controls }.value
+        if let new = buttons.first(where: { $0.name == "New Note" }) {
+            await fly(to: CGPoint(x: new.frame.midX, y: new.frame.midY), "New note", click: true)
+        } else {
+            await perform(Step(action: .key, keys: ["cmd", "n"]), at: nil, to: nil)
+        }
+        try? await Task.sleep(nanoseconds: 1_000_000_000)
+        if let frame = await Task.detached(operation: { Access.windowFrame(app: "Notes") }).value {      // the pointer goes to where it writes
+            _ = overlay.point(at: CGPoint(x: frame.minX + frame.width * 0.72, y: frame.minY + min(190, frame.height * 0.4)), .acting, "Writing a note")
+            try? await Task.sleep(nanoseconds: 700_000_000)
+        }
+        let title = Skills.noteTitle(topic)
+        for piece in Skills.typingPieces(([title] + lines).joined(separator: "\n")) {
+            guard !Events.cancelled else { break }
+            await perform(Step(action: .type, text: piece), at: nil, to: nil)
+            try? await Task.sleep(nanoseconds: piece.hasSuffix("\n") ? 220_000_000 : 45_000_000)
+        }
+        try? await Task.sleep(nanoseconds: 600_000_000)
+        guard await Task.detached(operation: { Access.frontWindowSays(pid, title) }).value else { return "the note was typed, but Notes does not show it" }
+        stepNote = "a note titled \"\(title)\" with \(lines.count) lines, \(source)"
+        return nil
+    }
+
+    /// After a mailto link was opened: is there a draft? The app that takes mail links must
+    /// be showing a message with the draft's subject. A mail app with no account shows its
+    /// "add an account" sheet instead, and then nothing was drafted.
+    @MainActor private func draftProblem(subject: String) async -> String? {
+        guard let handler = NSWorkspace.shared.urlForApplication(toOpen: URL(string: "mailto:someone@example.com")!) else { return "this Mac has no app for email" }
+        let name = handler.deletingPathExtension().lastPathComponent
+        for _ in 0..<16 {                                                   // up to 4 s for the window
+            if let pid = NSWorkspace.shared.runningApplications.first(where: { $0.bundleURL?.standardizedFileURL == handler.standardizedFileURL })?.processIdentifier {
+                if await Task.detached(operation: { Access.anyWindowSays(pid, subject) }).value { return nil }
+                if await Task.detached(operation: { Access.anyWindowSays(pid, "account") }).value {
+                    return "\(name) has no account set up, so no draft could be opened"
+                }
+            }
+            try? await Task.sleep(nanoseconds: 250_000_000)
+        }
+        return "no draft came up in \(name)"
+    }
+
     /// Plain requests that need no planning: open an app, open a site, search the web, draft
     /// an email. The model is used only to write the few lines of the draft; nothing is sent.
     @MainActor private func runRecipe(_ request: String, steps: [PlannedStep], id: Int) async {
@@ -1888,9 +2347,19 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                                                          + "no subject line, no notes, and sign it with the word Thanks.")
                     guard alive(id) else { return }
                     wrote = draft.seconds
-                    let inBrowser = lastOpened.map { Apps.browsers.contains($0) } ?? false
-                    let subject = about.prefix(1).uppercased() + about.dropFirst()
-                    step = PlannedStep(action: "open_url", app: inBrowser ? lastOpened : nil,
+                    // A browser named in the request ("… in Safari"), or one just opened, takes the draft
+                    // (Gmail's compose page); otherwise the Mac's mail app does.
+                    var topic = about
+                    var browser = lastOpened.flatMap { Apps.browsers.contains($0) ? $0 : nil }
+                    if let named = Skills.namedBrowser(about, app: Apps.resolve) {
+                        topic = named.rest
+                        browser = named.browser
+                    }
+                    let inBrowser = browser != nil
+                    let subject = topic.prefix(1).uppercased() + topic.dropFirst()
+                    draftSubject = inBrowser ? nil : subject
+                    draftNote = inBrowser ? "the draft is Gmail's compose page in \(browser ?? "")" : "the draft is in the Mac's mail app"
+                    step = PlannedStep(action: "open_url", app: browser,
                                        url: Recipes.emailLink(to: to, subject: subject, body: draft.content, inBrowser: inBrowser))
                     log.add("    draft written by the model in \(sec(draft.seconds)) (\(draft.tokenNote))", [draft.content])
                 }
@@ -1899,8 +2368,14 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     : Skills.caption(step) ?? Planner.doneLine(step, control: nil)
                 overlay.say(.acting, captioned(i + 1, Captions.step(step, control: nil)))
                 stepNote = nil
-                let failure = await carryOut(step, at: nil)
+                var failure = await carryOut(step, at: nil)
                 guard alive(id) else { return }
+                if failure == nil, !overlay.hasFlown { await showResult(of: step) }      // the pointer goes to where the result shows
+                if planned.action == Recipes.draftEmail, failure == nil {
+                    // Was a draft really opened? The mail app must show a message with that subject.
+                    if let subject = draftSubject { failure = await draftProblem(subject: subject) }
+                    if failure == nil { stepNote = draftNote }
+                }
                 let took = Date().timeIntervalSince(start)
                 log.add("Step \(i + 1) (direct)", ["tool: \(step.action)", "step: \(line)", failure.map { "FAILED: \($0)" } ?? "done in \(sec(took))"])
                 record(i + 1, step, line: line, result: failure ?? "ok", planSeconds: wrote, stepSeconds: took)
@@ -1909,7 +2384,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     // The direct route did not have its effect. Unless nothing can be done at all
                     // (no permission), the planner takes the request over, told what was tried.
                     told.append(doneLine + " (\(failure))")
-                    if !failure.contains("Accessibility is not allowed"), !settings.plainStepPrompt, await makeReady(id: id) {
+                    if !failure.contains("Accessibility is not allowed"), !failure.contains("has no account"), !settings.plainStepPrompt, await makeReady(id: id) {
                         log.add("    the direct route did not finish (\(failure)): the planner takes the request over")
                         handedOver = true
                         await runPlanner(request, id: id, already: told)
@@ -1974,6 +2449,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 try Task.checkCancellation()
                 overlay.say(.thinking, "", thinking: true)
                 lastPointer = nil
+                lastFoundBy = nil
                 let start = Date()
                 let listed = screen
                 let out = try await pipeline.plan(user: Planner.user(task: goal, apps: Apps.list, frontApp: listed.app, window: listed.window,
@@ -2118,6 +2594,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 stepNote = nil
                 let failure = await carryOut(step, at: p, to: q)
                 guard alive(id) else { return }
+                if failure == nil, p == nil, !overlay.hasFlown { await showResult(of: step) }   // a key, a link, a menu: the pointer still goes to where it shows
                 if let failure {
                     done.append(line + " (\(failure))")
                     budget.record(step, changed: false)
@@ -2280,7 +2757,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             guard self.ready else { return end(3, "the server is not ready: \(self.readiness)") }
 
             var failed = 0
-            for (number, request) in requests.enumerated() {
+            for (number, said) in requests.enumerated() {
+                let request = Router.addressed(said)
                 self.trace = []
                 self.lastEnding = ""
                 self.lastSpoken = ""
@@ -2291,6 +2769,10 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     case .direct, .scripted: route = .plan
                     default: break
                     }
+                }
+                if Launch.showRequests {                                // what is asked, where the pointer is, before it is done
+                    self.overlay.say(.heard, "\"\(request.count > 60 ? String(request.prefix(58)) + "…" : request)\"")
+                    try? await Task.sleep(nanoseconds: 1_800_000_000)
                 }
                 self.ask(request, showOnly: false)
                 let running = self.run
@@ -2324,11 +2806,12 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     entry["heard_seconds"] = (spoken.seconds * 100).rounded() / 100
                     entry["sound_seconds"] = (spoken.heard * 100).rounded() / 100
                     entry["voiced_seconds"] = spoken.voiced
+                    entry["peak_level"] = (spoken.peak * 100).rounded() / 100
                 }
                 results.append(entry)
                 write()
                 self.overlay.hideAll()
-                try? await Task.sleep(nanoseconds: 1_500_000_000)
+                try? await Task.sleep(nanoseconds: UInt64(max(0, Launch.pause ?? 1.5) * 1_000_000_000))
             }
             end(failed == 0 ? 0 : 1, "finished: \(requests.count - failed) of \(requests.count) request(s) ended well; steps written to \(out)")
         }
@@ -2380,10 +2863,9 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     step = rest.removeFirst()
                     queue = rest
                     var lines = ["step: \(step.historyLine)"]
-                    if settings.useLabels, step.isClick, let target = step.target,
-                       let hit = await Task.detached(operation: { Access.find(named: target) }).value {
-                        labelled = hit.center
-                        lines.append("found by label: the \(hit.role) named \"\(hit.name)\" at screen \(pt(hit.center)) pt; the screen was not read")
+                    if settings.useLabels, step.isClick, let target = step.target, let hit = await locate(target, request: "Click " + target) {
+                        labelled = hit.point
+                        lines.append("found through Accessibility (\(hit.by)): the \(hit.role) named \"\(hit.name)\" at screen \(pt(hit.point)) pt; the screen was not read")
                     } else if step.isClick || step.action == .drag || (step.action == .scroll && step.target != nil) {
                         overlay.say(.thinking, "", thinking: true)
                         let look = try await stepLook(first: !looked, carried: carried, id: id)
@@ -2476,7 +2958,9 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 var entry: [String: Any] = ["step": n, "tool": step.action.rawValue, "line": step.historyLine, "result": "ok",
                                             "plan_seconds": ((asked + pointing) * 100).rounded() / 100, "step_seconds": (Date().timeIntervalSince(start) * 100).rounded() / 100]
                 if let lastPointer { entry["pointer"] = lastPointer }
+                if let lastFoundBy { entry["found_by"] = lastFoundBy }
                 lastPointer = nil
+                lastFoundBy = nil
                 trace.append(entry)
                 try await Task.sleep(nanoseconds: 900_000_000)                    // let the screen settle
                 if !step.isClick { carried = nil }

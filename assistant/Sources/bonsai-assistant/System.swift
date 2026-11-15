@@ -45,6 +45,12 @@ enum Launch {
     /// A helper that only points (Bonsai-Pruned 4B behind a small local server), for example
     /// http://127.0.0.1:1235. Unset: the language model points, as always.
     static let pointerURL = value("--pointer-url", "BONSAI_POINTER_URL")
+    /// Seconds between the requests of a batch (default 1.5), and whether each request is
+    /// shown beside the pointer before it is carried out (for a run that is being filmed).
+    static let pause = value("--pause", "BONSAI_BATCH_PAUSE").flatMap { Double($0) }
+    static let showRequests = on("--show-requests", "BONSAI_SHOW_REQUESTS")
+    /// What "bring up the presentation" shows: a file (a deck, a PDF) or a link.
+    static let presentation = value("--presentation", "BONSAI_PRESENTATION")
     /// A sound file read in place of the microphone, wherever the app would listen (for trying
     /// the voice path with no microphone: the hotkey is held as usual, the file is what is heard).
     static let micFile = value("--mic-file", "BONSAI_MIC_FILE").map { ($0 as NSString).expandingTildeInPath }

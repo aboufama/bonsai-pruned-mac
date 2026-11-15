@@ -41,20 +41,25 @@ def wilson(k, n, z=1.96):
     return (round(100 * max(0, c - h), 1), round(100 * min(1, c + h), 1))
 
 
-def sampled(model, messages, tools, k, temperature):
-    """One answer drawn at a temperature (the wrapper of bench/models.py answers greedily)."""
-    orig = model._generate
+def sampled(model, messages, tools, k, temperature, count=1):
+    """Answers drawn at a temperature in one generate call (the wrapper of bench/models.py answers greedily).
+    The message is the first draw; the raw texts of the others are in its "more"."""
+    orig, rest = model._generate, []
 
     def gen(inputs, max_new_tokens):
         n = inputs["input_ids"].shape[1]
         with model.torch.inference_mode():
-            out = model.model.generate(**inputs, max_new_tokens=max_new_tokens, do_sample=True, temperature=temperature, top_p=1.0, top_k=0, use_cache=True, eos_token_id=model.stop_ids)
+            out = model.model.generate(**inputs, max_new_tokens=max_new_tokens, do_sample=True, temperature=temperature, top_p=1.0, top_k=0, use_cache=True, eos_token_id=model.stop_ids,
+                                       num_return_sequences=count)
+        rest.extend(out[1:, n:])
         return out[0, n:], n
     model._generate = gen
     try:
-        return model.chat(messages, tools=tools, max_new_tokens=k)
+        msg = model.chat(messages, tools=tools, max_new_tokens=k)
     finally:
         model._generate = orig
+    msg["more"] = [model.processor.decode(seq, skip_special_tokens=False) for seq in rest]
+    return msg
 
 
 def episodes(a):
@@ -120,8 +125,13 @@ def main():
     ap.add_argument("--system-file", help="a file whose text replaces the shipped system text")
     ap.add_argument("--app-rules", action="store_true", help="the app's loop rules: no second Return in a row, a click without effect once more")
     ap.add_argument("--assistant", action="store_true", help="the planner inside the assistant: all the rules of build b336837 around it (planmode.rollout_app)")
+    ap.add_argument("--vote", action="store_true", help="with --assistant: three answers a turn (one greedy, two at temperature 0.6); the step two share is taken")
     ap.add_argument("--noise", type=float, default=0.3, help="--model noisy-oracle: the chance of a wrong step at each turn (at most three an episode)")
     ap.add_argument("--resample", action="store_true", help="with --assistant: an answer equal to the step that just changed nothing is asked again at temperature 0.7")
+    ap.add_argument("--verify-done", action="store_true", help="harness aid (taskenv/tricks.py): a done answer is asked once more with a check line; a step given the second time is used")
+    ap.add_argument("--unstick", action="store_true", help="harness aid (taskenv/tricks.py): a step that just changed nothing, given again, is refused: asked again with a line saying so, then drawn at temperature 0.7")
+    ap.add_argument("--precheck", action="store_true", help="harness aid (taskenv/tricks.py): at the first turn the model is first asked whether the task is already as asked or impossible")
+    ap.add_argument("--split-chains", action="store_true", help="harness aid (taskenv/tricks.py): a chained request is cut into its parts by rule and shown one part at a time")
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
     from taskenv import planmode, policy
@@ -136,7 +146,7 @@ def main():
             e = json.loads(l)
             have.add((e["set"], e["task"], e["seed"]))
     name = a.model + ("+" + (a.tag or os.path.basename(a.patch)) if a.patch else "")
-    json.dump({"argv": sys.argv, "model": name, "episodes": len(todo), "format": "planner v1 (e751270)", "system_file": a.system_file, "app_rules": a.app_rules, "assistant": "b336837" if a.assistant else None, "resample": a.resample, "host": os.uname().nodename}, open(os.path.join(out, "meta.json"), "w"), indent=1)
+    json.dump({"argv": sys.argv, "model": name, "episodes": len(todo), "format": "planner v1 (e751270)", "system_file": a.system_file, "app_rules": a.app_rules, "assistant": "b336837" if a.assistant else None, "resample": a.resample, "vote": a.vote, "host": os.uname().nodename}, open(os.path.join(out, "meta.json"), "w"), indent=1)
     system = open(os.path.expanduser(a.system_file)).read().strip() if a.system_file else None
     model = None if a.model in ("oracle", "noisy-oracle") else policy.load(a.model, a.root, patch=a.patch)
     pointer = None
@@ -166,11 +176,11 @@ def main():
                 script, final = iter(rows), (rows[-1] if rows else {"answer": {"action": "done", "text": "Done."}})
                 chat = lambda messages, tools, k, temperature=None: {"tool_calls": [{"function": {"name": "next_step", "arguments": next(script, final)["answer"]}}], "raw": "oracle"}
             else:
-                def chat(messages, tools, k, temperature=None):
+                def chat(messages, tools, k, temperature=None, count=1):
                     for attempt in range(40):             # the GPU is shared: when another job fills it, wait and ask again
                         try:
                             if temperature:
-                                return sampled(model, messages, tools, k, temperature)
+                                return sampled(model, messages, tools, k, temperature, count)
                             return model.chat(messages, tools=tools, max_new_tokens=k)
                         except RuntimeError as err:
                             if "out of memory" not in str(err).lower() or attempt == 39:
@@ -179,8 +189,11 @@ def main():
                             torch.cuda.empty_cache()
                             print(f"GPU full, waiting ({attempt + 1})", file=sys.stderr, flush=True)
                             time.sleep(30)
+            if a.verify_done or a.split_chains or a.unstick or a.precheck:
+                from . import tricks
+                chat = tricks.wrap(chat, verify_done=a.verify_done, split_chains=a.split_chains, unstick=a.unstick, precheck=a.precheck)
             if a.assistant:
-                e = planmode.rollout_app(env, ep, chat, rows, pointer=pointer, max_new_tokens=a.max_new_tokens, system=system, resample=a.resample)
+                e = planmode.rollout_app(env, ep, chat, rows, pointer=pointer, max_new_tokens=a.max_new_tokens, system=system, resample=a.resample, vote=a.vote)
             else:
                 e = planmode.rollout(env, ep, chat, rows, pointer=pointer, max_steps=a.max_steps, max_new_tokens=a.max_new_tokens, system=system, app_rules=a.app_rules)
         except Exception as err:
@@ -196,7 +209,8 @@ def main():
         split = "train" if set_ == "train" else "eval"
         for t in e["turns"]:
             row = {"id": f"roll-{name}-{task}-{seed}-{t['k']}", "split": split, "task": e["request"], "apps": t["apps"], "front_app": t["front_app"], "window": t["front_app"], "done": t["done"], "controls": t["controls"],
-                   "meta": {"tasks": tids, "seed": seed, "step": t["k"], "set": set_, "model": name, "model_answer": t["answer"], "agrees": t["agrees"], "episode_ok": e["ok"]}}
+                   "meta": {"tasks": tids, "seed": seed, "step": t["k"], "set": set_, "model": name, "model_answer": t["answer"], "agrees": t["agrees"], "episode_ok": e["ok"],
+                            "early_done": bool(t["oracle"]) and (t["answer"] or {}).get("action") == "done" and t["oracle"]["action"] != "done", "repeated_dead_step": bool(t.get("repeat"))}}
             if t["oracle_known"]:
                 fr.write(json.dumps(dict(row, source="taskenv-noisy-oracle" if a.model == "noisy-oracle" else "taskenv-rollout", answer=t["oracle"]), ensure_ascii=False) + "\n")
             if e["ok"] and t["answer"] and a.model != "noisy-oracle":

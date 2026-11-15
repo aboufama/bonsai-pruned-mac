@@ -329,7 +329,7 @@ works but does not change the list, so the repeated click disturbs the new event
 it loads (it folds its weights once) and 27 GB afterwards; `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`
 lowers the peak a little, and a run waits and asks again when the shared GPU is full during a step.
 
-Not built: an oracle for states off its own path. After a wrong turn the rollout has no label; trying the rest of
+Not built: an oracle for states off its own path. This is why rollout rows hardly cover `done` said too early: a wrong `done` usually comes after the model has left the oracle's path. After a wrong turn the rollout has no label; trying the rest of
 the oracle's steps from the reached state in a second browser, and keeping the longest tail the checker accepts,
 would label those states too.
 
@@ -370,6 +370,56 @@ not cure `done` too early. The trained patches answer in about 1 to 1.5 s a step
 
 Seed 9101 alone (the first numbers reported, 40 episodes): parent 2 and 2, orchestrator u3000 0 and 1,
 point-v3-mixed896 0 and 0, u500 5 and 4.
+
+### The planner inside the assistant, and the retrained candidates (sprint of 15 Nov, 09:10 to 10:40 EST)
+
+Same 120 honest episodes, same checker, shipped system text. "Assistant's rules" is `plan_run --assistant`
+(`planmode.rollout_app`): the rules the assistant's own loop puts around the planner in build b336837, mirrored:
+the only app a task names is opened first; an unusable call is put right or explained to the planner; a `done`
+whose sentence says more is needed is asked about once; Return is pressed before `done` after typing into a
+one-line field; the step budget (the same step right after it changed nothing is refused, a fourth scroll in a
+row, clicks after two without effect; three refusals end the task); no second Return in a row; a click without
+effect once more. The change check reads the control list and the window's content, as the app's does.
+
+| model | rules | held-out on training apps (42) | test apps (78) | all (120) | done too early or a part missed | stuck | never said `done` | out of steps |
+|---|---|---|---|---|---|---|---|---|
+| original Ternary Bonsai 2 9B, no patch | none | 1 | 0 | 1 | 4 | 61 | 38 | 16 |
+| parent Qwen3.5-9B | none | 4 | 5 | 9 | 7 | 54 | 34 | 16 |
+| planpoint-v1-u1500 (ships) | none | 12 | 15 | 27 | 37 | 33 | 20 | 3 |
+| planpoint-v1-u1500 | assistant's rules | 15 | 19 | **34** | 40 | 30 | 13 | 3 |
+| planpoint-v2-s1a-u300 (u1500 + 300 updates, rollout states half of each batch) | none | 13 | 15 | 28 | 40 | 31 | 19 | 2 |
+| planpoint-v1-thought-u2000 | none | 11 | 17 | 28 | 38 | 31 | 18 | 5 |
+| planpoint-v2-s1b-u300 (rollout states three quarters of each batch) | none | 12 | 14 | 26 | 41 | 31 | 18 | 4 |
+| planpoint-v2-s2-u300 (s1b + 300 updates, mostly synthetic feedback rows) | none | 10 | 14 | 24 | 39 | 31 | 20 | 6 |
+
+On parts of the 120, because the pods were stopped at 10:40:
+
+| run | episodes | solved | same episodes, u1500 with the assistant's rules |
+|---|---|---|---|
+| u1500, rules + vote of three + resample | 40 (seed 9101) | 14 | 13 |
+| planpoint-v2-s1a-u300, assistant's rules | 40 (seed 9101) | 12 | 13 |
+| planpoint-v2-s2-u300, assistant's rules | 80 (two thirds of the shards) | 20 | 22 |
+
+What it says:
+
+- The assistant's rules are worth 7 episodes on u1500 (27 to 34; paired: 10 gained, 3 lost). Over the 120 episodes
+  the step budget refused 139 steps, Return was pressed before `done` 6 times, 7 unusable calls were explained. The
+  gain is in getting past a repeated step (never said `done` 20 to 13). `done` said too early is untouched (37 to
+  40); no rule addresses it, and it is now the largest failure.
+- "Once more": 59 clicks were repeated and not one repeat changed anything. It did no harm here only because the
+  change check could see every effect. With a change check that reads the control list alone, the scripted oracle's
+  own correct runs broke in 6 of 40 episodes (play/pause, shuffle and bold toggled back, calculator digits entered
+  twice, a new calendar event disturbed).
+- A vote of three answers a turn (one greedy, two at temperature 0.6) with a resample when the answer repeats a
+  dead step gains one episode of 40, inside the noise. It nearly removes stuck episodes (11 to 1) and turns them
+  into wrong results (15 to 21): the model moves on, then says `done` on an unfinished task.
+- Retraining within the hour did not move whole tasks: the best candidates solve 28 against 27 (s1a-u300 solves
+  everything u1500 solves plus one episode; thought-u2000 swaps three for four and is best on the unseen apps),
+  and none lowers the done-too-early count. The synthetic feedback rows (s2) did not help, with or without the rules.
+- Rows made in the sprint, on the Spark under `~/bonsai/te-lane5/`: `roll-noisy-oracle-r3/` (10,790 synthetic rows:
+  the oracle run through the assistant loop with wrong steps injected, 3,000 of them right after one of the app's
+  feedback lines), `roll-u1500-app-r3/` (82 real states) and `roll-s1b-u300-app-r4/` (202 real states of s1b-u300
+  under the rules, with `meta.early_done` and `meta.repeated_dead_step`).
 
 ### A longer system text does not replace training
 

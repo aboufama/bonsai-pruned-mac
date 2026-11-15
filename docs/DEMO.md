@@ -6,10 +6,10 @@ things, answers questions about the screen, rewrites the text you selected, and 
 out one step at a time; a set of everyday requests needs no model at all. Speech is turned into
 text by Argmax's WhisperKit. Nothing leaves the machine.
 
-## State, 15 Nov 09:22
+## State, 15 Nov 09:53
 
 The app was last used at 05:01 and is closed now. "Run" below means run in the app on this
-laptop; everything else has only been built and passed the core checks (`run.sh --test`, 381).
+laptop; everything else has only been built and passed the core checks (`run.sh --test`, 445).
 
 | | State |
 |---|---|
@@ -32,10 +32,51 @@ laptop; everything else has only been built and passed the core checks (`run.sh 
 | Talking back: questions answered by the Mac itself or by the planner from a list of controls (a menu's items, the Dock's apps) | not run (built 08:32) |
 | **Hold control-option-space and speak; tap it to type** (recording from key down, carried out on key up, "I did not catch that" under 0.3 s of voice, Esc cancels; the speech model loaded at start) | not run (built 09:15); the tap-or-hold decision and the measure of voice are checked in the core. It can be tried with a sound file in place of the microphone (`BONSAI_MIC_FILE`) |
 | A helper that only points (`BONSAI_POINTER_URL`: Bonsai-Pruned 4B behind a small local server), with the language model as the fallback for every request | **checked against stand-in servers on this Mac, with no model** (built 09:22): a good reply is used and lands where the same grid answer would; a status 500, a point outside the picture and a helper that is not running each fall back to the language model with a log line; unset, nothing is sent. Not run with the real helper |
+| For the demo video: a spoken name dropped, "bring up the presentation", "write down what you can help me with", "caption the video I just recorded" | not run (built 09:47). The drawing of subtitles on a video was tried here with no model: they show at their times and the copy keeps its sound. The reading of the recording by the speech model, the presentation and the note are for the rig |
+| Pointing through Accessibility first: a thing the Mac can name is found by its name with no screenshot (one match: no model; several: one planning turn in text), and only otherwise is the screenshot read | not run (built 09:50); the matching of names is checked in the core |
 | Speech to text (Argmax WhisperKit, `base.en`) | **checked on a sound file**, also with the network denied; the microphone path is not confirmed |
 | Drag, double and right click, scroll, keys | not run |
 | A file of requests with nobody at the keyboard, against a plain server | **run in the virtual machine on the Mac mini** (open an app in 1 step, 6.5 s; a new reminder in 5 steps, 20 s); see "Running it elsewhere" |
 | Running with WiFi off | not tried; see "With the network off" |
+
+## The demo video
+
+About a minute and a half, recorded as one screen recording with sound. You talk to the audience
+freely; only what you say while holding control-option-space reaches the assistant.
+
+| Time | To the camera | Holding the key | On screen |
+|---|---|---|---|
+| 0:00 | "This is my Mac. One key and my voice, that's the whole demo." | | Photo Booth, your face |
+| 0:08 | | "Clicky, bring up the presentation." | "Listening…", what it heard, Photo Booth hides, the slides fill the screen |
+| 0:14 | Read the slide | | The slide |
+| 0:24 | "Slides are easy. Let's ask it." | "Write down what you can help me with." | Notes opens; a title and four lines type themselves |
+| 0:42 | "Let's hold it to that." | "Turn on dark mode." | The whole screen flips |
+| 0:50 | | "Put Safari and Notes side by side." | Two windows snap into halves |
+| 0:58 | | "Caption the video I just recorded." | Four captions of what it is doing, then your recording plays with your words as subtitles |
+| 1:15 | "One more thing." | "Is Wi-Fi on?" | The answer, in words |
+| 1:22 | "Everything you saw ran on this Mac." | "Open Photo Booth." | Your face again |
+
+Before recording:
+
+1. **The slides.** Put the deck (a PDF is the safest) in `~/Bonsai-demo/demo/`, named with
+   "presentation", "slides" or "deck" in its name; or start the app with
+   `BONSAI_PRESENTATION=<file or link>`. A PDF opens in Preview and fills the screen.
+2. **The recording to caption.** It must be in Movies, on the Desktop or in Downloads: the
+   newest `.mov` or `.mp4` there is taken. Photo Booth keeps its clips where the app cannot
+   read them, so record ten seconds with QuickTime Player (File > New Movie Recording, save to
+   Movies), or drag the clip out of Photo Booth onto the Desktop.
+3. **Permissions** for the app you start it from (Terminal): Screen Recording, Accessibility,
+   Microphone.
+4. **A dry run of every line**, in order, before the take. None of these lines has been run
+   on this laptop. Start with `assistant/run.sh`, wait for the log line "Speech model ready",
+   then hold the key for the first line.
+5. **Wi-Fi.** For the "one more thing" to say Wi-Fi is off, turn it off before the take. The
+   whole script works without it when the slides are a file.
+
+What each line is: the presentation, the note, dark mode, side by side, the captioning and
+Photo Booth are done directly, with no planning by the model; the note's four lines are
+written by the model; the captions are made by Argmax WhisperKit; the Wi-Fi answer comes from
+the Mac itself. If a line fails in the dry run, drop it: each stands alone.
 
 ## What the hackathon asks, and where this stands
 
@@ -116,14 +157,15 @@ the closing sentence of a task and a short "Done." are spoken with the Mac's own
 
 | Type | What happens |
 |---|---|
-| "where is the search field?" · "show me the settings" · "how do I make a new note?" | The pointer flies to it; with "Answer in a Sentence" ticked a sentence follows in the box. Nothing is clicked. About a second when the screen was read ahead, about 11 s otherwise. |
+| "where is the Share button?" · "show me the Trash" · "where is the View menu?" | When the Mac itself can name the thing (most buttons, fields, menus and Dock icons), the pointer goes straight to it: no screenshot, no model, well under a second. *(not run)* |
+| "where is the search field?" · "show me the settings" · "how do I make a new note?" | Otherwise the screenshot is read: the pointer flies to it; with "Answer in a Sentence" ticked a sentence follows in the box. Nothing is clicked. About a second when the screen was read ahead, about 11 s otherwise. |
 
 **2. Ask about the screen: it answers in words.** *(not run)*
 
 | Type | What happens |
 |---|---|
 | "is Wi-Fi on?" · "am I online?" · "is dark mode on?" · "how much battery is left?" · "what time is it?" · "what's the volume?" | The Mac says it itself: no model, no screenshot, at once. |
-| "what can I do in the File menu?" · "what's in the View menu?" | The menu's items are read through Accessibility (the menu is not opened) and given to the planner as its list of controls, with the question as the task. The sentence it gives with `done` is the answer. |
+| "what can I do in the File menu?" · "what's in this menu?" (with one open) | The menu's items are read through Accessibility and named in order, eight at most, then how many more. No model. |
 | "what's on my Dock?" | The same, with the apps kept in the Dock as the list. |
 | "which view am I in?" · "what does this window let me do?" | The same, with the front window's controls as the list. |
 | "what am I looking at?" · "what does this chart say?" · "explain this error" | Answered from the screenshot. Also when the planner asks to look. |

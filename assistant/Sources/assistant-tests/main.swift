@@ -264,9 +264,33 @@ do {
           && Router.direct("create a new folder", app: find)?.first?.text == "New Folder" && Router.direct("open my downloads folder", app: find) == [PlannedStep(action: "reveal", target: "downloads")]
           && Router.direct("open home", app: find) == [PlannedStep(action: "open_app", app: "Home")] && Router.direct("open my home folder", app: find)?.first?.target == "home", "folders")
     check(Router.direct("close this tab", app: find) == [PlannedStep(action: "key", keys: ["cmd", "w"])] && Router.direct("open a new tab", app: find)?.first?.keys == ["cmd", "t"]
-          && Router.direct("minimize this window", app: find)?.first?.keys == ["cmd", "m"] && Router.direct("select all", app: find)?.first?.keys == ["cmd", "a"]
+          && Router.direct("minimize this window", app: find) == [PlannedStep(action: "window_button", target: "minimize")]
+          && Router.direct("close the window", app: find) == [PlannedStep(action: "window_button", target: "close")] && Router.direct("select all", app: find)?.first?.keys == ["cmd", "a"]
           && Router.direct("open Safari and open a new tab", app: find) == [PlannedStep(action: "open_app", app: "Safari"), PlannedStep(action: "key", keys: ["cmd", "t"])]
           && Router.direct("close the Claude window", app: find) == nil && Router.direct("save the report as final", app: find) == nil, "requests that are one shortcut")
+    check(Router.direct("minimize the open window", app: find) == [PlannedStep(action: "window_button", target: "minimize")]
+          && Router.direct("minimize Safari", app: find) == [PlannedStep(action: "window_button", app: "Safari", target: "minimize")]
+          && Router.direct("Could you minimize the Notes window?", app: find) == [PlannedStep(action: "window_button", app: "Notes", target: "minimize")]
+          && Router.direct("close the Safari window", app: find) == [PlannedStep(action: "window_button", app: "Safari", target: "close")]
+          && Router.direct("close the current window", app: find) == [PlannedStep(action: "window_button", target: "close")]
+          && Router.direct("make this full screen", app: find) == [PlannedStep(action: "window_button", target: "zoom")]
+          && Router.direct("full screen Safari", app: find) == [PlannedStep(action: "window_button", app: "Safari", target: "zoom")]
+          && Router.direct("go full screen", app: find) == [PlannedStep(action: "window_button", target: "zoom")]
+          && Router.direct("close this tab", app: find) == [PlannedStep(action: "key", keys: ["cmd", "w"])] && Router.direct("close", app: find) == nil
+          && Router.direct("close the report file", app: find) == nil, "a window's own buttons, said any way and for a named app")
+    check(Commands.isPoliteOrder("Hey, can you open my photobooth app?") && Commands.isPoliteOrder("Could you open Google Chrome?") && Commands.isPoliteOrder("would you please minimize this")
+          && !Commands.isPoliteOrder("Can you see the Trash?") && !Commands.isPoliteOrder("could you tell me what this is?") && !Commands.isPoliteOrder("where is the Trash?")
+          && !Commands.isPoliteOrder("open Notes"), "an order said politely is still an order")
+    check(Router.direct("can you open my email on brave", app: find) == [PlannedStep(action: "open_url", app: "Brave Browser", url: "https://mail.google.com")]
+          && AppNames.named(in: "can you check my email on brave", among: ["Mail", "Brave Browser", "Notes"]) == ["Brave Browser"]
+          && AppNames.named(in: "send an email to Sam", among: ["Mail", "Brave Browser", "Notes"]) == ["Mail"], "email in a named browser is the web mail, and the browser is the app spoken of")
+    check(Router.direct("start recording", app: find) == nil && Router.direct("start recording in photobooth", app: find) == nil
+          && Router.direct("play the video on my desktop", app: find)?.first?.action == "play_video"
+          && AppNames.named(in: "start recording in photobooth", among: ["Photo Booth", "Photos", "Notes"]) == ["Photo Booth"], "starting a recording is not playing a video")
+    check(Router.direct("Hey, can you open Safari?", app: find) == [PlannedStep(action: "open_app", app: "Safari")]
+          && Router.direct("open Notes please", app: find) == [PlannedStep(action: "open_app", app: "Notes")], "polite words around an order are dropped")
+    check(AppNames.resolve("photobooth", names: ["Photo Booth", "Photos", "Safari"]) == "Photo Booth" && AppNames.resolve("my photobooth app", names: ["Photo Booth", "Photos"]) == "Photo Booth"
+          && AppNames.resolve("textedit", names: ["TextEdit", "Terminal"]) == "TextEdit" && AppNames.resolve("face time", names: ["FaceTime", "Finder"]) == "FaceTime", "an app's name with its spaces left out or put in")
     check(Skills.shortcuts.allSatisfy { Keys.combo($0.1) != nil }, "every shortcut is a key the app can press")
     check(Router.direct("add a meeting with Sam tomorrow at 3pm", app: find) == [PlannedStep(action: "calendar_event", target: "meeting", text: "with Sam tomorrow at 3pm")], "a calendar event")
     check(Skills.eventTitle(kind: "meeting", rest: "with Sam tomorrow at 3pm", datePhrase: "tomorrow at 3pm") == "Meeting with Sam"
@@ -606,7 +630,8 @@ do {
     }
     check(Router.route("is dark mode on?", app: app) == .answer(screen: false), "a question about dark mode is answered")
     check(Router.route("open the dark mode settings", app: app) == .direct([PlannedStep(action: "open_url", url: Places.pane("Appearance")!.url)]), "the settings for it are the pane")
-    check(Router.route("write a note about dark mode", app: app) == .plan, "writing about dark mode is planned")
+    check(Router.route("write a note about dark mode", app: app) == .direct([PlannedStep(action: "write_note", target: "dark mode")])
+          && Router.route("remind me to try dark mode", app: app) == .plan, "writing about dark mode does not switch it")
 
     let pane = { (name: String) in Route.direct([PlannedStep(action: "open_url", url: Places.pane(name)!.url)]) }
     check(Router.route("open Bluetooth settings", app: app) == pane("Bluetooth") && Router.route("Open Sharing settings", app: app) == pane("Sharing"), "a pane wins over an app of a similar name")
@@ -743,6 +768,12 @@ do {
     check(abs(short - 0.2) < 0.11 && !PushToTalk.caught(voiced: short), "a click of sound in a quiet recording is not a request")
     check(abs(long - 0.8) < 0.11 && PushToTalk.caught(voiced: long), "most of a second of speech is")
     check(PushToTalk.caught(voiced: 0.3) && !PushToTalk.caught(voiced: 0.2), "the least voice that counts")
+    check(PushToTalk.level(hiss(0.1)[...]) == 0 && PushToTalk.level([][...]) == 0, "a quiet room shows nothing on the meter")
+    check(PushToTalk.level(tone(0.1, 0.05)[...]) > 0.3 && PushToTalk.level(tone(0.1, 0.05)[...]) < PushToTalk.level(tone(0.1, 0.2)[...]) && PushToTalk.level(tone(0.1, 0.6)[...]) == 1, "a voice shows, a louder one more, up to full")
+    check(PushToTalk.meter(0) == "▯▯▯▯▯▯▯" && PushToTalk.meter(0.5) == "▮▮▮▮▯▯▯" && PushToTalk.meter(1) == "▮▮▮▮▮▮▮" && PushToTalk.meter(7, cells: 5) == "▮▮▮▮▮", "the meter as a row of bars")
+    let clip = tone(0.84, 0.1), wider = PushToTalk.padded(clip, to: 1.84)
+    check(wider.count == 29440 && wider[0] == 0 && wider[wider.count - 1] == 0 && Array(wider[8000..<8000 + clip.count]) == clip, "a short clip gets silence before and after, half each")
+    check(PushToTalk.padded(tone(2.0, 0.1), to: 1.5).count == 32000, "a clip that is long enough is left as it is")
     check(PushToTalk.clean(" [BLANK_AUDIO] ") == "" && PushToTalk.clean("(music) open Notes ♪") == "open Notes" && PushToTalk.clean("Open  Safari.") == "Open Safari.", "marks for sounds that are not words are dropped")
 }
 
@@ -775,6 +806,109 @@ do {
     let window = CGRect(x: 400, y: 300, width: 490, height: 318.667)
     check(near(Geometry.screenPoint(grid: PointerHelper.grid(x: 0.1, y: 0.9), region: window), CGPoint(x: 449, y: 586.8003)), "also in a closer look")
     check(PointerHelper.name == "bonsai-pruned-4b" && PointerHelper.languageModel == "language model", "the two names in the steps file")
+    check(PointerHelper.readBody(imageURL: "data:image/png;base64,iVBORw0KGgo=")?["image_b64"] as? String == "iVBORw0KGgo=" && PointerHelper.readBody(imageURL: "nothing") == nil, "what is sent to have a picture read ahead")
+    check(PointerHelper.readReply(status: 200, data: Data("{\"read_seconds\": 1.9, \"cached\": false}".utf8), elapsed: 2.1) == .read(seconds: 1.9, cached: false)
+          && PointerHelper.readReply(status: 200, data: Data("{\"cached\": true}".utf8), elapsed: 0.05) == .read(seconds: 0.05, cached: true), "a picture read and kept by the helper")
+    let notRead = { (reply: PointerHelper.ReadReply) -> Bool in if case .unusable = reply { return true } else { return false } }
+    check(notRead(PointerHelper.readReply(status: 404, data: Data("{}".utf8), elapsed: 0.1)) && notRead(PointerHelper.readReply(status: 200, data: Data("no".utf8), elapsed: 0.1))
+          && notRead(PointerHelper.readReply(status: 200, data: Data("{}".utf8), elapsed: 31)), "a helper with no /read, a bad reply or a late one: the language model reads ahead")
+}
+
+// ---------------------------------------------------------------- the demo-beats check: an address, a menu
+do {
+    let names = ["Safari", "Google Chrome", "Brave Browser", "Notes", "Mail", "Finder"]
+    let app = { (said: String) -> String? in AppNames.resolve(said, names: names, aliases: ["chrome": "Google Chrome", "brave": "Brave Browser"]) }
+    let site = { (address: String, browser: String) in Route.direct([PlannedStep(action: "open_url", app: browser, url: address)]) }
+    check(Router.route("open apple.com in Safari", app: app) == site("https://apple.com", "Safari"), "open apple.com in Safari: exactly apple.com")
+    check(Router.route("open github.com in Brave", app: app) == site("https://github.com", "Brave Browser"), "open github.com in Brave")
+    check(Router.route("go to example.com/docs in Chrome", app: app) == site("https://example.com/docs", "Google Chrome"), "go to example.com/docs in Chrome")
+    check(Router.route("Open YouTube in Safari", app: app) == site("https://www.youtube.com", "Safari"), "a site by its name, in a browser")
+    check(Places.site(named: "apple.com in Safari") == "https://apple.com" && Places.site(named: "the apple.com website") == "https://apple.com", "an address is never made into another address")
+    check(Places.site(named: "the nytimes website") == "https://www.nytimes.com" && Places.site(named: "the acme website") == "https://www.acme.com", "names of sites as before")
+    let parts = Router.parts("Open apple.com in Safari, then make a note that says Buy a new Mac, then turn on dark mode", app: app)
+    check(parts.count == 3 && Router.route(parts[0], app: app) == site("https://apple.com", "Safari"), "the same as the first part of a longer request")
+    check(Router.route("open Notes in Safari", app: app) != site("https://www.notes.com", "Safari"), "an app is not turned into a site")
+    check(Skills.namedBrowser("lunch on Friday in Safari", app: app)?.rest == "lunch on Friday" && Skills.namedBrowser("lunch on Friday in Safari", app: app)?.browser == "Safari"
+          && Skills.namedBrowser("lunch on Friday", app: app) == nil && Skills.namedBrowser("the meeting in Notes", app: app) == nil, "a browser named at the end of the words")
+    let view = ["as Icons", "as List", "as Columns", "as Gallery", "Use Stacks", "Sort By", "Clean Up", "Hide Sidebar", "Show Preview", "Hide Toolbar", "Show All Tabs",
+                "Show Tab Bar", "Show Path Bar", "Show Status Bar", "Customize Toolbar…", "Show View Options", "Enter Full Screen"]
+    check(Skills.menuAnswer(title: "", items: view) == "This menu has: as Icons, as List, as Columns, as Gallery, Use Stacks, Sort By, Clean Up, Hide Sidebar, and 9 more.", "a menu said from its own items")
+    check(Skills.menuAnswer(title: "File", items: ["New Window", "Close"]) == "The File menu has: New Window, Close.", "a short menu, by its name")
+    check(Skills.menuAnswer(title: "menu bar", items: ["Finder", "File"]) == "The menu bar has: Finder, File." && Skills.menuAnswer(title: "", items: []) == "This menu has nothing that can be chosen now.", "the menu bar, and an empty menu")
+}
+
+// ---------------------------------------------------------------- the demo: a name, the presentation, a written note
+do {
+    let names = ["Safari", "Notes", "Photo Booth", "Keynote", "Preview", "Finder"]
+    let app = { (said: String) -> String? in AppNames.resolve(said, names: names) }
+    check(Router.addressed("Clicky, bring up the presentation.") == "bring up the presentation." && Router.addressed("Hey Bonsai open Notes") == "open Notes"
+          && Router.addressed("okay, Clickie: turn on dark mode") == "turn on dark mode", "the name it is called by is not part of the request")
+    check(Router.addressed("click the search field") == "click the search field" && Router.addressed("Bonsai") == "Bonsai" && Router.addressed("open Notes") == "open Notes", "a request with no name is left alone")
+    let show = Route.direct([PlannedStep(action: "present")])
+    for said in ["bring up the presentation", "Bring up the presentation.", "show my slides", "start the slideshow", "open the deck", "go back to the presentation", "present"] {
+        check(Router.route(Router.addressed(said), app: app) == show || said == "present", "the presentation: \(said)")
+    }
+    check(Router.route("open the presentation notes in Notes", app: app) != show && Router.route("make a presentation about bonsai", app: app) != show, "other things about presentations are not this")
+    let abilities = Route.direct([PlannedStep(action: "write_note", target: "abilities")])
+    for said in ["Write down what you can help me with.", "write down some things you can help me do", "write some things that you can help me do", "make a note of what you can do for me",
+                 "list what you can do"] {
+        check(Router.route(said, app: app) == abilities, "a note of what it can do: \(said)")
+    }
+    check(Router.route("write a note about the trip to Lisbon", app: app) == .direct([PlannedStep(action: "write_note", target: "the trip to Lisbon")]), "a note about something")
+    check(Router.route("make a note that says Call the dentist on Monday", app: app) == .plan && Router.route("write a note saying buy milk", app: app) == .plan
+          && Router.route("Open Notes and write a note: Buy oat milk and eggs", app: app) == .plan && Router.route("write \"what you can do\" in a new note", app: app) != abilities,
+          "a note whose words are given is still typed as it is, by the planner")
+    check(Skills.noteLines("<think>four lines</think>1. Open apps and web sites\n- Change settings like dark mode\n\n• \"Find and click things\"\n**Write notes**\n5) extra\n6) more")
+          == ["Open apps and web sites", "Change settings like dark mode", "Find and click things", "Write notes", "extra"], "what the model wrote, as the lines of a note")
+    check(Skills.noteLines("") == [] && Skills.noteLines("ok") == [], "nothing usable is nothing")
+    check(Skills.noteTitle("abilities") == "What I can help you with" && Skills.noteTitle("some ideas for the weekend") == "Ideas for the weekend", "the note's title")
+    check(Skills.typingPieces("Open apps\nand sites") == ["Open ", "apps\n", "and ", "sites"] && Skills.typingPieces("") == [], "a text in the pieces it is typed in")
+    check(Skills.abilityLines.count == 4 && Skills.notePrompt("abilities").contains("four short lines") && Skills.notePrompt("the trip").contains("the trip"), "what the model is asked to write")
+    check(Skills.doneLine(PlannedStep(action: "present")) == "open the presentation" && Skills.caption(PlannedStep(action: "write_note", target: "abilities")) == "Writing a note", "their lines and captions")
+}
+
+// ---------------------------------------------------------------- subtitles
+do {
+    let app = { (said: String) -> String? in ["Notes", "Safari"].first { $0.lowercased() == said.lowercased() } }
+    let captions = Route.direct([PlannedStep(action: "caption_video")])
+    for said in ["caption the video I just recorded", "Caption my last recording.", "put subtitles on the video", "add captions to my latest video", "subtitle this clip", "make subtitles for the video I just made"] {
+        check(Router.route(said, app: app) == captions, "captioning a recording: \(said)")
+    }
+    check(Router.route("caption this photo", app: app) != captions && Router.route("put the video on the Desktop", app: app) != captions, "other things are not captioning")
+    check(Router.route("Play the video on my desktop.", app: app) == .direct([PlannedStep(action: "play_video", target: "desktop")])
+          && Router.route("open the comparison video", app: app) == .direct([PlannedStep(action: "play_video", target: "")])
+          && Router.route("play the newest recording in Movies", app: app) == .direct([PlannedStep(action: "play_video", target: "movies")]), "playing a video")
+    check(Router.route("play some music", app: app) != .direct([PlannedStep(action: "play_video", target: "")]), "music is not a video")
+    check(Subtitles.clean("<|0.00|> Hello there.<|1.20|>") == "Hello there." && Subtitles.clean(" [BLANK_AUDIO] ") == "", "marks that are not words are dropped")
+    let one = Subtitles.lines([Subtitle(start: 1, end: 3, text: " Open Notes. ")])
+    check(one == [Subtitle(start: 1, end: 3, text: "Open Notes.")], "a short stretch is one line")
+    let long = Subtitles.lines([Subtitle(start: 0, end: 8, text: "This is my Mac and I am going to give you this whole demo with one key and my voice")])
+    check(long.count == 2 && long.allSatisfy { $0.text.count <= 42 } && long[0].start == 0 && abs(long[1].end - 8) < 0.001 && abs(long[0].end - long[1].start) < 0.001,
+          "a long stretch is cut into lines that share its time")
+    check(long.map(\.text).joined(separator: " ") == "This is my Mac and I am going to give you this whole demo with one key and my voice", "and no word is lost")
+    let quick = Subtitles.lines([Subtitle(start: 0, end: 0.2, text: "Hi."), Subtitle(start: 0.5, end: 2, text: "Open Notes.")])
+    check(abs(quick[0].end - 0.5) < 0.001 && quick[1].start == 0.5, "a line that would flash by is held until the next begins")
+    check(Subtitles.lines([Subtitle(start: 2, end: 2, text: "x"), Subtitle(start: 0, end: 1, text: " [BLANK_AUDIO] ")]).isEmpty, "nothing to show is no line")
+    check(Subtitles.stamp(0) == "00:00:00,000" && Subtitles.stamp(62.5) == "00:01:02,500" && Subtitles.stamp(3725.042) == "01:02:05,042", "times as subtitle files write them")
+    check(Subtitles.srt([Subtitle(start: 1, end: 3, text: "Open Notes."), Subtitle(start: 3.5, end: 5, text: "Done.")])
+          == "1\n00:00:01,000 --> 00:00:03,000\nOpen Notes.\n\n2\n00:00:03,500 --> 00:00:05,000\nDone.\n", "a subtitle file")
+}
+
+// ---------------------------------------------------------------- finding a thing by its name (Accessibility first)
+do {
+    let names = ["Today", "Share", "Search", "New Reminder", "Reminders", "Add List", "Close", "Close", "Send", "Back", "", "Wi-Fi", "Safari", "Trash", "File", "View"]
+    check(NameSearch.search("the Today button", in: names) == .one(0) && NameSearch.search("go to today", in: names) == .one(0), "one control named exactly so")
+    check(NameSearch.search("where is the share button?", in: names) == .one(1) && NameSearch.search("the Share icon in the toolbar", in: names) == .one(1), "words for the kind of thing and its place are not part of the name")
+    check(NameSearch.search("the button that sends", in: names) == .one(8), "sends and Send meet")
+    check(NameSearch.search("Wi-Fi", in: names) == .one(11) && NameSearch.search("the wifi switch", in: names) == .none, "a name with a hyphen, word for word")
+    check(NameSearch.search("the Trash", in: names) == .one(13) && NameSearch.search("the View menu", in: names) == .one(15), "the Dock's icons and the menus count too")
+    check(NameSearch.search("the close button", in: names) == .several([6, 7]), "two of the same name: someone has to choose")
+    check(NameSearch.search("the new button", in: names) == .one(3), "one name that holds the word")
+    check(NameSearch.search("the reminder list", in: names) == .several([3, 4, 5]), "names that only share a word are candidates")
+    check(NameSearch.search("the red circle", in: names) == .none && NameSearch.search("the button", in: names) == .none && NameSearch.search("", in: names) == .none, "no name fits, or nothing was named")
+    check(NameSearch.words("Where is the Share button?") == ["share"] && NameSearch.words("the New Reminder button") == ["new", "reminder"], "the words that could be a name")
+    check(NameSearch.target(of: "where is the share button?") == "the share button" && NameSearch.target(of: "Show me the search field") == "the search field"
+          && NameSearch.target(of: "point at the Wi-Fi icon.") == "the Wi-Fi icon" && NameSearch.target(of: "the Today button") == "the Today button", "what a pointing request is after")
 }
 
 print(failures == 0 ? "all \(checks) checks passed" : "\(failures) of \(checks) checks FAILED")

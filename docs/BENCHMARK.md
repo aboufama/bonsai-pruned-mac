@@ -509,3 +509,42 @@ What the table shows:
 - The lanes' figures are reproduced: 89.9 for `nb-l7-best` and 87.3 for `s2-s5000` on the 158-case report slice, and
   54.7 for `nb-l7-best` and 50.8 for the 4B pair on the neighbour slice. The report slice flatters `nb-l7-best`:
   89.9 there, 85.5 on all 1,272 cases.
+
+### The planner the app uses, and the pair sim-l4-best (added 15 Nov, 10:00 EST)
+
+Same harness and settings as above (1280 px, greedy, thinking off). The planner `planpoint-v1-u1500` answers in
+writing, one look; it was measured on lane 2. The pair `joint-sim-l4-best` (trunk patch and pointing decoder) was
+measured on the Spark; its neighbour-slice rows are complete, its Mac-window and ScreenSpot-v2 rows were still
+running when this was written. The original Bonsai 2 9B and the Qwen3.5-9B parent are the runs of the headline
+table; their neighbour-slice rows are the 600 slice cases taken from their Mac-window runs, and those runs predate
+the within-20-px measure.
+
+| Model | Set | Looks | Cases | On target (95% interval) | Within 20 px (95% interval) |
+|---|---|---|---|---|---|
+| 9B planner, written answer (planpoint-v1-u1500) | ScreenSpot-v2 | one | 1272 | 84.0 (81.9–85.9) | 90.6 (88.9–92.1) |
+| 9B planner, written answer (planpoint-v1-u1500) | macOS app windows | one | 2106 | 44.7 (42.6–46.8) | 60.9 (58.9–63.0) |
+| 9B planner, written answer (planpoint-v1-u1500) | Neighbour slice | one | 600 | 51.3 (47.5–55.3) | 67.7 (63.8–71.3) |
+| 9B, pointing decoder (pair sim-l4-best) | Neighbour slice | one | 600 | 58.5 (54.5–62.3) | 68.7 (65.0–72.3) |
+| 9B, pointing decoder (pair sim-l4-best) | Neighbour slice | two | 600 | 65.8 (62.0–69.5) | 69.2 (65.5–72.7) |
+| Original Bonsai 2 9B, written answer | ScreenSpot-v2 | one | 1272 | 43.3 (40.6–46.0) | not measured |
+| Original Bonsai 2 9B, written answer | macOS app windows | one | 2106 | 13.2 (11.7–14.6) | not measured |
+| Original Bonsai 2 9B, written answer | Neighbour slice | one | 600 | 14.2 (11.5–17.0) | not measured |
+| Qwen3.5-9B (parent), written answer | ScreenSpot-v2 | one | 1272 | 91.7 (90.2–93.2) | not measured |
+| Qwen3.5-9B (parent), written answer | macOS app windows | one | 2106 | 63.8 (61.8–65.9) | not measured |
+| Qwen3.5-9B (parent), written answer | Neighbour slice | one | 600 | 65.3 (61.5–69.2) | not measured |
+
+Check against the lanes' own numbers, the 158-case report slice of ScreenSpot-v2, one look:
+
+| Model | On target | Within 20 px |
+|---|---|---|
+| 9B planner, written answer (planpoint-v1-u1500) | 85.4 (135 of 158) | 89.9 |
+| Original Bonsai 2 9B, written answer | 44.9 (71 of 158) | not measured |
+| Qwen3.5-9B (parent), written answer | 90.5 (143 of 158) | not measured |
+
+- The planner points as well as the pointing-only written patches (`v3-mixed896` 84.0 / 43.8 / 50.5,
+  orchestrator 83.8 / 44.8 / 52.0): learning to plan cost no pointing accuracy.
+- Against the original Bonsai the planner is 41 points higher on ScreenSpot-v2 and 31 higher on the macOS windows.
+  It is 8 points under the parent on ScreenSpot-v2 and 19 under it on the macOS windows.
+- On the neighbour slice the pair `sim-l4-best` has the best one-look row of any Bonsai (58.5; `nb-l7-best` 54.7) and
+  ties `nb-l7-best` with two looks (65.8 against 65.7), which also reaches the parent's one-look figure (65.3).
+  The lane's own scoring gave 57.7 for one look.

@@ -1,0 +1,31 @@
+# Harness aids (taskenv/tricks.py) with bonsai2-9b-planpoint-v1-u1500 on the honest episodes, compared with plain u1500 on the same episodes.
+# Taken 15 Nov 2026 10:38 EST from lanes 2 and 4 (cmp.py). Rows under 120 episodes are partial: the pods were stopped at 10:40.
+# The per-episode files were NOT copied off (the copy command failed) and are lost with the pods' container disks.
+both: 11 of 40 (plain u1500 on the same episodes: 9; unmatched 0); won 2, lost 0
+   by category (aid/plain/n): already_done 1/0/5 chain 0/0/5 drag 2/2/6 infeasible 2/1/4 menu 2/2/5 scroll 0/0/3 shortcut 1/1/2 single 1/1/3 typing 2/2/7
+   won: files.missing_file, music.already_paused
+   lost: 
+pre: 10 of 44 (plain u1500 on the same episodes: 9; unmatched 0); won 1, lost 0
+   by category (aid/plain/n): already_done 0/0/5 chain 0/0/5 drag 2/2/7 infeasible 2/1/4 menu 2/2/7 scroll 0/0/3 shortcut 1/1/2 single 1/1/3 typing 2/2/8
+   won: files.missing_file
+   lost: 
+split: 0 of 0 (plain u1500 on the same episodes: 0; unmatched 0); won 0, lost 0
+   by category (aid/plain/n): 
+   won: 
+   lost: 
+unstick: 23 of 80 (plain u1500 on the same episodes: 18; unmatched 0); won 5, lost 0
+   by category (aid/plain/n): already_done 3/1/10 chain 2/2/10 drag 6/5/12 infeasible 3/1/8 menu 2/2/10 scroll 0/0/6 shortcut 2/2/4 single 4/4/6 typing 1/1/14
+   won: calculator.already_mode, calculator.no_such_feature, music.drag_to_playlist, calculator.already_mode, calculator.no_such_feature
+   lost: 
+verify: 28 of 120 (plain u1500 on the same episodes: 27; unmatched 0); won 4, lost 3
+   by category (aid/plain/n): already_done 3/1/15 chain 1/2/15 drag 7/7/18 infeasible 3/2/12 menu 5/4/15 scroll 0/0/9 shortcut 3/3/6 single 3/5/9 typing 3/3/21
+   won: files.missing_file, music.already_paused, files.rename, music.already_paused
+   lost: music.pause (the music is still playing), settings.join_wifi (the goal was reached but the model never), music.pause (the goal was reached but the model never)
+both: 5 of 22 (plain u1500 on the same episodes: 5; unmatched 0); won 0, lost 0
+   by category (aid/plain/n): already_done 0/0/3 chain 0/0/1 drag 1/1/3 infeasible 0/0/2 menu 2/2/5 scroll 0/0/1 typing 2/2/7
+   won: 
+   lost: 
+pu: 38 of 120 (plain u1500 on the same episodes: 27; unmatched 0); won 11, lost 0
+   by category (aid/plain/n): already_done 5/1/15 chain 3/2/15 drag 9/7/18 infeasible 5/2/12 menu 5/4/15 scroll 0/0/9 shortcut 3/3/6 single 5/5/9 typing 3/3/21
+   won: browser.add_bookmark, mail.already_flagged, settings.join_wifi, music.drag_to_playlist, calculator.already_mode, calculator.no_such_feature, calculator.already_mode, calculator.no_such_feature, music.drag_to_playlist, calculator.already_mode, calculator.no_such_feature
+   lost: 

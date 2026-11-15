@@ -42,6 +42,32 @@ public enum PushToTalk {
 
     public static func caught(voiced: Double) -> Bool { voiced >= voiceSeconds }
 
+    /// How loud a short stretch of sound is, from 0 (a quiet room) to 1 (a raised voice), for
+    /// a meter that shows the microphone is being heard.
+    public static func level(_ samples: ArraySlice<Float>) -> Double {
+        guard !samples.isEmpty else { return 0 }
+        var sum: Float = 0
+        for x in samples { sum += x * x }
+        let loud = Double((sum / Float(samples.count)).squareRoot())
+        return min(1, pow(max(0, loud - 0.004) / 0.10, 0.6))
+    }
+
+    /// The level as a row of small bars, some filled: "▮▮▮▯▯▯▯". Silence is a row of empty
+    /// bars, not nothing, so that it can be seen the app is listening.
+    public static func meter(_ level: Double, cells: Int = 7) -> String {
+        let filled = min(cells, max(0, Int((level * Double(cells)).rounded())))
+        return String(repeating: "▮", count: filled) + String(repeating: "▯", count: cells - filled)
+    }
+
+    /// A clip with silence put before and after it, half each, so that it is at least so
+    /// long: a speech model can make nothing of a clip of under a second.
+    public static func padded(_ samples: [Float], to seconds: Double, rate: Double = 16000) -> [Float] {
+        let wanted = Int(seconds * rate)
+        guard samples.count < wanted else { return samples }
+        let before = (wanted - samples.count) / 2
+        return [Float](repeating: 0, count: before) + samples + [Float](repeating: 0, count: wanted - samples.count - before)
+    }
+
     /// What was heard, without the marks a speech model writes for sounds that are not words
     /// ("[BLANK_AUDIO]", "(music)", "♪").
     public static func clean(_ text: String) -> String {

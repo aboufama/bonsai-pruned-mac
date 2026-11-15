@@ -58,6 +58,47 @@ public struct PointerHelper {
         return .point(x: x, y: y, seconds: number("seconds") ?? elapsed, readSeconds: number("read_seconds") ?? 0, cached: (object["cached"] as? Bool) ?? false)
     }
 
+    /// What is sent to /read: the picture alone, for the helper to read before anyone asks about it.
+    public static func readBody(imageURL: String) -> [String: Any]? {
+        guard let comma = imageURL.range(of: "base64,") else { return nil }
+        let picture = String(imageURL[comma.upperBound...])
+        return picture.isEmpty ? nil : ["image_b64": picture]
+    }
+
+    public enum ReadReply: Equatable {
+        case read(seconds: Double, cached: Bool)
+        case unusable(String)            // why; the language model reads the screen ahead instead
+    }
+
+    /// What a reply to /read amounts to: a 200 within the limit that is a JSON object means the picture is read and kept.
+    public static func readReply(status: Int, data: Data, elapsed: Double) -> ReadReply {
+        guard elapsed <= limit else { return .unusable(String(format: "its reply took %.0f s, over the limit of %.0f s", elapsed, limit)) }
+        guard status == 200 else { return .unusable("it answered with status \(status)") }
+        guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return .unusable("its reply is not a JSON object") }
+        var seconds = elapsed
+        if let n = object["read_seconds"] as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID() { seconds = n.doubleValue }
+        return .read(seconds: seconds, cached: (object["cached"] as? Bool) ?? false)
+    }
+
+    /// Has the helper read a picture and keep the reading, so that pointing at something on it later costs only its decoder.
+    public func read(imageURL: String) async -> ReadReply {
+        guard let body = PointerHelper.readBody(imageURL: imageURL), let data = try? JSONSerialization.data(withJSONObject: body) else {
+            return .unusable("the picture could not be prepared for it")
+        }
+        var request = URLRequest(url: base.appendingPathComponent("read"))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = data
+        request.timeoutInterval = PointerHelper.limit
+        let start = Date()
+        do {
+            let (reply, response) = try await URLSession.shared.data(for: request)
+            return PointerHelper.readReply(status: (response as? HTTPURLResponse)?.statusCode ?? 0, data: reply, elapsed: Date().timeIntervalSince(start))
+        } catch {
+            return .unusable("no answer (\(error.localizedDescription))")
+        }
+    }
+
     /// The helper's point on the grid the language model answers on (0 to 1000 across and
     /// down the picture), so that both are mapped to the screen the same way.
     public static func grid(x: Double, y: Double) -> CGPoint { CGPoint(x: x * 1000, y: y * 1000) }

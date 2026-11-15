@@ -44,6 +44,7 @@ One run per task in each round. The rounds differ in the app build and in the pl
 | 4 | the same build | final planner, 1,500 updates (`planpoint-v1-u1500`) | **23 of 50** | 12 of 12 | 2 of 2 | 9 of 33 | 0 of 3 |
 | 5 | requests done in parts; typing and Return fixes | final planner | **38 of 50** | 17 of 18 | 2 of 2 | 19 of 29 | 0 of 1 |
 | 6 | a later build | final planner | **38 of 50** | 18 of 18 | 2 of 2 | 17 of 29 | 1 of 1 |
+| 7 | more built-in tools (file moves, menu commands, window buttons, sums) | final planner | **43 of 50** | 25 of 25 | 2 of 2 | 16 of 23 | none |
 
 Round 4 was first logged as 23 of 49: the virtual machine had to be restarted with one run missing, and that
 run failed when it was made. The denominators of the columns change between rounds because the app changed

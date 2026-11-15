@@ -1,0 +1,194 @@
+[
+ {
+  "run": "bonsai9b-new@planpoint-v1-u1500",
+  "job": "ssv2:s1280",
+  "n": 1272,
+  "hit": {
+   "n": 1272,
+   "hits": 1068,
+   "acc": 83.96,
+   "lo": 81.92,
+   "hi": 85.93
+  },
+  "near20": {
+   "n": 1272,
+   "hits": 1152,
+   "acc": 90.57,
+   "lo": 88.92,
+   "hi": 92.14
+  }
+ },
+ {
+  "run": "bonsai9b-new@planpoint-v1-u1500",
+  "job": "mac:s1280",
+  "n": 2106,
+  "hit": {
+   "n": 2106,
+   "hits": 942,
+   "acc": 44.73,
+   "lo": 42.64,
+   "hi": 46.82
+  },
+  "near20": {
+   "n": 2106,
+   "hits": 1283,
+   "acc": 60.92,
+   "lo": 58.88,
+   "hi": 62.96
+  }
+ },
+ {
+  "run": "bonsai9b-new@planpoint-v1-u1500",
+  "job": "neighbour:s1280",
+  "n": 600,
+  "hit": {
+   "n": 600,
+   "hits": 308,
+   "acc": 51.33,
+   "lo": 47.5,
+   "hi": 55.33
+  },
+  "near20": {
+   "n": 600,
+   "hits": 406,
+   "acc": 67.67,
+   "lo": 63.83,
+   "hi": 71.33
+  }
+ },
+ {
+  "run": "bonsai9b-new@pair-sim-l4-best",
+  "job": "mac:s1280",
+  "n": 869,
+  "hit": {
+   "n": 869,
+   "hits": 426,
+   "acc": 49.02,
+   "lo": 45.68,
+   "hi": 52.36
+  },
+  "near20": {
+   "n": 869,
+   "hits": 530,
+   "acc": 60.99,
+   "lo": 57.77,
+   "hi": 64.21
+  }
+ },
+ {
+  "run": "bonsai9b-new@pair-sim-l4-best",
+  "job": "neighbour:s1280",
+  "n": 600,
+  "hit": {
+   "n": 600,
+   "hits": 351,
+   "acc": 58.5,
+   "lo": 54.5,
+   "hi": 62.33
+  },
+  "near20": {
+   "n": 600,
+   "hits": 412,
+   "acc": 68.67,
+   "lo": 65.0,
+   "hi": 72.33
+  }
+ },
+ {
+  "run": "bonsai9b-new@pair-sim-l4-best",
+  "job": "neighbour:s1280:looks2:win640",
+  "n": 600,
+  "hit": {
+   "n": 600,
+   "hits": 395,
+   "acc": 65.83,
+   "lo": 62.0,
+   "hi": 69.5
+  },
+  "near20": {
+   "n": 600,
+   "hits": 415,
+   "acc": 69.17,
+   "lo": 65.5,
+   "hi": 72.67
+  }
+ },
+ {
+  "run": "bonsai9b-orig",
+  "job": "ssv2:s1280",
+  "n": 1272,
+  "hit": {
+   "n": 1272,
+   "hits": 551,
+   "acc": 43.32,
+   "lo": 40.64,
+   "hi": 45.99
+  },
+  "near20": null
+ },
+ {
+  "run": "bonsai9b-orig",
+  "job": "mac:s1280",
+  "n": 2106,
+  "hit": {
+   "n": 2106,
+   "hits": 277,
+   "acc": 13.15,
+   "lo": 11.73,
+   "hi": 14.62
+  },
+  "near20": null
+ },
+ {
+  "run": "bonsai9b-orig",
+  "job": "neighbour:s1280",
+  "n": 600,
+  "hit": {
+   "n": 600,
+   "hits": 85,
+   "acc": 14.17,
+   "lo": 11.5,
+   "hi": 17.0
+  },
+  "near20": null
+ },
+ {
+  "run": "qwen35-9b",
+  "job": "ssv2:s1280",
+  "n": 1272,
+  "hit": {
+   "n": 1272,
+   "hits": 1166,
+   "acc": 91.67,
+   "lo": 90.17,
+   "hi": 93.16
+  },
+  "near20": null
+ },
+ {
+  "run": "qwen35-9b",
+  "job": "mac:s1280",
+  "n": 2106,
+  "hit": {
+   "n": 2106,
+   "hits": 1344,
+   "acc": 63.82,
+   "lo": 61.78,
+   "hi": 65.86
+  },
+  "near20": null
+ },
+ {
+  "run": "qwen35-9b",
+  "job": "neighbour:s1280",
+  "n": 600,
+  "hit": {
+   "n": 600,
+   "hits": 392,
+   "acc": 65.33,
+   "lo": 61.5,
+   "hi": 69.17
+  },
+  "near20": null
+ }
+]

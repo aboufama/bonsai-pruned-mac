@@ -149,6 +149,18 @@ func runCommandLine() async {
                 print("  ERROR: \(error)")
             }
         }
+    } else if let i = arguments.firstIndex(of: "--read-ahead"), i + 1 < arguments.count {
+        // Who reads a screenshot ahead: the pointer helper when it answers its health check, else the language model.
+        guard let full = ImageOps.load(path: arguments[i + 1]), let url = ImageOps.dataURL(ImageOps.shrunk(full, longSide: side)) else { fail("cannot read \(arguments[i + 1])") }
+        if let helper = pipeline.pointer {
+            let health = await helper.health()
+            pipeline.pointerSaid(health.ok)
+            print("pointer helper at \(helper.base.absoluteString): " + (health.ok ? "answered" : "did not answer") + " (\(health.note))")
+        }
+        do {
+            let done = try await pipeline.readAheadForPointing(imageURL: url)
+            print(String(format: "read ahead by %@ in %.2f s", done.by, done.seconds) + (done.note.map { " · \($0)" } ?? ""))
+        } catch { fail("\(error)") }
     } else if let i = arguments.firstIndex(of: "--point"), i + 2 < arguments.count {
         _ = await point(arguments[i + 1], arguments[i + 2], tag: "point")
     } else if let i = arguments.firstIndex(of: "--step"), i + 2 < arguments.count {
@@ -256,14 +268,15 @@ if arguments.contains("--help") || arguments.contains("-h") {
         case .plan: return "planned by the model, one step at a time"
         }
     }
-    let parts = Router.parts(arguments[i + 1], app: Apps.resolve)
+    let asked = Router.addressed(arguments[i + 1])                         // "Clicky, …": the name is not part of the request
+    let parts = Router.parts(asked, app: Apps.resolve)
     if parts.count > 1 {
         print("in \(parts.count) parts, one after another:")
         for (n, part) in parts.enumerated() {
             print("  \(n + 1). \"\(part)\": \(described(part))" + (n > 0 && Router.refersBack(part, apps: Apps.list) ? " (told what the parts before it did)" : ""))
         }
     } else {
-        print(described(arguments[i + 1]))
+        print(described(asked))
     }
     exit(0)
 } else if arguments.contains("--count-controls") {
@@ -287,6 +300,45 @@ if arguments.contains("--help") || arguments.contains("-h") {
     // A picture of the pointer drawn to a file, without touching the display.
     _ = NSApplication.shared
     exit(Overlay.preview(to: arguments[i + 1]) ? 0 : 1)
+} else if let i = arguments.firstIndex(of: "--burn-captions"), i + 2 < arguments.count {
+    // The drawing of subtitles on a video, with no speech model: three made-up lines are put on
+    // a copy of VIDEO written to OUT.   bonsai-assistant --burn-captions VIDEO OUT
+    Task {
+        let lines = Subtitles.lines([Subtitle(start: 0.3, end: 2.3, text: "This line is a check of the subtitles."),
+                                     Subtitle(start: 2.6, end: 6.0, text: "A longer stretch of speech is cut into lines that are short enough to read at a glance.")])
+        if let samples = try? await Media.samples(of: URL(fileURLWithPath: arguments[i + 1])) {
+            print(String(format: "its sound: %.1f s, %.1f s of it voice", Double(samples.count) / 16000, PushToTalk.voicedSeconds(samples)))
+        } else {
+            print("it has no sound that could be read")
+        }
+        let start = Date()
+        if let failure = await Media.burn(lines, into: URL(fileURLWithPath: arguments[i + 1]), to: URL(fileURLWithPath: arguments[i + 2])) { fail(failure) }
+        print(String(format: "%d subtitles drawn on a copy in %.1f s: %@", lines.count, Date().timeIntervalSince(start), arguments[i + 2]))
+        exit(0)
+    }
+    dispatchMain()
+} else if let i = arguments.firstIndex(of: "--caption-video"), i + 1 < arguments.count {
+    // The whole of it on one file, with no app: the sound is read by the speech model, the
+    // subtitles are written beside OUT as .srt and drawn on a copy.   bonsai-assistant --caption-video VIDEO [OUT]
+    Task {
+        do {
+            let movie = URL(fileURLWithPath: arguments[i + 1])
+            let out = i + 2 < arguments.count && !arguments[i + 2].hasPrefix("--") ? URL(fileURLWithPath: arguments[i + 2]) : Media.captionedURL(for: movie)
+            let samples = try await Media.samples(of: movie)
+            print(String(format: "%.1f s of sound, %.1f s of it voice", Double(samples.count) / 16000, PushToTalk.voicedSeconds(samples)))
+            let start = Date()
+            let lines = Subtitles.lines(try await Voice().captions(samples))
+            print(String(format: "read in %.1f s: %d subtitles", Date().timeIntervalSince(start), lines.count))
+            print(Subtitles.srt(lines))
+            try? Subtitles.srt(lines).write(to: out.deletingPathExtension().appendingPathExtension("srt"), atomically: true, encoding: .utf8)
+            if let failure = await Media.burn(lines, into: movie, to: out) { fail(failure) }
+            print("the captioned copy: \(out.path)")
+            exit(0)
+        } catch {
+            fail("\(error)")
+        }
+    }
+    dispatchMain()
 } else if let i = arguments.firstIndex(of: "--transcribe"), i + 1 < arguments.count {
     // The speech model on a sound file: bonsai-assistant --transcribe request.wav   (no microphone needed)
     Task {
@@ -303,7 +355,7 @@ if arguments.contains("--help") || arguments.contains("-h") {
         }
     }
     dispatchMain()
-} else if !arguments.contains(where: { ["--models", "--point", "--step", "--samples", "--plan-text"].contains($0) }) {
+} else if !arguments.contains(where: { ["--models", "--point", "--step", "--samples", "--plan-text", "--read-ahead"].contains($0) }) {
     // The app: with no arguments, or with only its own options (--batch FILE, --out FILE,
     // --timeout S, --server URL, --plain-server, --model ID, --log FILE, --unattended, --smoke).
     let app = NSApplication.shared

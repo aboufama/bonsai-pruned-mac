@@ -163,7 +163,16 @@ if ROLL_SHARE and plan_train:
     _np = round((_n - _nr) * 0.7); _npt = round((_n - _nr) * 0.2); _nt = _n - _nr - _np - _npt
     rng.shuffle(_rest)
     _tools = [x for x in tools27 if x["kind"] == "tool_call"][:600] + [x for x in tools27 if x["kind"] == "no_call"][:300]
-    train27 = (rng.choices(_roll, k=_nr) + _rest[:_np] + [sized(x) for x in rng.choices(point_items, k=_npt)] + rng.choices(_tools, k=_nt))
+    _rw = None
+    if globals().get("ROLL_WEIGHT27"):                   # two kinds of states three times as often: the planner said done and the
+        def _hard(x):                                    # oracle did not; the last step had no effect
+            t = x["turn"]; ma = (t.get("meta") or {}).get("model_answer")
+            early = isinstance(ma, dict) and ma.get("action") == "done" and t["answer"].get("action") != "done"
+            stuck = bool(t.get("done")) and ("(nothing changed)" in t["done"][-1] or "(not carried out" in t["done"][-1])
+            return early or stuck
+        _rw = [3 if _hard(x) else 1 for x in _roll]
+        print("rollout pool: %d states, %d of them drawn three times as often (done said too early, or after a step with no effect)" % (len(_roll), sum(w == 3 for w in _rw)), flush=True)
+    train27 = (rng.choices(_roll, weights=_rw, k=_nr) + _rest[:_np] + [sized(x) for x in rng.choices(point_items, k=_npt)] + rng.choices(_tools, k=_nt))
     rng.shuffle(train27)
     print("batches: %d samples = %d rollout rows (%.0f%%; drawn from %d states%s) + %d oracle, rule and verified turns + %d pointing + %d tool cases" % (
         _n, _nr, 100 * _nr / _n, len(_roll), ", only those where the planner differed from the oracle" if ROLL_DISAGREE else "", _np, _npt, _nt), flush=True)

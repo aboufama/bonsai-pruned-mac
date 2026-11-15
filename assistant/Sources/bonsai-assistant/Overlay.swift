@@ -386,6 +386,19 @@ final class Overlay {
     private var pointerShown = false
     private var lastPoint = CGPoint.zero        // the arrow's tip, AppKit coordinates
     private var landing = 0                     // counts movements, so a late step does not act on a newer one
+    // keeping company with the Mac's own cursor: where the mouse was last seen, since when it has
+    // been still, and until when a flight to it is under way (the box waits for the flight to land)
+    private var mouseAt = CGPoint.zero
+    private var mouseStillSince = Date()
+    private var flyingUntil = Date.distantPast
+    /// The flights to a place made since they were last taken (start and end, in the screen
+    /// points clicks use), for the account of a step: every step that acts should have one.
+    private var flights: [(from: CGPoint, to: CGPoint)] = []
+    var hasFlown: Bool { !flights.isEmpty }
+    func takeFlights() -> [(from: CGPoint, to: CGPoint)] {
+        defer { flights = [] }
+        return flights
+    }
     private let offscreen: Bool
 
     // what the box says: a mood (which gives the face), words, and a beat that keeps it alive
@@ -527,6 +540,7 @@ final class Overlay {
     /// Writes the face and the words of the moment into the box beside the arrow.
     private func refresh(after delay: Double = 0) {
         guard let mood, pointerShown else { return }
+        if delay == 0, Date() < flyingUntil { return }                  // the box comes back when the arrow has landed
         let text = words.isEmpty ? Faces.words(mood, beat: beat) : words
         let face = Faces.face(mood, beat: beat)
         let line = face + "\u{1}" + text
@@ -574,17 +588,48 @@ final class Overlay {
             line.opacity = 0
             endMark.opacity = 0
         }
-        if pointerShown { glass?.follow(to: place.tip) } else { glass?.show(at: place.tip, from: place.cursor) }
+        if pointerShown {
+            set(mood, text)
+            keepCompany(place)
+        } else {
+            glass?.show(at: place.tip, from: place.cursor)
+            lastPoint = place.tip
+            mouseAt = place.cursor
+            mouseStillSince = Date()
+            flyingUntil = .distantPast
+            set(mood, text)
+        }
         pointerShown = true
-        lastPoint = place.tip
         landing += 1
-        set(mood, text)
         if mood == nil {
             shown = ""
             now { label.layer.opacity = 0 }
         } else {
             refresh()
         }
+    }
+
+    /// The arrow is its own thing beside the Mac's cursor, not tied to it. While the mouse
+    /// moves it stays where it is. When the mouse has been still for about a third of a second,
+    /// or has got far away, it takes ONE flight to its place beside the cursor, with the same
+    /// curve and easing as a flight to a target, and only then looks again. A small move of
+    /// the mouse is not followed at all.
+    private func keepCompany(_ place: (tip: CGPoint, cursor: CGPoint)) {
+        let time = Date()
+        if hypot(place.cursor.x - mouseAt.x, place.cursor.y - mouseAt.y) > 1.5 {
+            mouseAt = place.cursor
+            mouseStillSince = time
+        }
+        guard time >= flyingUntil else { return }                        // a flight is finished before the next is decided
+        let gap = hypot(place.tip.x - lastPoint.x, place.tip.y - lastPoint.y)
+        guard gap >= 60, time.timeIntervalSince(mouseStillSince) >= 0.3 || gap > 250 else { return }
+        let seconds = min(0.9, max(0.35, 0.3 + Double(gap) / 1500))
+        now { label.layer.opacity = 0 }
+        let took = glass?.fly(along: Flight.points(from: lastPoint, to: place.tip), seconds: seconds) ?? seconds
+        lastPoint = place.tip
+        flyingUntil = time.addingTimeInterval(took * 0.9)
+        shown = ""
+        refresh(after: took * 0.92)
     }
 
     /// Says something in the box beside the arrow (bringing the arrow out beside the cursor if
@@ -658,6 +703,7 @@ final class Overlay {
             label.layer.opacity = 0
         }
         seconds = glass?.fly(along: Flight.points(from: start, to: target), seconds: seconds) ?? seconds
+        flights.append((CGPoint(x: start.x, y: screenFrame.height - start.y), quartz))
         pointerShown = true
         lastPoint = target
         landing += 1

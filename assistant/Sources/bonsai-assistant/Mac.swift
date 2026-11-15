@@ -233,6 +233,38 @@ enum Mac {
     }
 
     /// Makes a folder (never over one that exists: "Demo 2") and shows it in the Finder.
+    /// What "bring up the presentation" shows: the file or link named for this run, else the
+    /// newest deck in ~/Bonsai-demo/demo or beside the program (a Keynote or PowerPoint file,
+    /// a PDF, a web page, a picture). The user's own folders are not searched.
+    static func presentation() -> String? {
+        if let named = Launch.presentation {
+            if named.contains("://") { return named }
+            let path = (named as NSString).expandingTildeInPath
+            return FileManager.default.fileExists(atPath: path) ? path : nil
+        }
+        let kinds = ["key", "pptx", "pdf", "html", "png", "jpg", "jpeg"]
+        // a file called Presentation on the Desktop comes first: its icon can be seen and clicked
+        let desk = NSHomeDirectory() + "/Desktop"
+        if let onDesk = ((try? FileManager.default.contentsOfDirectory(atPath: desk)) ?? []).filter({ name in
+            let lower = name.lowercased()
+            return lower.hasPrefix("presentation") && kinds.contains((lower as NSString).pathExtension)
+        }).sorted().first { return desk + "/" + onDesk }
+        let folders = [NSHomeDirectory() + "/Bonsai-demo/demo", (CommandLine.arguments.first.map { ($0 as NSString).deletingLastPathComponent } ?? "") + "/demo",
+                       CommandLine.arguments.first.map { ($0 as NSString).deletingLastPathComponent } ?? ""]
+        for folder in folders where !folder.isEmpty {
+            let files = ((try? FileManager.default.contentsOfDirectory(atPath: folder)) ?? []).filter { name in
+                let lower = name.lowercased()
+                return kinds.contains((lower as NSString).pathExtension) && ["presentation", "slides", "deck"].contains { lower.contains($0) }
+            }
+            let ranked = files.sorted { a, b in
+                let ka = kinds.firstIndex(of: (a.lowercased() as NSString).pathExtension) ?? 9, kb = kinds.firstIndex(of: (b.lowercased() as NSString).pathExtension) ?? 9
+                return ka != kb ? ka < kb : a < b
+            }
+            if let first = ranked.first { return folder + "/" + first }
+        }
+        return nil
+    }
+
     /// The folder `newFolder` made last, for a request that goes on "…, then put the file inside it".
     static var lastFolder: URL?
 

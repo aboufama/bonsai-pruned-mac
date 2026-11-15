@@ -23,6 +23,16 @@ public enum Commands {
         return match(#"^(?:where|what|which|who|how|why|is|are|does|do|can|could|should|show me|point (?:at|to|out)|find|locate|highlight)\b"#, t) != nil
     }
 
+    /// "Hey, can you open my Photo Booth app?", "Could you minimize this?": an order said
+    /// politely, not a question. "Can you see…", "could you tell me…" stay questions.
+    public static func isPoliteOrder(_ request: String) -> Bool {
+        var t = request.trimmingCharacters(in: .whitespacesAndNewlines)
+        while let m = match(#"^(?:hey|hi|hello|ok|okay|so|um|uh|please|clicky|bonsai)\b[\s,!.:-]*(.+)$"#, t) { t = m[1] }
+        guard let m = match(#"^(?:can|could|would|will)\s+you\s+(?:please\s+|kindly\s+|just\s+|quickly\s+)?(\p{L}+)"#, t) else { return false }
+        let telling = ["see", "tell", "show", "find", "explain", "describe", "read", "say", "hear", "point", "locate", "help", "check", "confirm", "recommend", "suggest", "think", "guess"]
+        return !telling.contains(m[1].lowercased())
+    }
+
     /// The parts of a request, split at "then", ";", line ends, sentence ends and at "and"
     /// before another command word. Text inside double quotes is never split.
     public static func clauses(_ request: String) -> [String] {

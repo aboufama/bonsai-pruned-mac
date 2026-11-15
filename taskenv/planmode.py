@@ -872,7 +872,12 @@ class StepBudget:
             self.ineffective = {}
 
 
-def rollout_app(env, ep, chat, oracle_rows_=None, pointer=None, max_new_tokens=160, system=None, resample=False):
+def vote_key(a):
+    """What two answers must share to count as the same step (the words of a done sentence or a look target are free)."""
+    return "\x01".join("" if a.get(k) is None else str(a.get(k)).strip().lower() for k in ("action", "id", "keys", "path", "direction", "app", "url")) + ("\x01" + str(a.get("text", "")) if a["action"] == "type" else "")
+
+
+def rollout_app(env, ep, chat, oracle_rows_=None, pointer=None, max_new_tokens=160, system=None, resample=False, vote=False):
     """A planner on one task with the assistant's rules around it (build b336837). Mirrored:
       (e) before the first call, an app that is the only one the task names and is not in front is opened;
       (c) an unusable call is put right where there is no doubt, otherwise the planner is told what is missing
@@ -882,6 +887,7 @@ def rollout_app(env, ep, chat, oracle_rows_=None, pointer=None, max_new_tokens=1
       (d) before a counted `done`, Return is pressed when the last step typed into a one-line field without it;
       (b) the step budget (StepBudget); and the two loop rules (no second Return in a row; a click or look without
           effect once more before it is marked).
+    vote: at every turn three answers are drawn and the step two of them share is taken (the greedy one otherwise).
     resample: a rule the assistant does not have: when the answer is the step that just changed nothing, ask again at
     temperature 0.7 up to three times and take the first different answer. The app's limit of 15 steps applies."""
     by_state = {}
@@ -920,6 +926,21 @@ def rollout_app(env, ep, chat, oracle_rows_=None, pointer=None, max_new_tokens=1
             chat.peek(view, want, last, last_changed)          # a scripted planner looks at the oracle's step for this state
         msg = chat(messages, [TOOL], max_new_tokens)
         a = parse(msg)
+        repeat = a is not None and last is not None and not last_changed and StepBudget.key(a) == StepBudget.key(last)      # the dead step again
+        if vote:                                             # a vote of three: the greedy answer and two drawn at temperature 0.6
+            extra = chat(messages, [TOOL], max_new_tokens, 0.6, 2)
+            cands = [a, parse(extra)] + [parse({"raw": text}) for text in (extra.get("more") or [])]
+            keys = [vote_key(c) if c else None for c in cands]
+            top = collections_counter()
+            top.update(k for k in keys if k is not None)
+            best = top.most_common(1)
+            counts["votes"] += 1
+            if best and best[0][1] >= 2:
+                if best[0][0] != keys[0]:
+                    a = next(c for c, key in zip(cands, keys) if key == best[0][0])
+                    counts["vote_changed"] += 1
+            else:
+                counts["vote_no_agreement"] += 1
         if resample and a is not None and last is not None and not last_changed and StepBudget.key(a) == StepBudget.key(last):
             for _ in range(3):
                 again = chat(messages, [TOOL], max_new_tokens, 0.7)
@@ -930,7 +951,7 @@ def rollout_app(env, ep, chat, oracle_rows_=None, pointer=None, max_new_tokens=1
                     counts["resample_differs"] += 1
                     break
         turn = {"k": k + 1, "front_app": view["front"], "apps": view["apps"], "done": list(done), "controls": public(view), "raw": str(msg.get("raw") or msg.get("content") or "")[:600], "answer": a,
-                "oracle": want, "oracle_known": want is not None, "agrees": same_step(a, want) if want else None, "seconds": msg.get("seconds")}
+                "oracle": want, "oracle_known": want is not None, "agrees": same_step(a, want) if want else None, "seconds": msg.get("seconds"), "repeat": bool(repeat)}
         turns.append(turn)
         if a is not None:
             a = repair(a, view, ep.request)

@@ -79,11 +79,51 @@ public enum Skills {
         (#"^(?:enter|exit|leave|toggle|go)\s+(?:to\s+)?full\s*screen$"#, ["ctrl", "cmd", "f"]),
     ]
 
-    /// A part of a request without the words people put in front ("please", "then", "can you").
+    /// A part of a request without the words people put in front ("please", "then", "hey, can
+    /// you") or after it ("please", and the question mark of an order said as a question).
     public static func stripped(_ clause: String) -> String {
         var c = clause.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: ".!")))
-        while let m = Commands.match(#"^(?:please|now|next|first|finally|and|also|can you|could you|then)[,\s]+(.+)$"#, c) { c = m[1] }
+        var asked = false
+        while let m = Commands.match(#"^(?:please|now|next|first|finally|and|also|then|hey|hi|hello|ok|okay|kindly|just|can you|could you|would you|will you)[,\s]+(.+)$"#, c) {
+            if Commands.match(#"^(?:can|could|would|will)\s+you\b"#, c) != nil { asked = true }
+            c = m[1]
+        }
+        if asked { c = c.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: ".!?"))) }
+        if let m = Commands.match(#"^(.+?)[,\s]+(?:please|for\s+me)$"#, c) { c = m[1] }
         return c
+    }
+
+    /// A window's own buttons, said any way: "minimize the open window", "minimize Safari",
+    /// "close the Notes window", "make this full screen", "full screen Safari". The pointer
+    /// goes to the button in the window's corner and presses it; with an app named, that app
+    /// comes to the front first. "Close this tab" and "quit Safari" are not window buttons.
+    static func windowButton(_ c: String, app: (String) -> String?) -> PlannedStep? {
+        let own = #"(?:(?:this|that|the|my|your)\s+)?(?:(?:open|opened|current|front|frontmost|active|top|focused)\s+)?(?:window|app|application|one|it|this|that)"#
+        let forms: [(kind: String, verbs: String)] = [
+            ("minimize", #"(?:minimi[sz]e)"#),
+            ("close", #"(?:close)"#),
+            ("zoom", #"(?:full\s*-?\s*screen|make\s+full\s*-?\s*screen)"#),
+        ]
+        for (kind, verbs) in forms {
+            if Commands.match("^" + verbs + "(?:\\s+" + own + ")?$", c) != nil {
+                if kind == "close", Commands.match(#"^close$"#, c) != nil { return nil }               // "close" alone says too little
+                return PlannedStep(action: "window_button", target: kind)
+            }
+            if let m = Commands.match("^" + verbs + #"\s+(?:the\s+|my\s+)?(.+?)(?:\s+(?:window|app|application))?$"#, c),
+               Commands.match(#"\b(?:tab|tabs|file|document|folder|menu|sidebar|dialog|sheet|popup|pop-up|notification|ad)\b"#, m[1]) == nil,
+               let name = app(m[1]) {
+                return PlannedStep(action: "window_button", app: name, target: kind)
+            }
+        }
+        // "make this full screen", "put Safari in full screen", "go full screen", "exit full screen"
+        if Commands.match("^(?:make|put|set|turn)\\s+" + own + #"\s+(?:to\s+|in\s+|into\s+|on\s+)?full\s*-?\s*screen$"#, c) != nil
+            || Commands.match(#"^(?:enter|go|go\s+to|go\s+into)\s+full\s*-?\s*screen(?:\s+mode)?$"#, c) != nil {      // leaving it stays a key: the buttons are hidden there
+            return PlannedStep(action: "window_button", target: "zoom")
+        }
+        if let m = Commands.match(#"^(?:make|put|set|turn)\s+(?:the\s+|my\s+)?(.+?)(?:\s+(?:window|app))?\s+(?:to\s+|in\s+|into\s+|on\s+)?full\s*-?\s*screen$"#, c), let name = app(m[1]) {
+            return PlannedStep(action: "window_button", app: name, target: "zoom")
+        }
+        return nil
     }
 
     /// A part of a request that is an app and then one shortcut in it:
@@ -110,10 +150,133 @@ public enum Skills {
         return nil
     }
 
+    /// "Open apple.com in Safari", "go to example.com/docs in Chrome", "open YouTube in Brave":
+    /// the site, exactly as named, in the browser that is named.
+    public static func siteInBrowser(_ clause: String, app: (String) -> String?) -> PlannedStep? {
+        let c = stripped(clause)
+        guard let m = Commands.match(#"^(?:open|go\s+to|visit|browse\s+to|take\s+me\s+to|show|launch|load|pull\s+up|bring\s+up)\s+(?:the\s+website\s+|the\s+site\s+)?(.+)\s+(?:in|on|with|using)\s+(?:the\s+|my\s+)?(.+?)$"#, c),
+              let browser = app(m[2]), Places.browsers.contains(browser),
+              let address = Recipes.site(m[1]) ?? Places.site(named: m[1])
+                ?? (Commands.match(#"^(?:my\s+|the\s+)?(?:e-?mails?|gmail|inbox|mail)$"#, m[1]) != nil ? "https://mail.google.com" : nil) else { return nil }   // "my email in Brave" is the web mail, not the Mail app
+        return PlannedStep(action: "open_url", app: browser, url: address)
+    }
+
+    /// Words that end by naming a browser ("lunch on Friday in Safari"): the words before it,
+    /// and the browser. Nil when they name none.
+    public static func namedBrowser(_ words: String, app: (String) -> String?) -> (rest: String, browser: String)? {
+        // the browser is the last thing said: "lunch on Friday in Safari" is cut at the last "in"
+        guard let m = Commands.match(#"^(.+)\s+(?:in|on|with|using)\s+(?:the\s+|my\s+)?(.+?)$"#, words.trimmingCharacters(in: .whitespaces)),
+              let browser = app(m[2]), Places.browsers.contains(browser) else { return nil }
+        return (m[1], browser)
+    }
+
+    /// "Bring up the presentation", "show my slides", "start the slideshow": the deck kept for
+    /// this (see the app's `Mac.presentation`) is shown, and whatever was in front is hidden.
+    static func presentation(_ c: String) -> PlannedStep? {
+        let shows = #"(?:bring\s+up|open|show|start|play|pull\s+up|put\s+up|launch|begin|go\s+(?:back\s+)?to|switch\s+to|back\s+to|present)"#
+        let deck = #"(?:presentation|slide\s?show|slides|slide|deck|pitch|keynote)"#
+        return Commands.match("^" + shows + "\\s+(?:the\\s+|my\\s+|our\\s+)?" + deck + "$", c) != nil ? PlannedStep(action: "present") : nil
+    }
+
+    /// "Caption the video I just recorded", "put subtitles on my last recording": the newest
+    /// recording gets its own words as subtitles on a copy, made on this Mac.
+    static func captionedVideo(_ c: String) -> PlannedStep? {
+        let which = #"(?:the\s+|my\s+|this\s+|that\s+)?(?:last\s+|latest\s+|new\s+|newest\s+)?(?:video|recording|movie|clip)(?:\s+(?:that\s+)?i\s+just\s+(?:recorded|made|took|shot))?"#
+        let forms = ["^(?:caption|subtitle)\\s+" + which + "$",
+                     "^(?:add|put|burn|write|make)\\s+(?:the\\s+)?(?:subtitles|captions|closed\\s+captions)\\s+(?:to|on|onto|into|in|for)\\s+" + which + "$"]
+        return forms.contains { Commands.match($0, c) != nil } ? PlannedStep(action: "caption_video") : nil
+    }
+
+    /// "Play the video on my desktop", "open the comparison video": the newest recording
+    /// there (or in Movies, the Desktop or Downloads when no place is said) is opened in
+    /// QuickTime Player, made to fill the screen, and played.
+    static func playedVideo(_ c: String) -> PlannedStep? {
+        // "start recording", "start a recording in Photo Booth", "record a video": that is making one, not playing one
+        if Commands.match(#"^(?:start|begin|stop|end|make|take)\s+(?:an?\s+|the\s+)?(?:new\s+|video\s+|screen\s+)?recording\b|\brecord\b"#, c) != nil { return nil }
+        guard let m = Commands.match(#"^(?:play|open|show|start|watch|put\s+on)\s+(?:the\s+|my\s+|that\s+)?(?:comparison\s+|demo\s+|newest\s+|latest\s+|last\s+)?(?:video|movie|clip|recording)(?:\s+(?:that\s+is\s+)?(?:on|from|in)\s+(?:the\s+|my\s+)?(desktop|movies|downloads)(?:\s+folder)?)?$"#, c) else { return nil }
+        return PlannedStep(action: "play_video", target: m[1].lowercased())
+    }
+
+    /// "Write down what you can help me with", "write a note about the trip": the model
+    /// writes a few short lines as a language model, and the app opens a new note and types
+    /// them. A note whose words are given ("a note that says …") is not this: its text is
+    /// typed as it is, by the planner.
+    static func writtenNote(_ c: String) -> PlannedStep? {
+        let t = Commands.unquoted(c).lowercased()
+        guard Commands.match(#"^(?:write|jot|note|list|type|make\s+(?:me\s+)?a\s+(?:note|list)|create\s+a\s+(?:note|list))\b"#, t) != nil,
+              c == Commands.unquoted(c).trimmingCharacters(in: .whitespaces) || !c.contains("\"") else { return nil }      // nothing quoted to type
+        if Commands.match(#"\byou\s+can\s+(?:help|do)\b|\bwhat\s+you\s+(?:do|are\s+good\s+at)\b|\byour\s+(?:skills|abilities)\b"#, t) != nil {
+            return PlannedStep(action: "write_note", target: "abilities")
+        }
+        if let m = Commands.match(#"^(?:write|jot)\s+down\s+((?:some|a\s+few|three|four|five|ideas|a\s+list|the\s+steps|how|why|what)\b.+)$"#, c)
+            ?? Commands.match(#"^(?:write|make|create)\s+(?:me\s+)?a\s+(?:short\s+)?(?:note|list)\s+(?:about|of|on)\s+(.+)$"#, c) {
+            return PlannedStep(action: "write_note", target: m[1])
+        }
+        return nil
+    }
+
+    /// What the model is asked to write for such a note.
+    public static func notePrompt(_ topic: String) -> String {
+        if topic == "abilities" {
+            return "You are an assistant that lives on this Mac and works without the internet. In four short lines, tell the person using it what you can do for them. "
+                + "One thing per line, each line under ten words and starting with a verb. Choose from what you can really do: open apps and web sites; "
+                + "change settings such as dark mode and the volume; put windows side by side; find and click things on the screen; answer questions about the screen; "
+                + "rewrite or translate the text they select; make notes, reminders and calendar events; rename and move files. "
+                + "No numbering, no bullets, no introduction, nothing after the four lines."
+        }
+        return "Write four short lines about this: \(topic). One point per line, each line under ten words. No numbering, no bullets, no introduction, nothing after the four lines."
+    }
+
+    /// The title such a note gets (its first line).
+    public static func noteTitle(_ topic: String) -> String {
+        if topic == "abilities" { return "What I can help you with" }
+        var t = topic.trimmingCharacters(in: CharacterSet.whitespaces.union(CharacterSet(charactersIn: ".!?")))
+        while let m = Commands.match(#"^(?:some|a\s+few|three|four|five|a\s+list\s+of|the)\s+(.+)$"#, t) { t = m[1] }
+        return t.prefix(1).uppercased() + t.dropFirst()
+    }
+
+    /// What the model wrote, as the lines of a note: its thinking, bullets, numbers and
+    /// quotation marks taken off, empty lines dropped, five lines at most.
+    public static func noteLines(_ written: String) -> [String] {
+        Parsing.stripThinking(written).replacingOccurrences(of: "**", with: "").split(whereSeparator: { $0.isNewline }).map { line -> String in
+            var t = line.trimmingCharacters(in: .whitespaces)
+            if let m = Commands.match(#"^(?:[-•*·–]+|\d+[.)])\s*(.+)$"#, t) { t = m[1] }
+            return t.trimmingCharacters(in: CharacterSet.whitespaces.union(CharacterSet(charactersIn: "\"“”")))
+        }.filter { $0.count > 2 }.prefix(5).map { $0 }
+    }
+
+    /// The lines used when the model writes nothing that can be used.
+    public static let abilityLines = ["Open apps and web sites for you", "Change settings like dark mode and the volume",
+                                      "Find and click things on the screen", "Write notes, reminders and calendar events"]
+
+    /// A text in the small pieces it is typed in, so that it can be watched being written.
+    public static func typingPieces(_ text: String) -> [String] {
+        var pieces: [String] = [], current = ""
+        for ch in text {
+            current.append(ch)
+            if ch == " " || ch == "\n" { pieces.append(current); current = "" }
+        }
+        if !current.isEmpty { pieces.append(current) }
+        return pieces
+    }
+
+    /// What a menu holds, said from the list itself: its items in order, eight at most, then
+    /// how many more. No model: the list is the answer.
+    public static func menuAnswer(title: String, items: [String]) -> String {
+        let shown = items.prefix(8).joined(separator: ", ")
+        let more = items.count > 8 ? ", and \(items.count - 8) more" : ""
+        let menu = title.isEmpty || title == "menu bar" ? (title == "menu bar" ? "The menu bar has" : "This menu has") : "The \(title) menu has"
+        return items.isEmpty ? "\(menu) nothing that can be chosen now." : "\(menu): \(shown)\(more)."
+    }
+
     /// A step that needs no model once recognised: a universal shortcut, laying windows out, a
     /// system switch, a folder, a calendar event. Carried out by the app directly.
     public static func direct(_ clause: String, app: (String) -> String?) -> PlannedStep? {
         let c = stripped(clause)
+        // a window's own buttons are pressed with the pointer (the shortcut is only the fallback)
+        if Commands.match(#"^minimi[sz]e(?:\s+(?:this|it|this\s+window|the\s+window))?$"#, c) != nil { return PlannedStep(action: "window_button", target: "minimize") }
+        if Commands.match(#"^close\s+(?:this\s+|the\s+)?window$"#, c) != nil { return PlannedStep(action: "window_button", target: "close") }
+        if let button = windowButton(c, app: app) { return button }
         for (pattern, keys) in shortcuts where Commands.match(pattern, c) != nil { return PlannedStep(action: "key", keys: keys) }
         // a folder, by its name or its path
         if let m = Commands.match(#"^(?:open|show|reveal|go\s+to|take\s+me\s+to)\s+(?:the\s+folder\s+|folder\s+)?(.+)$"#, c), let folder = Places.folder(m[1]) {
@@ -165,6 +328,10 @@ public enum Skills {
             return PlannedStep(action: "volume", text: d == "up" || d == "louder" ? "up" : "down")
         }
         if let folder = newFolder(c) { return folder }
+        if let show = presentation(c) { return show }
+        if let captions = captionedVideo(c) { return captions }
+        if let video = playedVideo(c) { return video }
+        if let note = writtenNote(c) { return note }
         if let file = fileStep(c) { return file }
         if let dock = dock(c) { return dock }
         if let m = Commands.match(#"^(?:add|create|make|schedule|put)\s+(?:an?\s+)?(?:new\s+)?(?:calendar\s+)?(meeting|event|appointment|call|lunch|dinner)\s*(.*)$"#, c) {
@@ -345,6 +512,11 @@ public enum Skills {
         case "rename_file": return "rename \(step.target ?? "") to \(step.text ?? "")" + ((step.app ?? "").isEmpty ? "" : " in \(step.app ?? "")")
         case "move_file": return "move \(step.target ?? "") " + (step.text == "Trash" ? "to the Trash" : "into \(step.text == "it" ? "the folder made before" : step.text ?? "")")
         case "calculate": return "Calculator \(step.text ?? "") ="
+        case "present": return "open the presentation"
+        case "window_button": return "\(step.target == "zoom" ? "full screen" : step.target ?? "") the " + ((step.app ?? "").isEmpty ? "window" : "\(step.app ?? "") window")
+        case "caption_video": return "subtitles put on the newest recording"
+        case "play_video": return "play the video" + ((step.target ?? "").isEmpty ? "" : " in \(step.target ?? "")")
+        case "write_note": return "new note \"\(noteTitle(step.target ?? ""))\" written"
         case Recipes.draftEmail: return "email draft to \(step.target ?? "")"
         default: return Planner.doneLine(step, control: nil)
         }
@@ -375,6 +547,11 @@ public enum Skills {
         case "rename_file": return "Renaming \(step.target ?? "the file")"
         case "move_file": return "Moving \(step.target ?? "the file")"
         case "calculate": return "Working out \(step.text ?? "")"
+        case "present": return "Bringing up the presentation"
+        case "window_button": return step.target == "close" ? "Closing the window" : step.target == "zoom" ? "Going full screen" : "Minimizing the window"
+        case "caption_video": return "Captioning your recording"
+        case "play_video": return "Playing the video"
+        case "write_note": return "Writing a note"
         case "dock":
             switch step.target ?? "" {
             case "autohide": return step.text == "on" ? "Making the Dock hide itself" : "Keeping the Dock in view"
@@ -644,6 +821,8 @@ public enum Router {
             }
             if let steps = Skills.appSettings(clause, app: app) {
                 all += steps
+            } else if let step = Skills.siteInBrowser(clause, app: app) {
+                all.append(step)
             } else if let step = Skills.direct(clause, app: app) {
                 all.append(step)
             } else if let steps = Recipes.steps(of: clause, app: app) {
@@ -656,6 +835,15 @@ public enum Router {
             }
         }
         return all.isEmpty ? nil : all
+    }
+
+    /// What was said, without the name it was said to ("Clicky, bring up the presentation",
+    /// "hey Bonsai open Notes"): with a key held there is no need for a name, but people say one.
+    public static func addressed(_ heard: String) -> String {
+        let t = heard.trimmingCharacters(in: .whitespacesAndNewlines)
+        let name = #"(?:clicky|clickie|clickey|klicky|cliquey|click-y|click\s+e|bonsai|bonzai)"#
+        if let m = Commands.match("^(?:(?:hey|hi|ok|okay|yo|so)[,\\s]+)?" + name + "[,.:;!]*\\s+(.+)$", t), m[1].count > 1 { return m[1] }
+        return t
     }
 
     /// The parts a request is carried out in, one after another, each as a request of its own
@@ -705,7 +893,7 @@ public enum Router {
         if showOnly { return .point }
         if let steps = direct(request, app: app) { return .direct(steps) }
         if let skill = Skills.text(request) { return .text(skill) }
-        if Commands.isQuestion(request) || Answers.asksToBeTold(request) {
+        if (Commands.isQuestion(request) && !Commands.isPoliteOrder(request)) || Answers.asksToBeTold(request) {
             return Answers.asksWhere(request) ? .point : .answer(screen: Answers.needsScreen(request))
         }
         if let spelled = Commands.plan(request) { return .scripted(spelled) }

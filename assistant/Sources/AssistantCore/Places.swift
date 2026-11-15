@@ -174,11 +174,16 @@ public enum Places {
         if let m = Commands.match(#"^(.+?)\s+in\s+(?:the\s+|my\s+|a\s+)?(?:browser|safari|chrome|web\s+browser)$"#, t) { t = m[1]; saysSite = true }
         if let m = Commands.match(#"^(?:the\s+)?(.+?)(?:'s)?\s+(?:website|web\s+site|site|web\s+page|homepage|home\s+page)$"#, t) { t = m[1]; saysSite = true }
         if let m = Commands.match(#"^the\s+(.+)$"#, t) { t = m[1] }
+        if let address = Recipes.site(t) { return address }                // "apple.com" is already an address: exactly that
         let wanted = key(t)
         if let known = sites[wanted] { return known }
         if saysSite, !wanted.isEmpty, !t.contains(" "), wanted.count <= 30 { return "https://www.\(wanted).com" }
         return nil
     }
+
+    /// The browsers a request may name ("open apple.com in Safari").
+    public static let browsers: Set<String> = ["Safari", "Google Chrome", "Brave Browser", "Firefox", "Microsoft Edge", "Arc", "Opera", "Vivaldi",
+                                               "Chromium", "Orion", "DuckDuckGo", "Zen"]
 
     // MARK: an `open` that names no app
 
