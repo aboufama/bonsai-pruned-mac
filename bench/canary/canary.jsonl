@@ -1,0 +1,50 @@
+{"id": "arithmetic-00", "skill": "arithmetic", "prompt": "What is 17 times 23? Reply with only the number.", "answer": "391"}
+{"id": "arithmetic-01", "skill": "arithmetic", "prompt": "What is 144 divided by 12? Reply with only the number.", "answer": "12"}
+{"id": "arithmetic-02", "skill": "arithmetic", "prompt": "What is 1000 minus 387? Reply with only the number.", "answer": "613"}
+{"id": "arithmetic-03", "skill": "arithmetic", "prompt": "What is 15% of 200? Reply with only the number.", "answer": "30"}
+{"id": "arithmetic-04", "skill": "arithmetic", "prompt": "What is 2 to the power of 10? Reply with only the number.", "answer": "1024"}
+{"id": "arithmetic-05", "skill": "arithmetic", "prompt": "A train travels 60 km in 45 minutes. What is its speed in km/h? Reply with only the number.", "answer": "80"}
+{"id": "arithmetic-06", "skill": "arithmetic", "prompt": "What is the next number in the sequence 3, 6, 12, 24? Reply with only the number.", "answer": "48"}
+{"id": "arithmetic-07", "skill": "arithmetic", "prompt": "How many minutes are in 2.5 hours? Reply with only the number.", "answer": "150"}
+{"id": "format-08", "skill": "format", "prompt": "Reply with exactly the word READY in uppercase and nothing else.", "answer": "READY"}
+{"id": "format-09", "skill": "format", "prompt": "Write the first three prime numbers separated by commas with no spaces.", "answer": "2,3,5"}
+{"id": "format-10", "skill": "format", "prompt": "Reply with the letters a, b and c in reverse order, separated by single spaces.", "answer": "c b a"}
+{"id": "format-11", "skill": "format", "prompt": "Answer yes or no in lowercase only: is 7 an odd number?", "answer": "yes"}
+{"id": "format-12", "skill": "format", "prompt": "Write the word cat three times separated by hyphens.", "answer": "cat-cat-cat"}
+{"id": "format-13", "skill": "format", "prompt": "Reply with a JSON object with one key \"ok\" whose value is true. No other text.", "answer": "{\"ok\": true}"}
+{"id": "format-14", "skill": "format", "prompt": "Reply with only the number of letters in the word window.", "answer": "6"}
+{"id": "format-15", "skill": "format", "prompt": "Convert hello world to uppercase. Reply with only the result.", "answer": "HELLO WORLD"}
+{"id": "code-16", "skill": "code", "prompt": "Write a Python expression that returns the length of a list named items. Reply with only the expression.", "answer": "len(items)"}
+{"id": "code-17", "skill": "code", "prompt": "In Python, what does 3 // 2 evaluate to? Reply with only the value.", "answer": "1"}
+{"id": "code-18", "skill": "code", "prompt": "Which JavaScript keyword declares a constant? Reply with only the keyword.", "answer": "const"}
+{"id": "code-19", "skill": "code", "prompt": "What does the shell command pwd stand for? Reply in three lowercase words.", "answer": "print working directory"}
+{"id": "code-20", "skill": "code", "prompt": "Reply with only the output of this Python code: print(len('bonsai'))", "answer": "6"}
+{"id": "code-21", "skill": "code", "prompt": "Which HTTP status code means Not Found? Reply with only the number.", "answer": "404"}
+{"id": "code-22", "skill": "code", "prompt": "Write a Python list literal containing the integers 1, 2 and 3. Reply with only the literal.", "answer": "[1, 2, 3]"}
+{"id": "code-23", "skill": "code", "prompt": "In Python, what is the value of 'a' + 'b'? Reply with only the value, including quotes.", "answer": "'ab'"}
+{"id": "tool-24", "skill": "tool", "prompt": "You can call a tool by replying with JSON of the form {\"tool\": name, \"args\": {...}} and nothing else. Tools: set_timer(minutes: integer). User request: set a timer for 15 minutes.", "answer": "{\"tool\": \"set_timer\", \"args\": {\"minutes\": 15}}"}
+{"id": "tool-25", "skill": "tool", "prompt": "You can call a tool by replying with JSON of the form {\"tool\": name, \"args\": {...}} and nothing else. Tools: get_weather(city: string). User request: what's the weather in Lisbon?", "answer": "{\"tool\": \"get_weather\", \"args\": {\"city\": \"Lisbon\"}}"}
+{"id": "tool-26", "skill": "tool", "prompt": "You can call a tool by replying with JSON of the form {\"tool\": name, \"args\": {...}} and nothing else. Tools: click(element_id: integer). Elements on screen: 1 button 'Cancel', 2 button 'Save', 3 link 'Help'. Task: save the document.", "answer": "{\"tool\": \"click\", \"args\": {\"element_id\": 2}}"}
+{"id": "tool-27", "skill": "tool", "prompt": "You can call a tool by replying with JSON of the form {\"tool\": name, \"args\": {...}} and nothing else. Tools: type_text(element_id: integer, text: string). Elements on screen: 1 text field 'Search', 2 button 'Go'. Task: type bonsai into the search field.", "answer": "{\"tool\": \"type_text\", \"args\": {\"element_id\": 1, \"text\": \"bonsai\"}}"}
+{"id": "tool-28", "skill": "tool", "prompt": "You can call a tool by replying with JSON of the form {\"tool\": name, \"args\": {...}} and nothing else. Tools: play_music(artist: string, shuffle: boolean). User request: shuffle songs by Nina Simone.", "answer": "{\"tool\": \"play_music\", \"args\": {\"artist\": \"Nina Simone\", \"shuffle\": true}}"}
+{"id": "tool-29", "skill": "tool", "prompt": "You can call a tool by replying with JSON of the form {\"tool\": name, \"args\": {...}} and nothing else. If no tool fits, reply with the single word none. Tools: set_timer(minutes: integer). User request: what is the capital of Peru?", "answer": "none"}
+{"id": "tool-30", "skill": "tool", "prompt": "You can call a tool by replying with JSON of the form {\"tool\": name, \"args\": {...}} and nothing else. Tools: create_event(title: string, hour: integer from 0 to 23). User request: add an event called Standup at 9 in the morning.", "answer": "{\"tool\": \"create_event\", \"args\": {\"title\": \"Standup\", \"hour\": 9}}"}
+{"id": "tool-31", "skill": "tool", "prompt": "You can call a tool by replying with JSON of the form {\"tool\": name, \"args\": {...}} and nothing else. Tools: scroll(direction: \"up\" or \"down\", amount: integer). User request: scroll down by 3.", "answer": "{\"tool\": \"scroll\", \"args\": {\"direction\": \"down\", \"amount\": 3}}"}
+{"id": "language-32", "skill": "language", "prompt": "Translate good morning into French. Reply with only the translation.", "answer": "Bonjour"}
+{"id": "language-33", "skill": "language", "prompt": "What is the opposite of hot? Reply with one lowercase word.", "answer": "cold"}
+{"id": "language-34", "skill": "language", "prompt": "What is the plural of mouse, the animal? Reply with one lowercase word.", "answer": "mice"}
+{"id": "language-35", "skill": "language", "prompt": "What is the past tense of run? Reply with one lowercase word.", "answer": "ran"}
+{"id": "language-36", "skill": "language", "prompt": "Translate thank you into Spanish. Reply with only the translation.", "answer": "Gracias"}
+{"id": "language-37", "skill": "language", "prompt": "Which word is misspelled: apple, recieve, table? Reply with the misspelled word exactly as written.", "answer": "recieve"}
+{"id": "reading-38", "skill": "reading", "prompt": "Maya has a red bike and Tom has a blue bike. What color is Tom's bike? Reply with one lowercase word.", "answer": "blue"}
+{"id": "reading-39", "skill": "reading", "prompt": "The meeting was moved from Monday to Thursday. On which day is the meeting now? Reply with one word.", "answer": "Thursday"}
+{"id": "reading-40", "skill": "reading", "prompt": "A box holds 3 apples and 4 pears. Sam eats one apple. How many apples are left? Reply with only the number.", "answer": "2"}
+{"id": "reading-41", "skill": "reading", "prompt": "Lena is taller than Max. Max is taller than Ivo. Who is the shortest? Reply with only the name.", "answer": "Ivo"}
+{"id": "reading-42", "skill": "reading", "prompt": "The file report.pdf is in the Downloads folder. Which folder contains report.pdf? Reply with one word.", "answer": "Downloads"}
+{"id": "reading-43", "skill": "reading", "prompt": "If today is Wednesday, what day is it in two days? Reply with one word.", "answer": "Friday"}
+{"id": "knowledge-44", "skill": "knowledge", "prompt": "What is the capital of France? Reply with one word.", "answer": "Paris"}
+{"id": "knowledge-45", "skill": "knowledge", "prompt": "What is the chemical formula of water? Reply with only the formula.", "answer": "H2O"}
+{"id": "knowledge-46", "skill": "knowledge", "prompt": "How many days are in a leap year? Reply with only the number.", "answer": "366"}
+{"id": "knowledge-47", "skill": "knowledge", "prompt": "Which planet is known as the Red Planet? Reply with one word.", "answer": "Mars"}
+{"id": "knowledge-48", "skill": "knowledge", "prompt": "Who wrote Romeo and Juliet? Reply with the surname only.", "answer": "Shakespeare"}
+{"id": "knowledge-49", "skill": "knowledge", "prompt": "What is the largest ocean on Earth? Reply with one word.", "answer": "Pacific"}

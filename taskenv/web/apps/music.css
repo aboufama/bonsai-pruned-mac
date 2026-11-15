@@ -1,0 +1,72 @@
+/* TEST ENVIRONMENT ONLY. Nothing in taskenv/ may ever enter a training mix. */
+.music { display: flex; flex: 1; min-width: 0; }
+.music .sidebar { width: 210px; }
+.music .sidebar .search { width: auto; margin: 0 10px 2px; background: rgba(0, 0, 0, .06); }
+.music .sidebar .search:focus-within { background: #fff; box-shadow: 0 0 0 3px rgba(250, 45, 72, .28), 0 0 0 1px #fa2d48 inset; }
+.music .sb-item .ic { color: #fa2d48; }
+.music .sb-item.drop-hover { background: #fa2d48; color: #fff; }
+.music .sb-item.drop-hover .ic { color: #fff; }
+.music .sb-item span { overflow: hidden; text-overflow: ellipsis; }
+
+/* playback bar */
+.mu-bar { gap: 2px; padding: 0 16px 0 12px; }
+.mu-bar .tb-btn { position: relative; min-width: 34px; color: #3a3a3c; }
+.mu-bar .tb-btn.mu-pp { min-width: 40px; height: 34px; color: #1d1d1f; }
+.mu-bar .tb-btn.on { background: rgba(250, 45, 72, .13); color: #fa2d48; }
+.mu-bar .tb-btn em { position: absolute; right: 2px; top: 1px; width: 11px; height: 11px; border-radius: 50%; background: #fa2d48; color: #fff; font: 700 8px/11px Inter, sans-serif; text-align: center; }
+.mu-lcd { position: relative; flex: 1; min-width: 0; max-width: 410px; height: 44px; margin: 0 auto; display: flex; align-items: stretch; border-radius: 6px; overflow: hidden; background: #f1f1f3; box-shadow: 0 0 0 .5px rgba(0, 0, 0, .14) inset; }
+.mu-lcd.empty { align-items: center; justify-content: center; color: #c2c2c7; }
+.mu-lcd-t { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 44px 3px; line-height: 1.25; }
+.mu-lcd-t b { max-width: 100%; font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mu-lcd-t span { max-width: 100%; font-size: 11.5px; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mu-lcd em { position: absolute; bottom: 6px; font-style: normal; font-size: 9.5px; color: var(--ink3); font-variant-numeric: tabular-nums; }
+.mu-lcd .mu-t0 { left: 51px; } .mu-lcd .mu-t1 { right: 7px; }
+.mu-prog { position: absolute; left: 44px; right: 0; bottom: 0; height: 3px; background: rgba(0, 0, 0, .1); }
+.mu-prog i { display: block; height: 100%; background: #86868b; }
+.mu-volbox { flex: none; display: flex; align-items: center; gap: 2px; color: #6e6e73; }
+.mu-volwrap { position: relative; display: inline-flex; }
+.mu-track { position: absolute; left: 9px; right: 9px; top: 0; bottom: 0; pointer-events: none; }
+.slider.mu-vol { width: 118px; }
+.slider.mu-vol::before { left: 9px; right: 9px; top: 9.5px; height: 3px; background: #d4d4d9; }
+.slider.mu-vol .fill { left: 9px; top: 9.5px; height: 3px; width: calc(var(--v) * (100% - 18px)); background: #86868b; }
+.slider.mu-vol .knob { top: 5px; left: calc(3px + var(--v) * (100% - 18px)); width: 12px; height: 12px; }
+
+/* artwork (drawn, never an image) */
+.mu-art { flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 5px; color: rgba(255, 255, 255, .82); background: linear-gradient(140deg, hsl(var(--h) 72% 66%), hsl(var(--h2) 66% 43%)); box-shadow: 0 0 0 .5px rgba(0, 0, 0, .12) inset; }
+.mu-art.lcd { width: 44px; height: 44px; border-radius: 0; }
+.mu-art.hdr { width: 56px; height: 56px; border-radius: 7px; box-shadow: 0 2px 8px rgba(0, 0, 0, .18); }
+.mu-art.lib { background: linear-gradient(140deg, #ff7a8c, #f9233c); color: #fff; }
+.mu-art.big { width: 100%; aspect-ratio: 1 / 1; border-radius: 8px; box-shadow: 0 3px 10px rgba(0, 0, 0, .16); }
+.mu-mosaic { flex: none; width: 56px; height: 56px; border-radius: 7px; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; box-shadow: 0 2px 8px rgba(0, 0, 0, .18); }
+.mu-mosaic .mu-art { border-radius: 0; box-shadow: none; }
+
+/* header and table */
+.mu-hdr { flex: none; display: flex; align-items: center; gap: 14px; height: 84px; padding: 2px 20px 0; }
+.mu-hdr h1 { font-size: 22px; line-height: 1.2; font-weight: 700; letter-spacing: -.02em; }
+.mu-hdr .sub { margin-top: 2px; font-size: 12px; color: var(--ink2); }
+.mu-playbtn { margin-left: auto; height: 28px; padding: 0 16px 0 12px; border-radius: 7px; background: #fa2d48; color: #fff; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
+.mu-playbtn.off { background: #e4e4e8; color: #a1a1a6; }
+.mu-head, .mu-row { display: grid; grid-template-columns: 24px minmax(0, 1.5fr) 54px minmax(0, 1fr) minmax(0, 1.1fr) 40px; align-items: center; }
+.mu-head { flex: none; height: 25px; margin: 0 8px; padding: 0 8px; font-size: 11.5px; color: var(--ink2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.mu-head span { height: 100%; display: flex; align-items: center; padding-left: 8px; border-left: 1px solid transparent; }
+.mu-head .mu-c-time, .mu-head .mu-c-artist, .mu-head .mu-c-album, .mu-head .mu-c-love { border-left-color: var(--line); }
+.mu-head .mu-c-love { justify-content: center; padding-left: 0; }
+.mu-list { flex: 1; min-height: 0; padding: 2px 0 16px; }
+.mu-row { height: 28px; margin: 0 8px; padding: 0 8px; border-radius: 5px; font-size: 12.5px; background: #fff; }
+.mu-row:nth-child(even) { background: #f5f5f7; }
+.mu-row span { padding-left: 8px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.mu-row .mu-c-ind { padding-left: 2px; display: flex; align-items: center; justify-content: center; color: #fa2d48; }
+.mu-row .mu-c-time { color: var(--ink2); font-variant-numeric: tabular-nums; }
+.mu-row .mu-c-artist, .mu-row .mu-c-album { color: #48484d; }
+.mu-row .mu-c-love { height: 100%; padding-left: 0; display: flex; align-items: center; justify-content: center; color: #cfcfd4; }
+.mu-row .mu-c-love.on { color: #fa2d48; }
+.mu-row.sel { background: #fa2d48; color: #fff; }
+.mu-row.sel span, .mu-row.sel .mu-c-love.on { color: #fff; }
+.mu-row.sel .mu-c-love { color: rgba(255, 255, 255, .55); }
+.mu-row.drag-ghost { background: #fff; color: var(--ink); box-shadow: 0 0 0 .5px rgba(0, 0, 0, .2), 0 8px 22px rgba(0, 0, 0, .25); }
+.mu-group { margin: 0 8px; padding: 12px 16px 5px; font-size: 13px; font-weight: 700; }
+.mu-none { grid-column: 1 / -1; padding: 60px 0; text-align: center; color: var(--ink3); }
+.mu-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px 22px; padding: 4px 22px 24px; align-content: start; }
+.mu-tile { display: flex; flex-direction: column; min-width: 0; }
+.mu-tile b { margin-top: 7px; font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mu-tile span:last-child { font-size: 12px; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

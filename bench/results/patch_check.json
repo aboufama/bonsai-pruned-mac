@@ -1,0 +1,126 @@
+{
+ "started": "2026-11-15 00:06:08",
+ "stack_found": [
+  "tune:scales:L4-19:400",
+  "tune:scales:L4-19:300",
+  "tune:scales:L4-31+head:400",
+  "qat010:step 1000 (best on the select set)"
+ ],
+ "states": {
+  "S0": {
+   "select": 0.8100875293773835,
+   "report": 0.7973548447780717,
+   "select_tens": 0.9401302906078379,
+   "note": "the session as found"
+  },
+  "S1": {
+   "select": 0.8010413126052431,
+   "report": 0.7900978014148163,
+   "select_tens": 0.9347093381800606,
+   "note": "original pack + patch v2 (the shipped artifact), this machine's own patch-embedding path"
+  },
+  "S1b": {
+   "select": 0.8007202734028609,
+   "report": 0.7916686112328477,
+   "select_tens": 0.9339214267961152,
+   "note": "S1 with the patch embedding as one matrix product (what the pods use)"
+  },
+  "S2": {
+   "select": 0.8099014174562302,
+   "report": 0.7973620521531555,
+   "select_tens": 0.9402580072783627,
+   "note": "training state rebuilt: patch v1 + float32 multipliers of 0 matrices from tune_all_L4-31_head_lr3e-4_u400.pt + checkpoint {'codes': 2, 'multipliers': 100, 'small': 112, 'small_skipped': 0}"
+  },
+  "S3": {
+   "select": 0.8118133333396239,
+   "report": 0.7980071220147251,
+   "select_tens": 0.9405463002175133,
+   "note": "S2 with float16 multipliers: patch v1 + checkpoint {'codes': 2, 'multipliers': 100, 'small': 112, 'small_skipped': 0}"
+  },
+  "S4": {
+   "select": 0.7998946316432907,
+   "report": 0.7893764730742189,
+   "select_tens": 0.9344437912695993,
+   "note": "S2 with only the small tensors the patch kept: patch v1 + float32 multipliers of 0 matrices from tune_all_L4-31_head_lr3e-4_u400.pt + checkpoint {'codes': 2, 'multipliers': 100, 'small': 27, 'small_skipped': 85}"
+  },
+  "S0'": {
+   "select": 0.8100875293773835,
+   "report": 0.7973548447780717,
+   "select_tens": 0.9401302906078379,
+   "note": "after putting everything back; must equal S0"
+  }
+ },
+ "found_differs_from_original": {
+  "multipliers": 176,
+  "codes": 2,
+  "small": 97
+ },
+ "patch_embed_as_found": "Conv3d",
+ "small_tensors": {
+  "in_checkpoint": 112,
+  "kept_by_patch": 27,
+  "dropped_by_patch": [
+   "model.language_model.layers.10.input_layernorm.weight",
+   "model.language_model.layers.10.linear_attn.A_log",
+   "model.language_model.layers.10.linear_attn.conv1d.weight",
+   "model.language_model.layers.10.linear_attn.dt_bias",
+   "model.language_model.layers.10.linear_attn.norm.weight",
+   "model.language_model.layers.10.post_attention_layernorm.weight",
+   "model.language_model.layers.11.input_layernorm.weight",
+   "model.language_model.layers.11.post_attention_layernorm.weight",
+   "model.language_model.layers.11.self_attn.k_norm.weight",
+   "model.language_model.layers.11.self_attn.q_norm.weight",
+   "model.language_model.layers.12.input_layernorm.weight",
+   "model.language_model.layers.12.linear_attn.A_log",
+   "model.language_model.layers.12.linear_attn.conv1d.weight",
+   "model.language_model.layers.12.linear_attn.dt_bias",
+   "model.language_model.layers.12.linear_attn.norm.weight",
+   "model.language_model.layers.12.post_attention_layernorm.weight",
+   "model.language_model.layers.13.input_layernorm.weight",
+   "model.language_model.layers.13.linear_attn.A_log",
+   "model.language_model.layers.13.linear_attn.dt_bias",
+   "model.language_model.layers.13.linear_attn.norm.weight",
+   "model.language_model.layers.13.post_attention_layernorm.weight",
+   "model.language_model.layers.14.input_layernorm.weight",
+   "model.language_model.layers.14.linear_attn.A_log",
+   "model.language_model.layers.14.linear_attn.conv1d.weight",
+   "model.language_model.layers.14.linear_attn.dt_bias",
+   "model.language_model.layers.14.linear_attn.norm.weight",
+   "model.language_model.layers.14.post_attention_layernorm.weight",
+   "model.language_model.layers.15.input_layernorm.weight",
+   "model.language_model.layers.15.post_attention_layernorm.weight",
+   "model.language_model.layers.15.self_attn.k_norm.weight",
+   "model.language_model.layers.15.self_attn.q_norm.weight",
+   "model.language_model.layers.16.input_layernorm.weight",
+   "model.language_model.layers.16.linear_attn.A_log",
+   "model.language_model.layers.16.linear_attn.conv1d.weight",
+   "model.language_model.layers.16.linear_attn.dt_bias",
+   "model.language_model.layers.16.linear_attn.norm.weight",
+   "model.language_model.layers.16.post_attention_layernorm.weight",
+   "model.language_model.layers.17.input_layernorm.weight",
+   "model.language_model.layers.17.linear_attn.A_log",
+   "model.language_model.layers.17.linear_attn.conv1d.weight",
+   "model.language_model.layers.17.linear_attn.dt_bias",
+   "model.language_model.layers.17.linear_attn.norm.weight",
+   "model.language_model.layers.17.post_attention_layernorm.weight",
+   "model.language_model.layers.18.input_layernorm.weight",
+   "model.language_model.layers.18.linear_attn.A_log",
+   "model.language_model.layers.18.linear_attn.dt_bias",
+   "model.language_model.layers.18.linear_attn.norm.weight",
+   "model.language_model.layers.18.post_attention_layernorm.weight",
+   "model.language_model.layers.19.input_layernorm.weight",
+   "model.language_model.layers.19.post_attention_layernorm.weight",
+   "model.language_model.layers.19.self_attn.k_norm.weight",
+   "model.language_model.layers.19.self_attn.q_norm.weight",
+   "model.language_model.layers.4.input_layernorm.weight",
+   "model.language_model.layers.4.linear_attn.A_log",
+   "model.language_model.layers.4.linear_attn.conv1d.weight",
+   "model.language_model.layers.4.linear_attn.dt_bias",
+   "model.language_model.layers.4.linear_attn.norm.weight",
+   "model.language_model.layers.4.post_attention_layernorm.weight",
+   "model.language_model.layers.5.input_layernorm.weight",
+   "model.language_model.layers.5.linear_attn.A_log"
+  ]
+ },
+ "restored_exactly": true
+}

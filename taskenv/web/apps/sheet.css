@@ -1,0 +1,67 @@
+/* TEST ENVIRONMENT ONLY. Nothing in taskenv/ may ever enter a training mix. */
+.sheet { flex: 1; min-width: 0; display: flex; flex-direction: column; background: #fff; --grid: #e2e2e6; --head: #f4f4f6; --rule: #d4d4d9; --hl: #dde5f4; }
+
+/* toolbar */
+.sh-bar { padding: 0 14px 0 86px; gap: 4px; }
+.sh-doc { flex: none; display: block; margin-right: 3px; }
+.sh-bar .tb-title { margin-left: 2px; }
+.sh-bar .tb-btn { min-width: 30px; }
+.sh-b { font-size: 15.5px; font-weight: 700; line-height: 1; }
+.sh-sep { flex: none; width: 1px; height: 20px; margin: 0 7px; background: rgba(0, 0, 0, .13); }
+.sh-bar .popup { height: 24px; min-width: 116px; justify-content: space-between; padding-left: 10px; font-size: 12.5px; }
+.sh-sort { gap: 2px; padding: 0 6px; }
+.sh-az { display: flex; flex-direction: column; align-items: center; width: 8px; }
+.sh-az b { font-size: 8.5px; font-weight: 700; line-height: 9px; }
+
+/* formula bar */
+.sh-fx { flex: none; height: 30px; display: flex; align-items: center; border-bottom: 1px solid var(--rule); background: #fff; font-size: 12.5px; }
+.sh-name { flex: none; width: 72px; height: 100%; display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--rule); font-weight: 500; font-variant-numeric: tabular-nums; }
+.sh-fxbtn { flex: none; width: 24px; height: 22px; margin-left: 4px; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #58585c; }
+.sh-fxbtn + .sh-fxbtn { margin-left: 0; }
+.sh-fxbtn:hover { background: rgba(0, 0, 0, .06); }
+.sh-fxbtn.off { color: #c9c9ce; background: none; }
+.sh-fxmark { flex: none; padding: 0 9px 1px 7px; font-style: italic; font-weight: 600; font-size: 13px; color: #8a8a90; border-right: 1px solid var(--rule); height: 18px; line-height: 17px; }
+.sh-fxin { flex: 1; min-width: 0; height: 100%; padding: 0 9px; font-size: 12.5px; }
+
+/* grid: 41 px of row numbers, ten columns of 96 px, 9 px for the scroll bar */
+.sh-head { flex: none; display: flex; height: 24px; background: var(--head); border-bottom: 1px solid var(--rule); }
+.sh-corner { flex: none; width: 41px; border-right: 1px solid var(--rule); }
+.sh-ch, .sh-rh { flex: none; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: #77777d; background: var(--head); }
+.sh-ch { width: 96px; border-right: 1px solid var(--rule); }
+.sh-rh { width: 41px; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); font-variant-numeric: tabular-nums; }
+.sh-ch.hl, .sh-rh.hl { background: var(--hl); color: #1f5fc4; font-weight: 600; }
+.sh-ch.all, .sh-rh.all { background: #c7d8f5; }
+.sh-gutter { flex: 1; }
+.sh-body { flex: 1; min-height: 0; overflow-x: hidden; background: #fff; }
+.sh-row { display: flex; width: 1001px; height: 24px; }
+.sh-cell { position: relative; flex: none; width: 96px; height: 24px; padding: 0 6px; border-right: 1px solid var(--grid); border-bottom: 1px solid var(--grid); font-size: 12.5px; line-height: 23px; outline: none; }
+.sh-t { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.sh-cell.ar { text-align: right; font-variant-numeric: tabular-nums; }
+.sh-cell.ac { text-align: center; }
+.sh-cell.b { font-weight: 700; }
+.sh-cell.i { font-style: italic; }
+
+/* selection: a tint on the range, the active cell stays white, one border around the whole selection drawn over the grid lines */
+.sh-cell.in, .sh-cell.drop-hover { background: #e3eeff; }
+.sh-cell.anchor { background: #fff; }
+.sh-cell.in::after { content: ''; position: absolute; inset: -1px; border: 0 solid var(--accent); pointer-events: none; z-index: 2; }
+.sh-cell.et::after { border-top-width: 2px; }
+.sh-cell.eb::after { border-bottom-width: 2px; }
+.sh-cell.el::after { border-left-width: 2px; }
+.sh-cell.er::after { border-right-width: 2px; }
+.sh-row:first-child .sh-cell.in::after { top: 0; }
+.sh-cell.dragging { opacity: 1; }
+.sh-cell.drag-ghost { display: none; }
+/* the field of the cell being edited grows to the right with its text (over the neighbours, up to the edge of the grid) and draws the selection border itself */
+.sh-cell.editing { padding: 0; z-index: 3; }
+.sh-cell.editing::after { display: none; }
+.sh-edit { position: absolute; left: 0; top: 0; height: 23px; min-width: 95px; field-sizing: content; padding: 0 6px; font-size: 12.5px; line-height: 23px; background: #fff; box-shadow: 0 0 0 1px var(--accent), inset 0 0 0 1px var(--accent); }
+.sh-row:first-child .sh-edit { top: 1px; height: 22px; line-height: 22px; }
+
+/* sheet tabs and the summary of the selection */
+.sh-foot { flex: none; height: 26px; display: flex; align-items: center; gap: 6px; padding: 0 12px 0 8px; background: var(--head); border-top: 1px solid var(--rule); font-size: 11.5px; color: var(--ink2); }
+.sh-foot .spacer { flex: 1; }
+.sh-tabadd { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; color: #9a9aa0; }
+.sh-tab { height: 20px; padding: 0 13px; border-radius: 5px; display: flex; align-items: center; background: #fff; color: var(--ink); font-weight: 500; box-shadow: 0 0 0 .5px rgba(0, 0, 0, .16), 0 1px 1.5px rgba(0, 0, 0, .08); }
+.sh-stat { margin-left: 12px; font-variant-numeric: tabular-nums; }
+.sh-stat b { margin-left: 3px; font-weight: 500; color: var(--ink); }

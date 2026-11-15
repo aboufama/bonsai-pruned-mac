@@ -1,0 +1,95 @@
+[
+ {
+  "run": "bonsai9b-new",
+  "input": "s1280",
+  "looks": 1,
+  "all": {
+   "n": 413,
+   "hits": 158,
+   "acc": 38.26,
+   "lo": 33.66,
+   "hi": 43.1,
+   "lo_cluster": 32.85,
+   "hi_cluster": 43.72,
+   "clusters": 52,
+   "unparseable": 0,
+   "refusals": 0
+  },
+  "kinds": {
+   "text_direct": {
+    "n": 117,
+    "hits": 74,
+    "acc": 63.25,
+    "lo": 54.7,
+    "hi": 71.79,
+    "unparseable": 0,
+    "refusals": 0
+   },
+   "text_functional": {
+    "n": 102,
+    "hits": 46,
+    "acc": 45.1,
+    "lo": 35.29,
+    "hi": 54.9,
+    "unparseable": 0,
+    "refusals": 0
+   },
+   "icon_direct": {
+    "n": 96,
+    "hits": 21,
+    "acc": 21.88,
+    "lo": 13.54,
+    "hi": 30.21,
+    "unparseable": 0,
+    "refusals": 0
+   },
+   "icon_functional": {
+    "n": 98,
+    "hits": 17,
+    "acc": 17.35,
+    "lo": 10.2,
+    "hi": 25.51,
+    "unparseable": 0,
+    "refusals": 0
+   }
+  },
+  "sizes": {
+   "l": {
+    "n": 49,
+    "hits": 31,
+    "acc": 63.27,
+    "lo": 48.98,
+    "hi": 75.51,
+    "unparseable": 0,
+    "refusals": 0
+   },
+   "m": {
+    "n": 126,
+    "hits": 75,
+    "acc": 59.52,
+    "lo": 50.79,
+    "hi": 68.25,
+    "unparseable": 0,
+    "refusals": 0
+   },
+   "s": {
+    "n": 149,
+    "hits": 43,
+    "acc": 28.86,
+    "lo": 21.48,
+    "hi": 36.24,
+    "unparseable": 0,
+    "refusals": 0
+   },
+   "xs": {
+    "n": 89,
+    "hits": 9,
+    "acc": 10.11,
+    "lo": 4.49,
+    "hi": 16.85,
+    "unparseable": 0,
+    "refusals": 0
+   }
+  }
+ }
+]

@@ -1,0 +1,283 @@
+# What people call icon-only controls. One drawing per line:
+#
+#   group | names | surfaces | noun phrases | action phrases
+#
+# group     icons of one group mean the same thing, so a screen shows at most one of them
+# names     the drawing in each icon set. Bare names are Lucide (alternatives separated by "/",
+#           the first that exists is used); h: Heroicons, t: Tabler, m: Material Symbols,
+#           s: Apple system symbols (rendered on a Mac, see docs/ICON_SET.md)
+# surfaces  where it is typically found: t toolbar, s sidebar, m menu bar, b tab bar (default ts)
+# nouns     ";"-separated, written without the leading "the": name of the thing or its look
+# actions   ";"-separated verb phrases the control really stands for (may be empty)
+#
+# Used by pointgen/iconscreens.py. An icon is only drawn by the split that owns its glyph.
+settings | settings h:cog-6-tooth t:settings m:settings s:gearshape | ts | gear icon; settings icon; settings button | open settings; change the preferences
+settings | cog h:cog-8-tooth s:gear | ts | cog icon; cog wheel; settings cog | open settings; open the preferences
+settings | sliders-horizontal h:adjustments-horizontal t:adjustments-horizontal m:tune s:slider.horizontal.3 | tsm | sliders icon; adjustment sliders; controls icon | adjust the controls; open the adjustments
+settings | sliders-vertical h:adjustments-vertical t:adjustments s:slider.vertical.3 | ts | vertical sliders; equaliser icon | adjust the levels; open the equaliser
+search | search h:magnifying-glass t:search m:search s:magnifyingglass | tsmb | magnifying glass; search icon; search button | search; start a search; look something up
+back | arrow-left h:arrow-left t:arrow-left m:arrow_back s:arrow.left | t | back arrow; left arrow; back button | go back; go to the previous page
+back | chevron-left h:chevron-left t:chevron-left m:chevron_left s:chevron.left | t | back chevron; left chevron; back button | go back; go back one step
+forward | arrow-right h:arrow-right t:arrow-right m:arrow_forward s:arrow.right | t | forward arrow; right arrow; forward button | go forward; go to the next page
+forward | chevron-right h:chevron-right t:chevron-right m:chevron_right s:chevron.right | t | forward chevron; right chevron; forward button | go forward; go forward one step
+up | arrow-up h:arrow-up t:arrow-up m:arrow_upward s:arrow.up | t | up arrow; arrow pointing up | go up; scroll to the top
+down | arrow-down h:arrow-down t:arrow-down m:arrow_downward s:arrow.down | t | down arrow; arrow pointing down | go down; scroll to the bottom
+close | x h:x-mark t:x m:close s:xmark | tb | X button; close icon; cross icon | close this; dismiss this
+close | circle-x/x-circle h:x-circle t:circle-x m:cancel s:xmark.circle | t | circled X; close button; X in a circle | close this; dismiss this
+remove | minus h:minus t:minus m:remove s:minus | t | minus icon; minus sign; minus button | remove an item; take one away
+add | plus h:plus t:plus m:add s:plus | tsb | plus icon; plus sign; add button | add a new item; create something new
+add | circle-plus/plus-circle h:plus-circle t:circle-plus m:add_circle s:plus.circle | ts | circled plus; plus in a circle; add button | add a new item; create something new
+add | square-plus/plus-square t:square-plus m:add_box s:plus.square | ts | plus in a square; add button | add a new item; create something new
+delete | trash-2 h:trash t:trash m:delete s:trash | ts | trash can; trash icon; bin icon; delete button | delete this; move this to the trash
+delete | trash t:trash-x m:delete_forever | ts | trash can; trash icon; delete button | delete this; throw this away
+edit | pencil h:pencil t:pencil m:edit s:pencil | ts | pencil icon; edit icon; edit button | edit this; make changes to this
+edit | pen t:ballpen m:ink_pen | ts | pen icon; edit icon | edit this; start editing
+compose | square-pen/pen-square/edit h:pencil-square t:edit m:edit_square s:square.and.pencil | ts | pencil-on-a-square icon; compose icon; compose button | compose a new message; write a new note
+download | download h:arrow-down-tray t:download m:download s:arrow.down.to.line | t | download arrow; download icon; download button | download this; save this to my computer
+upload | upload h:arrow-up-tray t:upload m:upload s:arrow.up.to.line | t | upload arrow; upload icon; upload button | upload a file; send a file up
+refresh | refresh-cw h:arrow-path t:refresh m:refresh s:arrow.clockwise | t | circular arrows; refresh icon; reload button | refresh the page; reload this
+home | house/home h:home t:home m:home s:house | tsb | house icon; home icon; home button | go home; go to the home screen
+bookmark | bookmark h:bookmark t:bookmark m:bookmark s:bookmark | ts | bookmark icon; bookmark ribbon; bookmark button | bookmark this; save this for later
+bookmark | bookmark-plus t:bookmark-plus m:bookmark_add | t | bookmark with a plus; add bookmark icon | add a bookmark
+star | star h:star t:star m:star s:star | ts | star icon; star button; favourite star | star this; mark this as a favourite
+heart | heart h:heart t:heart m:favorite s:heart | ts | heart icon; heart button; like button | like this; love this
+filter | funnel/filter h:funnel t:filter m:filter_alt | t | funnel icon; filter icon; filter button | filter the list; narrow down the results
+filter | list-filter h:bars-arrow-down m:filter_list s:line.3.horizontal.decrease | t | filter lines icon; shrinking lines icon; filter button | filter the list; filter these results
+sort | arrow-up-down h:arrows-up-down t:arrows-sort m:swap_vert s:arrow.up.arrow.down | t | up and down arrows; sort icon; sort button | sort the list; change the sort order
+sort | arrow-down-a-z/arrow-down-az t:sort-a-z m:sort_by_alpha | t | A to Z icon; alphabetical sort icon | sort alphabetically; sort from A to Z
+more | ellipsis/more-horizontal h:ellipsis-horizontal t:dots m:more_horiz s:ellipsis | tsb | three dots; more button; ellipsis icon; more options icon | show more options; open the overflow menu
+more | ellipsis-vertical/more-vertical h:ellipsis-vertical t:dots-vertical m:more_vert | ts | three vertical dots; kebab menu; more options button | show more options; open the overflow menu
+more | circle-ellipsis h:ellipsis-horizontal-circle t:dots-circle-horizontal m:more s:ellipsis.circle | t | three dots in a circle; more button | show more options; see more actions
+menu | menu h:bars-3 t:menu-2 m:menu s:line.3.horizontal | ts | three lines; hamburger menu; menu icon; menu button | open the menu; show the navigation menu
+play | play h:play t:player-play m:play_arrow s:play | t | play button; play triangle; play icon | start playback; play this
+play | circle-play/play-circle h:play-circle m:play_circle s:play.circle | t | play button; play triangle in a circle | start playback; play this
+pause | pause h:pause t:player-pause m:pause s:pause | t | pause button; pause icon; two vertical bars | pause playback; pause this
+stop | circle-stop/stop-circle h:stop-circle m:stop_circle s:stop.circle | t | stop button; stop icon | stop playback; stop this
+next | skip-forward t:player-skip-forward m:skip_next s:forward.end | t | next track button; skip forward icon; skip button | skip to the next track; go to the next song
+previous | skip-back t:player-skip-back m:skip_previous s:backward.end | t | previous track button; skip back icon | go to the previous track; go back a song
+ffwd | fast-forward h:forward t:player-track-next m:fast_forward s:forward | t | fast-forward button; double right arrows | fast-forward; skip ahead
+rewind | rewind h:backward t:player-track-prev m:fast_rewind s:backward | t | rewind button; double left arrows | rewind; skip backwards
+record | circle-dot t:player-record m:radio_button_checked s:record.circle | t | record button; record icon; circle with a dot | start recording; record this
+volume | volume-2 h:speaker-wave t:volume m:volume_up s:speaker.wave.2 | tm | speaker icon; volume icon; sound icon; volume button | change the volume; adjust the sound
+volume | volume-1 t:volume-2 m:volume_down s:speaker.wave.1 | tm | speaker icon; volume icon; sound icon | change the volume; adjust the sound
+mute | volume-x h:speaker-x-mark t:volume-off m:volume_off s:speaker.slash | tm | muted speaker; mute icon; crossed-out speaker; mute button | mute the sound; turn the sound off
+wifi | wifi h:wifi t:wifi m:wifi s:wifi | m | wifi icon; wi-fi symbol; wireless icon | open the wifi settings; choose a wireless network; check the wifi connection
+wifi | wifi-off t:wifi-off m:wifi_off s:wifi.slash | m | wifi off icon; crossed-out wifi icon | turn the wifi back on
+bluetooth | bluetooth t:bluetooth m:bluetooth | m | bluetooth icon; bluetooth symbol | open the bluetooth settings; connect a bluetooth device
+battery | battery-full h:battery-100 t:battery-4 m:battery_full s:battery.100percent | m | battery icon; battery indicator; battery level | check the battery; see how much battery is left
+battery | battery-medium h:battery-50 t:battery-2 m:battery_4_bar s:battery.50percent | m | battery icon; battery indicator; battery level | check the battery; see how much battery is left
+battery | battery-low h:battery-0 t:battery-1 m:battery_1_bar s:battery.25percent | m | battery icon; low battery icon; battery level | check the battery; see how much battery is left
+battery | battery-charging t:battery-charging m:battery_charging_full s:battery.100percent.bolt | m | charging battery icon; battery with a lightning bolt | check the battery; see if it is charging
+bell | bell h:bell t:bell m:notifications s:bell | tsm | bell icon; notifications icon; notification bell | show my notifications; open the notifications
+bell | bell-ring h:bell-alert t:bell-ringing m:notifications_active | tsm | ringing bell; notification bell; notifications icon | show my notifications; see the new alerts
+belloff | bell-off h:bell-slash t:bell-off m:notifications_off s:bell.slash | tm | crossed-out bell; muted notifications icon |
+user | user h:user t:user m:person s:person | tsm | person icon; user icon; profile icon; account button | open my profile; go to my account
+user | circle-user/user-circle h:user-circle t:user-circle m:account_circle s:person.circle | tsm | person in a circle; account icon; profile icon | open my profile; go to my account
+users | users h:users t:users m:group s:person.2 | ts | two people icon; people icon; group icon | show the people; see the members
+adduser | user-plus h:user-plus t:user-plus m:person_add s:person.badge.plus | ts | person with a plus; add person icon; add contact button | add a person; invite someone
+lock | lock h:lock-closed t:lock m:lock s:lock | tsm | padlock; lock icon; lock button | lock this; lock the screen
+unlock | lock-open/unlock h:lock-open t:lock-open m:lock_open s:lock.open | ts | open padlock; unlock icon | unlock this
+calendar | calendar h:calendar t:calendar m:calendar_today s:calendar | ts | calendar icon; calendar button | open the calendar; show my schedule
+calendar | calendar-days h:calendar-days t:calendar-month m:calendar_month | ts | calendar icon; calendar grid icon | open the calendar; show my schedule
+addevent | calendar-plus t:calendar-plus m:calendar_add_on s:calendar.badge.plus | t | calendar with a plus; add event icon; new event button | add an event; create a new event
+mail | mail h:envelope t:mail m:mail s:envelope | ts | envelope; mail icon; email icon; mail button | open my mail; check my email
+mail | mail-open h:envelope-open t:mail-opened m:drafts s:envelope.open | ts | open envelope; opened mail icon | mark this as read
+attach | paperclip h:paper-clip t:paperclip m:attach_file s:paperclip | t | paperclip; attachment icon; attach button | attach a file; add an attachment
+link | link h:link t:link m:link s:link | t | chain link; link icon; link button | insert a link; add a link
+link | link-2 m:add_link | t | chain link; link icon | insert a link; add a link
+unlink | unlink/link-2-off h:link-slash t:unlink m:link_off | t | broken chain link; unlink icon; remove link button | remove the link; unlink this
+external | external-link h:arrow-top-right-on-square t:external-link m:open_in_new s:arrow.up.right.square | t | arrow leaving a box; open in new window icon; external link icon | open this in a new window; open this in the browser
+copy | copy h:document-duplicate t:copy m:content_copy s:square.on.square | t | two overlapping squares; copy icon; copy button | copy this; copy to the clipboard
+copy | copy-plus t:copy-plus m:control_point_duplicate s:plus.square.on.square | t | duplicate icon; two squares with a plus | duplicate this; make a copy of this
+paste | clipboard-paste m:content_paste_go | t | paste icon; clipboard with an arrow; paste button | paste; paste from the clipboard
+paste | clipboard h:clipboard t:clipboard m:content_paste s:clipboard | t | clipboard icon; paste icon; paste button | paste; paste from the clipboard
+cut | scissors h:scissors t:scissors m:content_cut s:scissors | t | scissors; cut icon; cut button | cut this; cut the selection
+undo | undo-2/undo h:arrow-uturn-left t:arrow-back-up m:undo s:arrow.uturn.backward | t | curved back arrow; undo icon; undo button | undo; undo my last change
+redo | redo-2/redo h:arrow-uturn-right t:arrow-forward-up m:redo s:arrow.uturn.forward | t | curved forward arrow; redo icon; redo button | redo; redo what I just undid
+zoomin | zoom-in h:magnifying-glass-plus t:zoom-in m:zoom_in s:plus.magnifyingglass | t | magnifying glass with a plus; zoom in icon; zoom in button | zoom in; make this bigger
+zoomout | zoom-out h:magnifying-glass-minus t:zoom-out m:zoom_out s:minus.magnifyingglass | t | magnifying glass with a minus; zoom out icon; zoom out button | zoom out; make this smaller
+fullscreen | maximize t:maximize m:fullscreen s:arrow.up.left.and.arrow.down.right | t | full screen icon; four corners icon; full screen button | go full screen; enter full screen
+fullscreen | maximize-2/expand h:arrows-pointing-out t:arrows-maximize m:open_in_full s:arrow.down.left.and.arrow.up.right | t | expand arrows; outward diagonal arrows; full screen button | go full screen; enter full screen
+exitfull | minimize-2 h:arrows-pointing-in t:arrows-minimize m:close_fullscreen s:arrow.down.right.and.arrow.up.left | t | inward diagonal arrows; exit full screen icon; shrink button | exit full screen; leave full screen
+exitfull | minimize t:minimize m:fullscreen_exit | t | inward corners icon; exit full screen icon | exit full screen; leave full screen
+print | printer h:printer t:printer m:print s:printer | t | printer icon; print icon; print button | print this; print the document
+save | save t:device-floppy m:save | t | floppy disk; save icon; save button | save this; save my changes
+folder | folder h:folder t:folder m:folder s:folder | ts | folder icon; folder button | open the folder; browse the folders
+folder | folder-open h:folder-open t:folder-open m:folder_open | ts | open folder icon; folder icon | open a folder; browse the folders
+newfolder | folder-plus h:folder-plus t:folder-plus m:create_new_folder s:folder.badge.plus | ts | folder with a plus; new folder icon; new folder button | create a new folder; make a folder
+file | file h:document t:file m:draft s:doc | ts | document icon; file icon; blank page icon | open the document; show the file
+file | file-text h:document-text t:file-text m:description s:doc.text | ts | document icon; page with lines icon; text file icon | open the document; show the file
+newfile | file-plus h:document-plus t:file-plus m:note_add s:doc.badge.plus | ts | page with a plus; new document icon; new file button | create a new document; start a new file
+image | image h:photo t:photo m:image s:photo | ts | picture icon; image icon; photo icon | open the photos; show the pictures
+image | images t:library-photo m:photo_library s:photo.on.rectangle | ts | stack of pictures; photos icon; photo library icon | open the photo library; show the pictures
+addimage | image-plus t:photo-plus m:add_photo_alternate s:photo.badge.plus | t | picture with a plus; add image icon; add photo button | add a picture; insert a new image
+camera | camera h:camera t:camera m:photo_camera s:camera | ts | camera icon; camera button | take a photo; open the camera
+video | video h:video-camera t:video m:videocam | t | video camera icon; video icon; video call button | start a video call; turn on video
+mic | mic h:microphone t:microphone m:mic s:mic | tm | microphone; mic icon; microphone button | use the microphone; record audio
+micoff | mic-off t:microphone-off m:mic_off s:mic.slash | tm | crossed-out microphone; microphone off icon |
+send | send h:paper-airplane t:send m:send s:paperplane | t | paper plane; send icon; send button | send this; send the message
+reply | reply t:arrow-back-up-double m:reply s:arrowshape.turn.up.left | t | reply arrow; reply icon; reply button | reply; reply to this message
+replyall | reply-all m:reply_all s:arrowshape.turn.up.left.2 | t | reply all icon; double reply arrow | reply to everyone; reply all
+fwdmail | forward m:forward s:arrowshape.turn.up.right | t | forward message icon; forward mail arrow | forward this message; pass this message on
+archive | archive h:archive-box t:archive m:archive s:archivebox | ts | archive box; archive icon; archive button | archive this; move this to the archive
+flag | flag h:flag t:flag m:flag s:flag | ts | flag icon; flag button | flag this; mark this with a flag
+pin | pin t:pin s:pin | ts | pin icon; pushpin; pin button | pin this; keep this pinned
+tag | tag h:tag t:tag m:sell s:tag | ts | tag icon; label icon; tag button | tag this; add a tag
+tag | tags t:tags | ts | tags icon; two tags icon | tag this; manage the tags
+help | circle-help/circle-question-mark/help-circle h:question-mark-circle t:help m:help s:questionmark.circle | tsm | question mark; help icon; help button | get help; open help
+info | info h:information-circle t:info-circle m:info s:info.circle | ts | info icon; letter i in a circle; information button | show the details; get info
+warning | triangle-alert/alert-triangle h:exclamation-triangle t:alert-triangle m:warning s:exclamationmark.triangle | ts | warning triangle; warning icon; exclamation triangle | see the warning; show the warnings
+warning | circle-alert/alert-circle h:exclamation-circle t:alert-circle m:error s:exclamationmark.circle | ts | exclamation mark in a circle; alert icon | see the alert; show the problem
+check | check h:check t:check m:check s:checkmark | t | checkmark; tick icon; check button | confirm; mark this as done
+check | circle-check/check-circle h:check-circle t:circle-check m:check_circle s:checkmark.circle | t | circled checkmark; tick in a circle; done icon | confirm; mark this as done
+sidebar | panel-left/sidebar t:layout-sidebar m:left_panel_open s:sidebar.left | t | sidebar icon; sidebar toggle; sidebar button | show or hide the sidebar; toggle the sidebar
+rightpanel | panel-right t:layout-sidebar-right m:right_panel_open s:sidebar.right | t | right panel icon; inspector toggle; right sidebar button | show or hide the inspector; toggle the right panel
+bottompanel | panel-bottom t:layout-bottombar m:bottom_panel_open | t | bottom panel icon; bottom panel toggle | show or hide the bottom panel
+grid | layout-grid/grid-2x2 h:squares-2x2 t:layout-grid m:grid_view s:square.grid.2x2 | tb | grid icon; four squares; grid view button | switch to grid view; show items as a grid
+grid | grid-3x3/grid t:grid-dots m:apps s:square.grid.3x3 | tb | grid icon; grid of squares; grid view button | switch to grid view; show items as a grid
+list | list h:list-bullet t:list m:format_list_bulleted s:list.bullet | tb | list icon; list view icon; list view button | switch to list view; show items as a list
+columns | columns-3/columns h:view-columns t:columns-3 m:view_column s:rectangle.split.3x1 | tb | columns icon; column view icon; column view button | switch to column view; show items in columns
+split | columns-2 t:columns-2 m:splitscreen_vertical_add s:rectangle.split.2x1 | t | two columns icon; split view icon | split the view; open a split view
+board | square-kanban/kanban t:layout-kanban m:view_kanban | tb | board icon; kanban board icon | switch to board view; show the board
+dashboard | layout-dashboard t:layout-dashboard m:dashboard | sb | dashboard icon; dashboard tiles | open the dashboard; go to the dashboard
+share | share h:arrow-up-on-square t:share-2 m:ios_share s:square.and.arrow.up | t | share icon; arrow coming out of a box; share button | share this; open the share menu
+share | share-2 h:share t:share m:share | t | three connected dots; share icon; share button | share this; open the share menu
+eye | eye h:eye t:eye m:visibility s:eye | t | eye icon; view icon; preview button | preview this; show this
+eyeoff | eye-off h:eye-slash t:eye-off m:visibility_off s:eye.slash | t | crossed-out eye; hide icon | hide this
+globe | globe h:globe-alt t:world m:language s:globe | ts | globe icon; web icon; world icon | go to the web; open the browser
+cloud | cloud h:cloud t:cloud m:cloud s:cloud | tsm | cloud icon; cloud button | open cloud storage; show my cloud files
+cloudup | cloud-upload/upload-cloud h:cloud-arrow-up t:cloud-upload m:cloud_upload | t | cloud with an up arrow; upload to cloud icon | upload to the cloud; back this up to the cloud
+clouddown | cloud-download/download-cloud h:cloud-arrow-down t:cloud-download m:cloud_download | t | cloud with a down arrow; download from cloud icon | download from the cloud; get this from the cloud
+brightness | sun h:sun t:sun m:light_mode s:sun.max | tm | sun icon; brightness icon | adjust the brightness; switch to light mode
+moon | moon h:moon t:moon m:dark_mode s:moon | tm | moon icon; crescent moon; dark mode icon | switch to dark mode; turn on do not disturb
+theme | sun-moon t:sun-moon m:routine | tm | sun and moon icon; theme toggle | change the theme; switch between light and dark mode
+bolt | zap h:bolt t:bolt m:bolt s:bolt | t | lightning bolt; bolt icon |
+clock | clock h:clock t:clock m:schedule s:clock | tsm | clock icon; clock button | show the time; open the clock
+history | history t:history m:history s:clock.arrow.circlepath | ts | clock with a backwards arrow; history icon; history button | show the history; see recent items
+timer | timer t:stopwatch m:timer s:timer | t | stopwatch icon; timer icon | start a timer
+alarm | alarm-clock t:alarm m:alarm s:alarm | t | alarm clock icon; alarm icon | set an alarm
+location | map-pin h:map-pin t:map-pin m:location_on s:mappin | ts | location pin; map pin icon; location icon | show the location; drop a pin
+map | map h:map t:map m:map s:map | ts | map icon; folded map icon | open the map
+locate | navigation t:navigation m:near_me s:location | tm | location arrow; navigation arrow icon | show my current location; find where I am
+locate | locate-fixed/locate t:current-location m:my_location | t | crosshair icon; locate me button; target icon | find my location; centre on my location
+phone | phone h:phone t:phone m:call s:phone | ts | phone icon; telephone icon; call button | make a call; start a phone call
+message | message-square h:chat-bubble-left t:message m:chat_bubble s:bubble.left | ts | speech bubble; chat icon; message icon; comment button | open the messages; write a comment
+message | message-circle h:chat-bubble-oval-left t:message-circle m:mode_comment s:bubble | ts | round speech bubble; chat bubble icon; chat icon | open the messages; start a chat
+music | music h:musical-note t:music m:music_note s:music.note | ts | music note; music icon | open the music; play some music
+headphones | headphones t:headphones m:headphones s:headphones | tm | headphones icon; headphones | choose the headphones; open audio output
+shuffle | shuffle t:arrows-shuffle m:shuffle s:shuffle | t | shuffle icon; crossed arrows; shuffle button | shuffle the songs; turn on shuffle
+repeat | repeat t:repeat m:repeat s:repeat | t | repeat icon; loop arrows; repeat button | repeat the playlist; turn on repeat
+playlist | list-music t:playlist m:queue_music s:music.note.list | ts | playlist icon; queue icon; list with a music note | open the playlist; show the play queue
+cast | cast t:cast m:cast | tm | cast icon; screen cast button | cast to another screen; mirror my screen
+screenshare | screen-share t:screen-share m:screen_share | tm | share screen button; screen sharing icon; monitor with an arrow | share my screen; start screen sharing
+display | monitor h:computer-desktop t:device-desktop m:desktop_windows s:display | tm | monitor icon; display icon; screen icon | open display settings; change the display
+keyboard | keyboard t:keyboard m:keyboard s:keyboard | tm | keyboard icon | show the keyboard; change the keyboard layout
+pointer | mouse-pointer-2/mouse-pointer h:cursor-arrow-rays t:pointer m:arrow_selector_tool s:cursorarrow | t | arrow cursor; pointer tool; cursor icon; selection tool | pick the selection tool; switch to the pointer tool
+handtool | hand h:hand-raised t:hand-stop m:pan_tool s:hand.raised | t | hand icon; hand tool; pan tool | pick the hand tool; pan around the canvas
+text | type t:typography m:title s:textformat | t | letter T; text tool; text icon | add text; pick the text tool
+bold | bold h:bold t:bold m:format_bold s:bold | t | bold B; bold button; bold icon | make the text bold; turn on bold
+italic | italic h:italic t:italic m:format_italic s:italic | t | slanted I; italic button; italics icon | make the text italic; turn on italics
+underline | underline h:underline t:underline m:format_underlined s:underline | t | underlined U; underline button | underline the text
+strike | strikethrough h:strikethrough t:strikethrough m:strikethrough_s s:strikethrough | t | strikethrough S; crossed-out S; strikethrough button | strike through the text
+alignleft | text-align-start/align-left h:bars-3-bottom-left t:align-left m:format_align_left s:text.alignleft | t | left align icon; left-aligned lines; align left button | align the text left; left-align this
+aligncenter | text-align-center/align-center t:align-center m:format_align_center s:text.aligncenter | t | centre align icon; centred lines; align centre button | centre the text; centre-align this
+alignright | text-align-end/align-right h:bars-3-bottom-right t:align-right m:format_align_right s:text.alignright | t | right align icon; right-aligned lines; align right button | align the text right; right-align this
+numlist | list-ordered h:numbered-list t:list-numbers m:format_list_numbered s:list.number | t | numbered list icon; numbered list button | make a numbered list; start a numbered list
+checklist | list-checks/list-todo t:list-check m:checklist s:checklist | ts | checklist icon; to-do list icon | make a checklist; open my to-dos
+indent | indent-increase/indent t:indent-increase m:format_indent_increase s:increase.indent | t | indent icon; increase indent button | indent this; increase the indent
+outdent | indent-decrease/outdent t:indent-decrease m:format_indent_decrease s:decrease.indent | t | outdent icon; decrease indent button | outdent this; decrease the indent
+quote | quote t:quote m:format_quote s:quote.opening | t | quotation marks; quote icon; quote button | insert a quote; format this as a quote
+code | code h:code-bracket t:code m:code s:chevron.left.forwardslash.chevron.right | t | angle brackets; code icon; code button | insert code; view the source code
+terminal | terminal h:command-line t:terminal-2 m:terminal s:terminal | ts | terminal icon; command prompt icon; terminal button | open the terminal; open a command line
+table | table h:table-cells t:table m:table s:tablecells | t | table icon; table button | insert a table; add a table
+heading | heading h:h1 t:heading m:format_h1 | t | heading icon; letter H; heading button | make this a heading; add a heading
+highlight | highlighter t:highlight m:format_ink_highlighter s:highlighter | t | highlighter; highlighter pen; highlight tool | highlight the text; pick the highlighter
+spell | spell-check t:text-spellcheck m:spellcheck s:textformat.abc.dottedunderline | t | spell check icon; spelling button | check the spelling; run the spell checker
+replace | replace t:replace m:find_replace | t | find and replace icon; replace icon | find and replace; replace text
+palette | palette h:swatch t:palette m:palette s:paintpalette | t | paint palette; palette icon; colour palette button | choose a colour; open the colours
+eyedropper | pipette h:eye-dropper t:color-picker m:colorize s:eyedropper | t | eyedropper; colour picker icon; eyedropper tool | pick a colour from the screen; sample a colour
+brush | paintbrush/brush h:paint-brush t:brush m:brush s:paintbrush | t | paintbrush; brush icon; brush tool | pick the brush tool; paint with the brush
+eraser | eraser t:eraser m:ink_eraser s:eraser | t | eraser; eraser icon; eraser tool | erase something; pick the eraser
+crop | crop t:crop m:crop s:crop | t | crop icon; crop tool; crop button | crop the image; crop this
+fill | paint-bucket t:bucket-droplet m:format_color_fill | t | paint bucket; fill tool; bucket icon | fill with colour; pick the fill tool
+wand | wand-sparkles/wand-2/wand t:wand s:wand.and.stars | t | magic wand; wand icon; magic wand tool | auto-enhance this; use the magic wand
+ruler | ruler t:ruler m:straighten s:ruler | t | ruler; ruler icon | show the ruler; measure something
+layers | layers h:square-3-stack-3d t:stack-2 m:layers s:square.3.layers.3d | ts | stacked layers; layers icon; layers button | show the layers; open the layers panel
+fliph | flip-horizontal t:flip-vertical m:flip | t | flip horizontal icon; mirror icon | flip this horizontally; mirror the image
+move | move h:arrows-pointing-out t:arrows-move m:open_with s:arrow.up.and.down.and.arrow.left.and.right | t | four-way arrows; move icon; move tool | move this; pick the move tool
+pentool | pen-tool t:vector m:ink_pen | t | pen tool; fountain pen nib; vector pen icon | draw a path; pick the pen tool
+shapes | shapes t:shape m:shapes s:square.on.circle | t | shapes icon; shapes tool | insert a shape; add a shape
+lasso | lasso t:lasso m:lasso_select s:lasso | t | lasso; lasso tool; lasso icon | select with the lasso; pick the lasso tool
+swap | arrow-left-right h:arrows-right-left t:arrows-left-right m:swap_horiz s:arrow.left.arrow.right | t | left and right arrows; swap icon; switch button | swap these; switch the two sides
+cart | shopping-cart h:shopping-cart t:shopping-cart m:shopping_cart s:cart | ts | shopping cart; cart icon; basket icon | open my cart; view the shopping cart
+store | shopping-bag h:shopping-bag t:shopping-bag m:shopping_bag s:bag | ts | shopping bag; bag icon | open the store; go shopping
+store | store h:building-storefront t:building-store m:storefront | ts | shop front icon; store icon; storefront | open the store; go to the shop
+card | credit-card h:credit-card t:credit-card m:credit_card s:creditcard | ts | credit card icon; card icon; payment icon | open payment methods; manage my cards
+gift | gift h:gift t:gift m:redeem s:gift | ts | gift box; gift icon; present icon | send a gift; see the gifts
+thumbup | thumbs-up h:hand-thumb-up t:thumb-up m:thumb_up s:hand.thumbsup | t | thumbs up; thumbs up icon; like button | give this a thumbs up; like this
+thumbdown | thumbs-down h:hand-thumb-down t:thumb-down m:thumb_down s:hand.thumbsdown | t | thumbs down; thumbs down icon; dislike button | give this a thumbs down; dislike this
+emoji | smile h:face-smile t:mood-smile m:mood s:face.smiling | t | smiley face; emoji icon; emoji button | insert an emoji; open the emoji picker
+mention | at-sign h:at-symbol t:at m:alternate_email s:at | t | at sign; mention icon; @ symbol | mention someone
+hash | hash h:hashtag t:hash m:tag s:number | ts | hash sign; hashtag icon; pound sign | add a hashtag
+inbox | inbox h:inbox t:inbox m:inbox s:tray | ts | inbox tray; inbox icon; inbox button | open my inbox; go to the inbox
+book | book-open h:book-open t:book m:menu_book s:book | ts | open book; book icon; reading icon | open the reading view; open the library
+book | library t:books m:library_books s:books.vertical | ts | books on a shelf icon; library icon | open the library; browse my library
+news | newspaper h:newspaper t:news m:newspaper s:newspaper | ts | newspaper icon; news icon | read the news; open the news
+feed | rss h:rss t:rss m:rss_feed | ts | feed icon; RSS icon | open the feed; subscribe to the feed
+key | key-round/key h:key t:key m:key s:key | ts | key icon; key; passwords icon | open my passwords; manage the keys
+shield | shield t:shield m:shield s:shield | tsm | shield icon; security icon; shield | open security settings; check the protection
+shield | shield-check h:shield-check t:shield-check m:verified_user s:checkmark.shield | tsm | shield with a checkmark; security icon | open security settings; check the protection
+fingerprint | fingerprint h:finger-print t:fingerprint m:fingerprint | t | fingerprint icon; fingerprint | sign in with my fingerprint; use the fingerprint
+power | power h:power t:power m:power_settings_new s:power | tm | power symbol; power button; power icon | shut down; turn this off
+logout | log-out h:arrow-right-start-on-rectangle t:logout m:logout s:rectangle.portrait.and.arrow.right | ts | sign out icon; exit arrow; log out button | sign out; log out
+login | log-in h:arrow-right-end-on-rectangle t:login m:login | ts | sign in icon; log in button | sign in; log in
+bug | bug h:bug-ant t:bug m:bug_report s:ladybug | ts | bug icon; bug; debug button | start debugging; report a bug
+branch | git-branch t:git-branch m:account_tree s:arrow.triangle.branch | ts | branch icon; git branch icon; source control icon | switch branches; open source control
+extensions | puzzle h:puzzle-piece t:puzzle m:extension s:puzzlepiece | ts | puzzle piece; extensions icon; plugin icon | open the extensions; manage the plugins
+database | database h:circle-stack t:database m:database | ts | database icon; stacked cylinders; database button | open the database; browse the data
+server | server h:server t:server m:dns s:server.rack | ts | server icon; server rack icon | show the servers
+drive | hard-drive t:device-sd-card m:hard_drive s:internaldrive | ts | hard drive icon; disk icon; drive icon | open the disk; show the storage
+cpu | cpu h:cpu-chip t:cpu m:memory s:cpu | tm | chip icon; processor icon; CPU icon | show processor usage; check the CPU
+activity | activity t:activity m:monitor_heart s:waveform.path.ecg | tsm | pulse line; activity icon; heartbeat line | show the activity; open the activity monitor
+chart | chart-bar/bar-chart/chart-column h:chart-bar t:chart-bar m:bar_chart s:chart.bar | ts | bar chart; chart icon; statistics icon | show the statistics; open the charts
+chart | chart-line/line-chart h:presentation-chart-line t:chart-line m:show_chart s:chart.xyaxis.line | ts | line chart; graph icon | show the statistics; open the charts
+chart | chart-pie/pie-chart h:chart-pie t:chart-pie m:pie_chart s:chart.pie | ts | pie chart; pie chart icon | show the breakdown; open the charts
+gauge | gauge t:gauge m:speed s:gauge.with.needle | ts | speedometer; gauge icon; dashboard dial | check the performance
+tips | lightbulb h:light-bulb t:bulb m:lightbulb s:lightbulb | ts | light bulb; idea icon; bulb icon | show the tips; get a suggestion
+assistant | sparkles h:sparkles t:sparkles s:sparkles | ts | sparkles; sparkle icon; AI assistant icon | ask the assistant; use the AI helper
+assistant | bot t:robot m:smart_toy | ts | robot icon; robot face; bot icon | talk to the bot; open the assistant
+rocket | rocket h:rocket-launch t:rocket m:rocket_launch | ts | rocket; rocket icon; launch button | launch this
+translate | languages h:language t:language m:translate | tm | translate icon; translation icon; language button | translate this; change the language
+accessibility | accessibility t:accessible m:accessibility_new | tm | accessibility icon; accessibility button | open accessibility settings
+contrast | contrast t:contrast m:contrast s:circle.lefthalf.filled | tm | contrast icon; half-filled circle | change the contrast
+calculator | calculator h:calculator t:calculator m:calculate | ts | calculator icon; calculator | open the calculator
+notes | notebook-pen/notebook t:notebook m:edit_note s:note.text | ts | notebook icon; notes icon | open my notes; write a note
+notes | sticky-note t:note m:sticky_note_2 s:note | ts | sticky note; note icon | add a note; open my notes
+contacts | contact/book-user t:address-book m:contacts s:person.crop.rectangle.stack | ts | address book icon; contacts icon | open my contacts
+games | gamepad-2 t:device-gamepad-2 m:sports_esports s:gamecontroller | ts | game controller; gamepad icon; games icon | open the games
+tv | tv h:tv t:device-tv m:tv s:tv | ts | TV icon; television icon | watch something; open the TV shows
+film | film h:film t:movie m:movie s:film | ts | film strip; movie icon; film icon | open the movies; watch a film
+podcast | podcast t:brand-apple-podcast m:podcasts | ts | podcast icon | open the podcasts
+wallet | wallet h:wallet t:wallet m:wallet | ts | wallet icon; wallet | open my wallet
+weather | cloud-sun t:cloud-fog m:partly_cloudy_day s:cloud.sun | sm | cloud and sun icon; weather icon | check the weather; open the forecast
+eject | eject t:player-eject m:eject s:eject | ts | eject icon; eject button; eject triangle | eject the disk; eject this
+pip | picture-in-picture-2/picture-in-picture t:picture-in-picture m:picture_in_picture s:pip | t | picture-in-picture icon; small window icon | pop the video out; turn on picture in picture
+captions | captions/closed-caption t:badge-cc m:closed_caption s:captions.bubble | t | captions icon; subtitles button; CC icon | turn on subtitles; show the captions
+wrench | wrench h:wrench t:tool m:build s:wrench | ts | wrench; spanner icon; tools icon | open the tools; fix a problem
+megaphone | megaphone h:megaphone t:speakerphone m:campaign s:megaphone | ts | megaphone; megaphone icon; announcements icon | see the announcements; make an announcement
+support | life-buoy h:lifebuoy t:lifebuoy m:support s:lifepreserver | ts | lifebuoy; life ring icon; support icon | contact support; get support
+work | briefcase h:briefcase t:briefcase m:work s:briefcase | ts | briefcase; briefcase icon; work icon | show my work
+airplane | plane t:plane m:flight s:airplane | m | airplane; airplane icon; airplane mode icon | turn on airplane mode; switch to flight mode
+plug | plug t:plug m:power s:powerplug | m | power plug; plug icon; power adapter icon | show the power source; open power settings
+signal | signal h:signal t:antenna-bars-5 m:signal_cellular_alt s:cellularbars | m | signal bars; signal strength icon; cellular icon | check the signal; open mobile data settings
+usb | usb t:usb m:usb | m | USB icon; USB symbol | show the USB devices
+speakers | speaker t:device-speaker m:speaker s:hifispeaker | m | loudspeaker icon; speaker box icon | choose the speakers; open sound output
+command | command t:command m:keyboard_command_key s:command | tm | command key symbol; command icon; cloverleaf symbol | show the keyboard shortcuts
+window | app-window h:window t:app-window m:web_asset s:macwindow | ts | window icon; app window icon | open a new window; show the windows
+toggles | toggle-left/toggle-right t:toggle-left m:toggle_on s:switch.2 | m | toggle switch icon; switches icon | open the quick settings; open the control centre
+signature | signature t:signature m:signature s:signature | t | signature icon; sign button | sign the document; add my signature
+paragraph | pilcrow t:pilcrow m:format_paragraph s:paragraphsign | t | paragraph mark; pilcrow icon | show the formatting marks
+qr | qr-code h:qr-code t:qrcode m:qr_code s:qrcode | t | QR code icon; QR code | show the QR code
+voice | audio-lines t:wave-sine m:graphic_eq s:waveform | tm | sound wave icon; audio waveform | start voice input
+faceid | scan-face t:face-id m:familiar_face_and_zone | t | face scan icon; Face ID icon | sign in with my face
+pullrequest | git-pull-request t:git-pull-request | ts | pull request icon | open the pull requests

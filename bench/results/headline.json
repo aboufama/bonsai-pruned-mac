@@ -1,0 +1,122 @@
+[
+ [
+  "Bonsai 2 9B, repaired [v3-gentle]",
+  "82.1",
+  "not run",
+  "not run",
+  "not run",
+  "not run",
+  "44.9",
+  "not run",
+  "not run",
+  "not run"
+ ],
+ [
+  "Bonsai 2 9B, repaired [v2]",
+  "76.8",
+  "not run",
+  "not run",
+  "not run",
+  "not run",
+  "40.9",
+  "38.3",
+  "not run",
+  "not run"
+ ],
+ [
+  "Bonsai 2 9B, repaired [v3-tools]",
+  "71.9 \u2020160/1272",
+  "not run",
+  "not run",
+  "not run",
+  "not run",
+  "not run",
+  "not run",
+  "not run",
+  "not run"
+ ],
+ [
+  "Bonsai 2 9B, repaired [v4-gentle]",
+  "81.0",
+  "not run",
+  "not run",
+  "not run",
+  "not run",
+  "43.8",
+  "not run",
+  "not run",
+  "not run"
+ ],
+ [
+  "Ternary Bonsai 2 9B, original",
+  "43.3",
+  "not run",
+  "not run",
+  "not run",
+  "not run",
+  "13.2",
+  "not run",
+  "not run",
+  "not run"
+ ],
+ [
+  "Qwen3.5-9B (parent)",
+  "91.7",
+  "92.7",
+  "not run",
+  "not run",
+  "not run",
+  "63.8",
+  "not run",
+  "not run",
+  "not run"
+ ],
+ [
+  "UI-Venus-2-9B",
+  "95.8",
+  "96.2",
+  "not run",
+  "71.9",
+  "not run",
+  "68.4",
+  "not run",
+  "not run",
+  "not run"
+ ],
+ [
+  "Qwen3.5-4B, 4-bit (Q4_K_M GGUF)",
+  "89.9",
+  "not run",
+  "not run",
+  "not run",
+  "not run",
+  "58.8",
+  "not run",
+  "not run",
+  "not run"
+ ],
+ [
+  "Bonsai 2 4B, repaired",
+  "67.0",
+  "not run",
+  "not run",
+  "not run",
+  "not run",
+  "32.7",
+  "not run",
+  "not run",
+  "not run"
+ ],
+ [
+  "Ternary Bonsai 2 4B, original",
+  "12.2",
+  "not run",
+  "not run",
+  "not run",
+  "not run",
+  "3.7",
+  "not run",
+  "not run",
+  "not run"
+ ]
+]

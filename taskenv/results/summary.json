@@ -1,0 +1,5516 @@
+[
+ {
+  "name": "a-4b-actions-u500-s1280",
+  "complete": true,
+  "agent": "agent",
+  "model": "bonsai4b-new",
+  "tag": "4b-actions-u500",
+  "patch": "export/patches/bonsai2-4b-actions-v1-u500.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "plain",
+  "n": 97,
+  "tasks": 97,
+  "seeds": [
+   9101
+  ],
+  "success": 0.041237113402061855,
+  "lo": 0.010309278350515464,
+  "hi": 0.08247422680412371,
+  "success_act": 0.05194805194805195,
+  "n_act": 77,
+  "mean_steps": 4.020618556701031,
+  "mean_needed": 2.0721649484536084,
+  "seconds_per_step": 1.5070641025641025,
+  "invalid": 13,
+  "model_steps": 390,
+  "stopped": 0.0,
+  "strict": 0.0,
+  "stuck": 0.6597938144329897,
+  "point_inside": NaN,
+  "n_points": 0,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": NaN,
+  "sec_point": NaN,
+  "sec_step": 587.755,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    3,
+    12
+   ],
+   "chain": [
+    1,
+    16
+   ],
+   "typing": [
+    0,
+    12
+   ],
+   "drag": [
+    0,
+    10
+   ],
+   "scroll": [
+    0,
+    9
+   ],
+   "menu": [
+    0,
+    12
+   ],
+   "shortcut": [
+    0,
+    6
+   ],
+   "already_done": [
+    0,
+    10
+   ],
+   "infeasible": [
+    0,
+    10
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    20
+   ],
+   "1": [
+    3,
+    22
+   ],
+   "2-3": [
+    1,
+    39
+   ],
+   "4-5": [
+    0,
+    11
+   ],
+   "6+": [
+    0,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    1,
+    12
+   ],
+   "settings": [
+    2,
+    11
+   ],
+   "mail": [
+    0,
+    11
+   ],
+   "notes": [
+    1,
+    9
+   ],
+   "reminders": [
+    0,
+    9
+   ],
+   "calendar": [
+    0,
+    10
+   ],
+   "music": [
+    0,
+    10
+   ],
+   "browser": [
+    0,
+    9
+   ],
+   "sheet": [
+    0,
+    9
+   ],
+   "calculator": [
+    0,
+    7
+   ]
+  }
+ },
+ {
+  "name": "a-4b-tools-s1280",
+  "complete": true,
+  "agent": "agent",
+  "model": "bonsai4b-new",
+  "tag": "4b-tools",
+  "patch": "export/patches/bonsai2-4b-point-tools-v1.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 97,
+  "tasks": 97,
+  "seeds": [
+   9101
+  ],
+  "success": 0.05154639175257732,
+  "lo": 0.010309278350515464,
+  "hi": 0.10309278350515463,
+  "success_act": 0.06493506493506493,
+  "n_act": 77,
+  "mean_steps": 5.257731958762887,
+  "mean_needed": 2.0721649484536084,
+  "seconds_per_step": 1.578072549019608,
+  "invalid": 190,
+  "model_steps": 510,
+  "stopped": 0.0,
+  "strict": 0.0,
+  "stuck": 0.3917525773195876,
+  "point_inside": NaN,
+  "n_points": 0,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": NaN,
+  "sec_point": NaN,
+  "sec_step": 804.817,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    4,
+    12
+   ],
+   "chain": [
+    1,
+    16
+   ],
+   "typing": [
+    0,
+    12
+   ],
+   "drag": [
+    0,
+    10
+   ],
+   "scroll": [
+    0,
+    9
+   ],
+   "menu": [
+    0,
+    12
+   ],
+   "shortcut": [
+    0,
+    6
+   ],
+   "already_done": [
+    0,
+    10
+   ],
+   "infeasible": [
+    0,
+    10
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    20
+   ],
+   "1": [
+    4,
+    22
+   ],
+   "2-3": [
+    1,
+    39
+   ],
+   "4-5": [
+    0,
+    11
+   ],
+   "6+": [
+    0,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    1,
+    12
+   ],
+   "settings": [
+    2,
+    11
+   ],
+   "mail": [
+    0,
+    11
+   ],
+   "notes": [
+    1,
+    9
+   ],
+   "reminders": [
+    0,
+    9
+   ],
+   "calendar": [
+    0,
+    10
+   ],
+   "music": [
+    0,
+    10
+   ],
+   "browser": [
+    1,
+    9
+   ],
+   "sheet": [
+    0,
+    9
+   ],
+   "calculator": [
+    0,
+    7
+   ]
+  }
+ },
+ {
+  "name": "a-9b-actions-u500-s1280",
+  "complete": true,
+  "agent": "agent",
+  "model": "bonsai9b-new",
+  "tag": "9b-actions-u500",
+  "patch": "export/patches/bonsai2-9b-actions-v1-u500.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "plain",
+  "n": 97,
+  "tasks": 97,
+  "seeds": [
+   9101
+  ],
+  "success": 0.16494845360824742,
+  "lo": 0.10309278350515463,
+  "hi": 0.24742268041237114,
+  "success_act": 0.2077922077922078,
+  "n_act": 77,
+  "mean_steps": 5.072164948453608,
+  "mean_needed": 2.0721649484536084,
+  "seconds_per_step": 1.2769186991869919,
+  "invalid": 15,
+  "model_steps": 492,
+  "stopped": 0.010309278350515464,
+  "strict": 0.010309278350515464,
+  "stuck": 0.5154639175257731,
+  "point_inside": NaN,
+  "n_points": 0,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": NaN,
+  "sec_point": NaN,
+  "sec_step": 628.244,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    6,
+    12
+   ],
+   "chain": [
+    5,
+    16
+   ],
+   "typing": [
+    0,
+    12
+   ],
+   "drag": [
+    0,
+    10
+   ],
+   "scroll": [
+    1,
+    9
+   ],
+   "menu": [
+    1,
+    12
+   ],
+   "shortcut": [
+    3,
+    6
+   ],
+   "already_done": [
+    0,
+    10
+   ],
+   "infeasible": [
+    0,
+    10
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    20
+   ],
+   "1": [
+    7,
+    22
+   ],
+   "2-3": [
+    7,
+    39
+   ],
+   "4-5": [
+    1,
+    11
+   ],
+   "6+": [
+    1,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    3,
+    12
+   ],
+   "settings": [
+    3,
+    11
+   ],
+   "mail": [
+    3,
+    11
+   ],
+   "notes": [
+    1,
+    9
+   ],
+   "reminders": [
+    0,
+    9
+   ],
+   "calendar": [
+    1,
+    10
+   ],
+   "music": [
+    1,
+    10
+   ],
+   "browser": [
+    3,
+    9
+   ],
+   "sheet": [
+    0,
+    9
+   ],
+   "calculator": [
+    1,
+    7
+   ]
+  }
+ },
+ {
+  "name": "a-9b-orig-s1280",
+  "complete": true,
+  "agent": "agent",
+  "model": "bonsai9b-orig",
+  "tag": "",
+  "patch": null,
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 97,
+  "tasks": 97,
+  "seeds": [
+   9101
+  ],
+  "success": 0.010309278350515464,
+  "lo": 0.0,
+  "hi": 0.030927835051546393,
+  "success_act": 0.012987012987012988,
+  "n_act": 77,
+  "mean_steps": 4.123711340206185,
+  "mean_needed": 2.0721649484536084,
+  "seconds_per_step": 1.3269975,
+  "invalid": 7,
+  "model_steps": 400,
+  "stopped": 0.041237113402061855,
+  "strict": 0.0,
+  "stuck": 0.6597938144329897,
+  "point_inside": NaN,
+  "n_points": 0,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": NaN,
+  "sec_point": NaN,
+  "sec_step": 530.799,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    1,
+    12
+   ],
+   "chain": [
+    0,
+    16
+   ],
+   "typing": [
+    0,
+    12
+   ],
+   "drag": [
+    0,
+    10
+   ],
+   "scroll": [
+    0,
+    9
+   ],
+   "menu": [
+    0,
+    12
+   ],
+   "shortcut": [
+    0,
+    6
+   ],
+   "already_done": [
+    0,
+    10
+   ],
+   "infeasible": [
+    0,
+    10
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    20
+   ],
+   "1": [
+    1,
+    22
+   ],
+   "2-3": [
+    0,
+    39
+   ],
+   "4-5": [
+    0,
+    11
+   ],
+   "6+": [
+    0,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    0,
+    12
+   ],
+   "settings": [
+    0,
+    11
+   ],
+   "mail": [
+    0,
+    11
+   ],
+   "notes": [
+    0,
+    9
+   ],
+   "reminders": [
+    0,
+    9
+   ],
+   "calendar": [
+    0,
+    10
+   ],
+   "music": [
+    1,
+    10
+   ],
+   "browser": [
+    0,
+    9
+   ],
+   "sheet": [
+    0,
+    9
+   ],
+   "calculator": [
+    0,
+    7
+   ]
+  }
+ },
+ {
+  "name": "a-9b-v3-tools-s1280",
+  "complete": true,
+  "agent": "agent",
+  "model": "bonsai9b-new",
+  "tag": "9b-v3-tools",
+  "patch": "export/patches/bonsai2-9b-point-v3-tools.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 97,
+  "tasks": 97,
+  "seeds": [
+   9101
+  ],
+  "success": 0.030927835051546393,
+  "lo": 0.0,
+  "hi": 0.07216494845360824,
+  "success_act": 0.03896103896103896,
+  "n_act": 77,
+  "mean_steps": 6.051546391752577,
+  "mean_needed": 2.0721649484536084,
+  "seconds_per_step": 1.2025911413969337,
+  "invalid": 498,
+  "model_steps": 587,
+  "stopped": 0.010309278350515464,
+  "strict": 0.0,
+  "stuck": 0.12371134020618557,
+  "point_inside": NaN,
+  "n_points": 0,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": NaN,
+  "sec_point": NaN,
+  "sec_step": 705.921,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    2,
+    12
+   ],
+   "chain": [
+    0,
+    16
+   ],
+   "typing": [
+    0,
+    12
+   ],
+   "drag": [
+    1,
+    10
+   ],
+   "scroll": [
+    0,
+    9
+   ],
+   "menu": [
+    0,
+    12
+   ],
+   "shortcut": [
+    0,
+    6
+   ],
+   "already_done": [
+    0,
+    10
+   ],
+   "infeasible": [
+    0,
+    10
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    20
+   ],
+   "1": [
+    3,
+    22
+   ],
+   "2-3": [
+    0,
+    39
+   ],
+   "4-5": [
+    0,
+    11
+   ],
+   "6+": [
+    0,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    1,
+    12
+   ],
+   "settings": [
+    0,
+    11
+   ],
+   "mail": [
+    0,
+    11
+   ],
+   "notes": [
+    0,
+    9
+   ],
+   "reminders": [
+    0,
+    9
+   ],
+   "calendar": [
+    0,
+    10
+   ],
+   "music": [
+    2,
+    10
+   ],
+   "browser": [
+    0,
+    9
+   ],
+   "sheet": [
+    0,
+    9
+   ],
+   "calculator": [
+    0,
+    7
+   ]
+  }
+ },
+ {
+  "name": "a-qwen35-9b-s1280",
+  "complete": true,
+  "agent": "agent",
+  "model": "qwen35-9b",
+  "tag": "",
+  "patch": null,
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 97,
+  "tasks": 97,
+  "seeds": [
+   9101
+  ],
+  "success": 0.3402061855670103,
+  "lo": 0.24742268041237114,
+  "hi": 0.4329896907216495,
+  "success_act": 0.42857142857142855,
+  "n_act": 77,
+  "mean_steps": 5.175257731958763,
+  "mean_needed": 2.0721649484536084,
+  "seconds_per_step": 1.5311035856573705,
+  "invalid": 22,
+  "model_steps": 502,
+  "stopped": 0.23711340206185566,
+  "strict": 0.15463917525773196,
+  "stuck": 0.14432989690721648,
+  "point_inside": NaN,
+  "n_points": 0,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": NaN,
+  "sec_point": NaN,
+  "sec_step": 768.614,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    8,
+    12
+   ],
+   "chain": [
+    8,
+    16
+   ],
+   "typing": [
+    7,
+    12
+   ],
+   "drag": [
+    2,
+    10
+   ],
+   "scroll": [
+    1,
+    9
+   ],
+   "menu": [
+    6,
+    12
+   ],
+   "shortcut": [
+    1,
+    6
+   ],
+   "already_done": [
+    0,
+    10
+   ],
+   "infeasible": [
+    0,
+    10
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    20
+   ],
+   "1": [
+    10,
+    22
+   ],
+   "2-3": [
+    16,
+    39
+   ],
+   "4-5": [
+    5,
+    11
+   ],
+   "6+": [
+    2,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    3,
+    12
+   ],
+   "settings": [
+    6,
+    11
+   ],
+   "mail": [
+    6,
+    11
+   ],
+   "notes": [
+    4,
+    9
+   ],
+   "reminders": [
+    2,
+    9
+   ],
+   "calendar": [
+    1,
+    10
+   ],
+   "music": [
+    3,
+    10
+   ],
+   "browser": [
+    3,
+    9
+   ],
+   "sheet": [
+    2,
+    9
+   ],
+   "calculator": [
+    3,
+    7
+   ]
+  }
+ },
+ {
+  "name": "a-venus2-9b-s1280",
+  "complete": true,
+  "agent": "agent",
+  "model": "venus2-9b",
+  "tag": "",
+  "patch": null,
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 97,
+  "tasks": 97,
+  "seeds": [
+   9101
+  ],
+  "success": 0.1958762886597938,
+  "lo": 0.12371134020618557,
+  "hi": 0.27835051546391754,
+  "success_act": 0.24675324675324675,
+  "n_act": 77,
+  "mean_steps": 6.010309278350515,
+  "mean_needed": 2.0721649484536084,
+  "seconds_per_step": 1.473025728987993,
+  "invalid": 338,
+  "model_steps": 583,
+  "stopped": 0.061855670103092786,
+  "strict": 0.05154639175257732,
+  "stuck": 0.09278350515463918,
+  "point_inside": NaN,
+  "n_points": 0,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": NaN,
+  "sec_point": NaN,
+  "sec_step": 858.774,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    6,
+    12
+   ],
+   "chain": [
+    4,
+    16
+   ],
+   "typing": [
+    2,
+    12
+   ],
+   "drag": [
+    2,
+    10
+   ],
+   "scroll": [
+    0,
+    9
+   ],
+   "menu": [
+    3,
+    12
+   ],
+   "shortcut": [
+    2,
+    6
+   ],
+   "already_done": [
+    0,
+    10
+   ],
+   "infeasible": [
+    0,
+    10
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    20
+   ],
+   "1": [
+    8,
+    22
+   ],
+   "2-3": [
+    9,
+    39
+   ],
+   "4-5": [
+    1,
+    11
+   ],
+   "6+": [
+    1,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    4,
+    12
+   ],
+   "settings": [
+    3,
+    11
+   ],
+   "mail": [
+    2,
+    11
+   ],
+   "notes": [
+    0,
+    9
+   ],
+   "reminders": [
+    0,
+    9
+   ],
+   "calendar": [
+    2,
+    10
+   ],
+   "music": [
+    4,
+    10
+   ],
+   "browser": [
+    1,
+    9
+   ],
+   "sheet": [
+    1,
+    9
+   ],
+   "calculator": [
+    2,
+    7
+   ]
+  }
+ },
+ {
+  "name": "g-4b-orig-s1280",
+  "complete": false,
+  "agent": "guided",
+  "model": "bonsai4b-orig",
+  "tag": "",
+  "patch": null,
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 61,
+  "tasks": 61,
+  "seeds": [
+   9101
+  ],
+  "success": 0.01639344262295082,
+  "lo": 0.0,
+  "hi": 0.04918032786885246,
+  "success_act": 0.01639344262295082,
+  "n_act": 61,
+  "mean_steps": 3.4262295081967213,
+  "mean_needed": 2.4098360655737703,
+  "seconds_per_step": 0.5432685185185185,
+  "invalid": 21,
+  "model_steps": 108,
+  "stopped": 0.9836065573770492,
+  "strict": 0.01639344262295082,
+  "stuck": 0.0,
+  "point_inside": 0.03418803418803419,
+  "n_points": 117,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": NaN,
+  "sec_point": 0.4676308411214954,
+  "sec_step": 0.5109345794392524,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    0,
+    11
+   ],
+   "chain": [
+    0,
+    13
+   ],
+   "typing": [
+    0,
+    9
+   ],
+   "drag": [
+    0,
+    9
+   ],
+   "scroll": [
+    1,
+    7
+   ],
+   "menu": [
+    0,
+    9
+   ],
+   "shortcut": [
+    0,
+    3
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    0,
+    19
+   ],
+   "2-3": [
+    1,
+    31
+   ],
+   "4-5": [
+    0,
+    9
+   ],
+   "6+": [
+    0,
+    2
+   ]
+  },
+  "by_app": {
+   "files": [
+    0,
+    10
+   ],
+   "settings": [
+    0,
+    9
+   ],
+   "mail": [
+    0,
+    9
+   ],
+   "notes": [
+    0,
+    7
+   ],
+   "reminders": [
+    0,
+    7
+   ],
+   "calendar": [
+    1,
+    8
+   ],
+   "music": [
+    0,
+    7
+   ],
+   "browser": [
+    0,
+    4
+   ]
+  }
+ },
+ {
+  "name": "g-4b-v1-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "bonsai4b-new",
+  "tag": "4b-v1",
+  "patch": "export/patches/bonsai2-4b-point-v1.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.48,
+  "lo": 0.36,
+  "hi": 0.5866666666666667,
+  "success_act": 0.48,
+  "n_act": 75,
+  "mean_steps": 3.6533333333333333,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 0.49978321678321674,
+  "invalid": 0,
+  "model_steps": 143,
+  "stopped": 1.0,
+  "strict": 0.48,
+  "stuck": 0.0,
+  "point_inside": 0.5909090909090909,
+  "n_points": 154,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": NaN,
+  "sec_point": 0.46370629370629374,
+  "sec_step": 0.49978321678321674,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    8,
+    12
+   ],
+   "chain": [
+    4,
+    16
+   ],
+   "typing": [
+    5,
+    12
+   ],
+   "drag": [
+    5,
+    10
+   ],
+   "scroll": [
+    6,
+    9
+   ],
+   "menu": [
+    6,
+    12
+   ],
+   "shortcut": [
+    2,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    12,
+    20
+   ],
+   "2-3": [
+    19,
+    39
+   ],
+   "4-5": [
+    4,
+    11
+   ],
+   "6+": [
+    1,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    7,
+    10
+   ],
+   "settings": [
+    5,
+    9
+   ],
+   "mail": [
+    1,
+    9
+   ],
+   "notes": [
+    5,
+    7
+   ],
+   "reminders": [
+    5,
+    7
+   ],
+   "calendar": [
+    2,
+    8
+   ],
+   "music": [
+    3,
+    7
+   ],
+   "browser": [
+    5,
+    6
+   ],
+   "sheet": [
+    0,
+    7
+   ],
+   "calculator": [
+    3,
+    5
+   ]
+  }
+ },
+ {
+  "name": "g-4b-v2-mixed-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "bonsai4b-new",
+  "tag": "4b-v2-mixed",
+  "patch": "export/patches/bonsai2-4b-point-v2-mixed.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.5466666666666666,
+  "lo": 0.44,
+  "hi": 0.6533333333333333,
+  "success_act": 0.5466666666666666,
+  "n_act": 75,
+  "mean_steps": 3.6533333333333333,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 0.48111188811188815,
+  "invalid": 0,
+  "model_steps": 143,
+  "stopped": 1.0,
+  "strict": 0.5466666666666666,
+  "stuck": 0.0,
+  "point_inside": 0.6883116883116883,
+  "n_points": 154,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": NaN,
+  "sec_point": 0.44841608391608395,
+  "sec_step": 0.48111188811188815,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    8,
+    12
+   ],
+   "chain": [
+    7,
+    16
+   ],
+   "typing": [
+    4,
+    12
+   ],
+   "drag": [
+    7,
+    10
+   ],
+   "scroll": [
+    6,
+    9
+   ],
+   "menu": [
+    7,
+    12
+   ],
+   "shortcut": [
+    2,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    13,
+    20
+   ],
+   "2-3": [
+    23,
+    39
+   ],
+   "4-5": [
+    4,
+    11
+   ],
+   "6+": [
+    1,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    7,
+    10
+   ],
+   "settings": [
+    6,
+    9
+   ],
+   "mail": [
+    3,
+    9
+   ],
+   "notes": [
+    4,
+    7
+   ],
+   "reminders": [
+    6,
+    7
+   ],
+   "calendar": [
+    2,
+    8
+   ],
+   "music": [
+    5,
+    7
+   ],
+   "browser": [
+    4,
+    6
+   ],
+   "sheet": [
+    1,
+    7
+   ],
+   "calculator": [
+    3,
+    5
+   ]
+  }
+ },
+ {
+  "name": "g-4b-v2-mixed-s896",
+  "complete": true,
+  "agent": "guided",
+  "model": "bonsai4b-new",
+  "tag": "4b-v2-mixed",
+  "patch": "export/patches/bonsai2-4b-point-v2-mixed.patch.safetensors",
+  "input": "s896",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.32,
+  "lo": 0.21333333333333335,
+  "hi": 0.4266666666666667,
+  "success_act": 0.32,
+  "n_act": 75,
+  "mean_steps": 3.6266666666666665,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 0.5021888111888112,
+  "invalid": 1,
+  "model_steps": 143,
+  "stopped": 0.9866666666666667,
+  "strict": 0.32,
+  "stuck": 0.0,
+  "point_inside": 0.47058823529411764,
+  "n_points": 153,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": NaN,
+  "sec_point": 0.44545422535211265,
+  "sec_step": 0.4775352112676057,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    4,
+    12
+   ],
+   "chain": [
+    6,
+    16
+   ],
+   "typing": [
+    3,
+    12
+   ],
+   "drag": [
+    3,
+    10
+   ],
+   "scroll": [
+    3,
+    9
+   ],
+   "menu": [
+    4,
+    12
+   ],
+   "shortcut": [
+    1,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    7,
+    20
+   ],
+   "2-3": [
+    15,
+    39
+   ],
+   "4-5": [
+    2,
+    11
+   ],
+   "6+": [
+    0,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    5,
+    10
+   ],
+   "settings": [
+    1,
+    9
+   ],
+   "mail": [
+    2,
+    9
+   ],
+   "notes": [
+    5,
+    7
+   ],
+   "reminders": [
+    2,
+    7
+   ],
+   "calendar": [
+    1,
+    8
+   ],
+   "music": [
+    2,
+    7
+   ],
+   "browser": [
+    4,
+    6
+   ],
+   "sheet": [
+    0,
+    7
+   ],
+   "calculator": [
+    2,
+    5
+   ]
+  }
+ },
+ {
+  "name": "g-9b-orig-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "bonsai9b-orig",
+  "tag": "",
+  "patch": null,
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.12,
+  "lo": 0.05333333333333334,
+  "hi": 0.2,
+  "success_act": 0.12,
+  "n_act": 75,
+  "mean_steps": 3.6933333333333334,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 0.3719160839160839,
+  "invalid": 13,
+  "model_steps": 143,
+  "stopped": 1.0,
+  "strict": 0.12,
+  "stuck": 0.0,
+  "point_inside": 0.22077922077922077,
+  "n_points": 154,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 1089.5104895104896,
+  "sec_point": 0.3454440559440559,
+  "sec_step": 0.3719160839160839,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    3,
+    12
+   ],
+   "chain": [
+    1,
+    16
+   ],
+   "typing": [
+    1,
+    12
+   ],
+   "drag": [
+    1,
+    10
+   ],
+   "scroll": [
+    1,
+    9
+   ],
+   "menu": [
+    0,
+    12
+   ],
+   "shortcut": [
+    2,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    4,
+    20
+   ],
+   "2-3": [
+    3,
+    39
+   ],
+   "4-5": [
+    1,
+    11
+   ],
+   "6+": [
+    1,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    4,
+    10
+   ],
+   "settings": [
+    1,
+    9
+   ],
+   "mail": [
+    0,
+    9
+   ],
+   "notes": [
+    1,
+    7
+   ],
+   "reminders": [
+    0,
+    7
+   ],
+   "calendar": [
+    0,
+    8
+   ],
+   "music": [
+    0,
+    7
+   ],
+   "browser": [
+    2,
+    6
+   ],
+   "sheet": [
+    0,
+    7
+   ],
+   "calculator": [
+    1,
+    5
+   ]
+  }
+ },
+ {
+  "name": "g-9b-v2-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "bonsai9b-new",
+  "tag": "9b-v2",
+  "patch": "export/patches/bonsai2-9b-point-v2.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.6266666666666667,
+  "lo": 0.52,
+  "hi": 0.7333333333333333,
+  "success_act": 0.6266666666666667,
+  "n_act": 75,
+  "mean_steps": 3.6533333333333333,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 0.388,
+  "invalid": 0,
+  "model_steps": 143,
+  "stopped": 1.0,
+  "strict": 0.6266666666666667,
+  "stuck": 0.0,
+  "point_inside": 0.7077922077922078,
+  "n_points": 154,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 1089.5104895104896,
+  "sec_point": 0.3605979020979021,
+  "sec_step": 0.388,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    7,
+    12
+   ],
+   "chain": [
+    8,
+    16
+   ],
+   "typing": [
+    6,
+    12
+   ],
+   "drag": [
+    8,
+    10
+   ],
+   "scroll": [
+    7,
+    9
+   ],
+   "menu": [
+    9,
+    12
+   ],
+   "shortcut": [
+    2,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    13,
+    20
+   ],
+   "2-3": [
+    22,
+    39
+   ],
+   "4-5": [
+    10,
+    11
+   ],
+   "6+": [
+    2,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    9,
+    10
+   ],
+   "settings": [
+    5,
+    9
+   ],
+   "mail": [
+    8,
+    9
+   ],
+   "notes": [
+    6,
+    7
+   ],
+   "reminders": [
+    1,
+    7
+   ],
+   "calendar": [
+    2,
+    8
+   ],
+   "music": [
+    5,
+    7
+   ],
+   "browser": [
+    5,
+    6
+   ],
+   "sheet": [
+    4,
+    7
+   ],
+   "calculator": [
+    2,
+    5
+   ]
+  }
+ },
+ {
+  "name": "g-9b-v3-gentle-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "bonsai9b-new",
+  "tag": "9b-v3-gentle",
+  "patch": "export/patches/bonsai2-9b-point-v3-gentle.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 225,
+  "tasks": 75,
+  "seeds": [
+   9101,
+   9102,
+   9103
+  ],
+  "success": 0.7822222222222223,
+  "lo": 0.7111111111111111,
+  "hi": 0.8488888888888889,
+  "success_act": 0.7822222222222223,
+  "n_act": 225,
+  "mean_steps": 3.6577777777777776,
+  "mean_needed": 2.6577777777777776,
+  "seconds_per_step": 0.426793023255814,
+  "invalid": 0,
+  "model_steps": 430,
+  "stopped": 1.0,
+  "strict": 0.7822222222222223,
+  "stuck": 0.0,
+  "point_inside": 0.8596112311015118,
+  "n_points": 463,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 1089.6046511627908,
+  "sec_point": 0.3960558139534884,
+  "sec_step": 0.426793023255814,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    28,
+    36
+   ],
+   "chain": [
+    37,
+    48
+   ],
+   "typing": [
+    28,
+    36
+   ],
+   "drag": [
+    24,
+    30
+   ],
+   "scroll": [
+    22,
+    27
+   ],
+   "menu": [
+    29,
+    36
+   ],
+   "shortcut": [
+    8,
+    12
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    47,
+    60
+   ],
+   "2-3": [
+    94,
+    118
+   ],
+   "4-5": [
+    23,
+    31
+   ],
+   "6+": [
+    12,
+    16
+   ]
+  },
+  "by_app": {
+   "files": [
+    26,
+    30
+   ],
+   "settings": [
+    21,
+    27
+   ],
+   "mail": [
+    22,
+    27
+   ],
+   "notes": [
+    18,
+    21
+   ],
+   "reminders": [
+    12,
+    21
+   ],
+   "calendar": [
+    15,
+    24
+   ],
+   "music": [
+    17,
+    21
+   ],
+   "browser": [
+    17,
+    18
+   ],
+   "sheet": [
+    16,
+    21
+   ],
+   "calculator": [
+    12,
+    15
+   ]
+  }
+ },
+ {
+  "name": "g-9b-v3-gentle-s896",
+  "complete": true,
+  "agent": "guided",
+  "model": "bonsai9b-new",
+  "tag": "9b-v3-gentle",
+  "patch": "export/patches/bonsai2-9b-point-v3-gentle.patch.safetensors",
+  "input": "s896",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.32,
+  "lo": 0.21333333333333335,
+  "hi": 0.4266666666666667,
+  "success_act": 0.32,
+  "n_act": 75,
+  "mean_steps": 3.6666666666666665,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 0.39753146853146853,
+  "invalid": 0,
+  "model_steps": 143,
+  "stopped": 1.0,
+  "strict": 0.32,
+  "stuck": 0.0,
+  "point_inside": 0.4805194805194805,
+  "n_points": 154,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 593.5104895104895,
+  "sec_point": 0.3699020979020979,
+  "sec_step": 0.39753146853146853,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    5,
+    12
+   ],
+   "chain": [
+    2,
+    16
+   ],
+   "typing": [
+    4,
+    12
+   ],
+   "drag": [
+    4,
+    10
+   ],
+   "scroll": [
+    3,
+    9
+   ],
+   "menu": [
+    4,
+    12
+   ],
+   "shortcut": [
+    2,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    9,
+    20
+   ],
+   "2-3": [
+    9,
+    39
+   ],
+   "4-5": [
+    5,
+    11
+   ],
+   "6+": [
+    1,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    5,
+    10
+   ],
+   "settings": [
+    1,
+    9
+   ],
+   "mail": [
+    2,
+    9
+   ],
+   "notes": [
+    3,
+    7
+   ],
+   "reminders": [
+    3,
+    7
+   ],
+   "calendar": [
+    1,
+    8
+   ],
+   "music": [
+    2,
+    7
+   ],
+   "browser": [
+    3,
+    6
+   ],
+   "sheet": [
+    2,
+    7
+   ],
+   "calculator": [
+    2,
+    5
+   ]
+  }
+ },
+ {
+  "name": "g-9b-v3-mixed896-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "bonsai9b-new",
+  "tag": "9b-v3-mixed896",
+  "patch": "export/patches/bonsai2-9b-point-v3-mixed896.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.7333333333333333,
+  "lo": 0.6266666666666667,
+  "hi": 0.84,
+  "success_act": 0.7333333333333333,
+  "n_act": 75,
+  "mean_steps": 3.6533333333333333,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 0.4445944055944056,
+  "invalid": 0,
+  "model_steps": 143,
+  "stopped": 1.0,
+  "strict": 0.7333333333333333,
+  "stuck": 0.0,
+  "point_inside": 0.8376623376623377,
+  "n_points": 154,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 1089.5104895104896,
+  "sec_point": 0.41325174825174826,
+  "sec_step": 0.4445944055944056,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    9,
+    12
+   ],
+   "chain": [
+    11,
+    16
+   ],
+   "typing": [
+    7,
+    12
+   ],
+   "drag": [
+    7,
+    10
+   ],
+   "scroll": [
+    7,
+    9
+   ],
+   "menu": [
+    11,
+    12
+   ],
+   "shortcut": [
+    3,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    15,
+    20
+   ],
+   "2-3": [
+    28,
+    39
+   ],
+   "4-5": [
+    8,
+    11
+   ],
+   "6+": [
+    4,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    10,
+    10
+   ],
+   "settings": [
+    6,
+    9
+   ],
+   "mail": [
+    6,
+    9
+   ],
+   "notes": [
+    6,
+    7
+   ],
+   "reminders": [
+    4,
+    7
+   ],
+   "calendar": [
+    4,
+    8
+   ],
+   "music": [
+    6,
+    7
+   ],
+   "browser": [
+    5,
+    6
+   ],
+   "sheet": [
+    4,
+    7
+   ],
+   "calculator": [
+    4,
+    5
+   ]
+  }
+ },
+ {
+  "name": "g-9b-v3-mixed896-s896",
+  "complete": true,
+  "agent": "guided",
+  "model": "bonsai9b-new",
+  "tag": "9b-v3-mixed896",
+  "patch": "export/patches/bonsai2-9b-point-v3-mixed896.patch.safetensors",
+  "input": "s896",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.5066666666666667,
+  "lo": 0.38666666666666666,
+  "hi": 0.6133333333333333,
+  "success_act": 0.5066666666666667,
+  "n_act": 75,
+  "mean_steps": 3.6666666666666665,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 0.3934055944055944,
+  "invalid": 0,
+  "model_steps": 143,
+  "stopped": 1.0,
+  "strict": 0.5066666666666667,
+  "stuck": 0.0,
+  "point_inside": 0.6753246753246753,
+  "n_points": 154,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 593.5104895104895,
+  "sec_point": 0.36524825174825176,
+  "sec_step": 0.3934055944055944,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    9,
+    12
+   ],
+   "chain": [
+    5,
+    16
+   ],
+   "typing": [
+    5,
+    12
+   ],
+   "drag": [
+    4,
+    10
+   ],
+   "scroll": [
+    5,
+    9
+   ],
+   "menu": [
+    7,
+    12
+   ],
+   "shortcut": [
+    3,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    13,
+    20
+   ],
+   "2-3": [
+    17,
+    39
+   ],
+   "4-5": [
+    6,
+    11
+   ],
+   "6+": [
+    2,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    9,
+    10
+   ],
+   "settings": [
+    4,
+    9
+   ],
+   "mail": [
+    4,
+    9
+   ],
+   "notes": [
+    5,
+    7
+   ],
+   "reminders": [
+    3,
+    7
+   ],
+   "calendar": [
+    2,
+    8
+   ],
+   "music": [
+    4,
+    7
+   ],
+   "browser": [
+    3,
+    6
+   ],
+   "sheet": [
+    2,
+    7
+   ],
+   "calculator": [
+    2,
+    5
+   ]
+  }
+ },
+ {
+  "name": "g-qwen35-9b-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "qwen35-9b",
+  "tag": "",
+  "patch": null,
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 225,
+  "tasks": 75,
+  "seeds": [
+   9101,
+   9102,
+   9103
+  ],
+  "success": 0.9288888888888889,
+  "lo": 0.8755555555555555,
+  "hi": 0.9777777777777777,
+  "success_act": 0.9288888888888889,
+  "n_act": 225,
+  "mean_steps": 3.6577777777777776,
+  "mean_needed": 2.6577777777777776,
+  "seconds_per_step": 0.39456046511627907,
+  "invalid": 0,
+  "model_steps": 430,
+  "stopped": 1.0,
+  "strict": 0.9288888888888889,
+  "stuck": 0.0,
+  "point_inside": 0.9632829373650108,
+  "n_points": 463,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 1089.6046511627908,
+  "sec_point": 0.3662918604651163,
+  "sec_step": 0.39456046511627907,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    35,
+    36
+   ],
+   "chain": [
+    43,
+    48
+   ],
+   "typing": [
+    32,
+    36
+   ],
+   "drag": [
+    24,
+    30
+   ],
+   "scroll": [
+    27,
+    27
+   ],
+   "menu": [
+    36,
+    36
+   ],
+   "shortcut": [
+    12,
+    12
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    53,
+    60
+   ],
+   "2-3": [
+    110,
+    118
+   ],
+   "4-5": [
+    31,
+    31
+   ],
+   "6+": [
+    15,
+    16
+   ]
+  },
+  "by_app": {
+   "files": [
+    30,
+    30
+   ],
+   "settings": [
+    23,
+    27
+   ],
+   "mail": [
+    24,
+    27
+   ],
+   "notes": [
+    21,
+    21
+   ],
+   "reminders": [
+    21,
+    21
+   ],
+   "calendar": [
+    21,
+    24
+   ],
+   "music": [
+    18,
+    21
+   ],
+   "browser": [
+    16,
+    18
+   ],
+   "sheet": [
+    21,
+    21
+   ],
+   "calculator": [
+    14,
+    15
+   ]
+  }
+ },
+ {
+  "name": "g-venus2-9b-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "venus2-9b",
+  "tag": "",
+  "patch": null,
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 1.0,
+  "lo": 1.0,
+  "hi": 1.0,
+  "success_act": 1.0,
+  "n_act": 75,
+  "mean_steps": 3.6533333333333333,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 0.430048951048951,
+  "invalid": 0,
+  "model_steps": 143,
+  "stopped": 1.0,
+  "strict": 1.0,
+  "stuck": 0.0,
+  "point_inside": 0.9935064935064936,
+  "n_points": 154,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 1089.5104895104896,
+  "sec_point": 0.39933216783216785,
+  "sec_step": 0.430048951048951,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    12,
+    12
+   ],
+   "chain": [
+    16,
+    16
+   ],
+   "typing": [
+    12,
+    12
+   ],
+   "drag": [
+    10,
+    10
+   ],
+   "scroll": [
+    9,
+    9
+   ],
+   "menu": [
+    12,
+    12
+   ],
+   "shortcut": [
+    4,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    20,
+    20
+   ],
+   "2-3": [
+    39,
+    39
+   ],
+   "4-5": [
+    11,
+    11
+   ],
+   "6+": [
+    5,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    10,
+    10
+   ],
+   "settings": [
+    9,
+    9
+   ],
+   "mail": [
+    9,
+    9
+   ],
+   "notes": [
+    7,
+    7
+   ],
+   "reminders": [
+    7,
+    7
+   ],
+   "calendar": [
+    8,
+    8
+   ],
+   "music": [
+    7,
+    7
+   ],
+   "browser": [
+    6,
+    6
+   ],
+   "sheet": [
+    7,
+    7
+   ],
+   "calculator": [
+    5,
+    5
+   ]
+  }
+ },
+ {
+  "name": "m-4b-head-A-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "mlx-4b-head",
+  "tag": "4b-head",
+  "patch": "bonsai2-4b-point-v2-mixed.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.44,
+  "lo": 0.3333333333333333,
+  "hi": 0.5466666666666666,
+  "success_act": 0.44,
+  "n_act": 75,
+  "mean_steps": 3.6533333333333333,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 1.1546293706293707,
+  "invalid": 0,
+  "model_steps": 143,
+  "stopped": 1.0,
+  "strict": 0.44,
+  "stuck": 0.0,
+  "point_inside": 0.6038961038961039,
+  "n_points": 154,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": true,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 1089.5104895104896,
+  "sec_point": 1.0768986013986013,
+  "sec_step": 1.1546293706293707,
+  "peak_gb": 3.27,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    7,
+    12
+   ],
+   "chain": [
+    5,
+    16
+   ],
+   "typing": [
+    3,
+    12
+   ],
+   "drag": [
+    4,
+    10
+   ],
+   "scroll": [
+    6,
+    9
+   ],
+   "menu": [
+    7,
+    12
+   ],
+   "shortcut": [
+    1,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    11,
+    20
+   ],
+   "2-3": [
+    16,
+    39
+   ],
+   "4-5": [
+    5,
+    11
+   ],
+   "6+": [
+    1,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    6,
+    10
+   ],
+   "settings": [
+    3,
+    9
+   ],
+   "mail": [
+    4,
+    9
+   ],
+   "notes": [
+    4,
+    7
+   ],
+   "reminders": [
+    3,
+    7
+   ],
+   "calendar": [
+    3,
+    8
+   ],
+   "music": [
+    4,
+    7
+   ],
+   "browser": [
+    3,
+    6
+   ],
+   "sheet": [
+    1,
+    7
+   ],
+   "calculator": [
+    2,
+    5
+   ]
+  }
+ },
+ {
+  "name": "m-4b-joint-head-A-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "mlx-4b-head",
+  "tag": "4b-joint-head",
+  "patch": "bonsai2-4b-joint-h1-trunk-s4000.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.5333333333333333,
+  "lo": 0.4266666666666667,
+  "hi": 0.64,
+  "success_act": 0.5333333333333333,
+  "n_act": 75,
+  "mean_steps": 3.6533333333333333,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 1.2047062937062938,
+  "invalid": 0,
+  "model_steps": 143,
+  "stopped": 1.0,
+  "strict": 0.5333333333333333,
+  "stuck": 0.0,
+  "point_inside": 0.7207792207792207,
+  "n_points": 154,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": true,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 1089.5104895104896,
+  "sec_point": 1.1209825174825174,
+  "sec_step": 1.2047062937062938,
+  "peak_gb": 3.24,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    7,
+    12
+   ],
+   "chain": [
+    10,
+    16
+   ],
+   "typing": [
+    5,
+    12
+   ],
+   "drag": [
+    6,
+    10
+   ],
+   "scroll": [
+    5,
+    9
+   ],
+   "menu": [
+    5,
+    12
+   ],
+   "shortcut": [
+    2,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    12,
+    20
+   ],
+   "2-3": [
+    18,
+    39
+   ],
+   "4-5": [
+    7,
+    11
+   ],
+   "6+": [
+    3,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    8,
+    10
+   ],
+   "settings": [
+    4,
+    9
+   ],
+   "mail": [
+    4,
+    9
+   ],
+   "notes": [
+    4,
+    7
+   ],
+   "reminders": [
+    2,
+    7
+   ],
+   "calendar": [
+    4,
+    8
+   ],
+   "music": [
+    4,
+    7
+   ],
+   "browser": [
+    5,
+    6
+   ],
+   "sheet": [
+    2,
+    7
+   ],
+   "calculator": [
+    3,
+    5
+   ]
+  }
+ },
+ {
+  "name": "m-4b-joint-head-s7500-A-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "mlx-4b-head",
+  "tag": "4b-joint-head-s7500",
+  "patch": "bonsai2-4b-joint-h1-trunk-s7500.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.5333333333333333,
+  "lo": 0.4266666666666667,
+  "hi": 0.6533333333333333,
+  "success_act": 0.5333333333333333,
+  "n_act": 75,
+  "mean_steps": 3.6533333333333333,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 1.209965034965035,
+  "invalid": 0,
+  "model_steps": 143,
+  "stopped": 1.0,
+  "strict": 0.5333333333333333,
+  "stuck": 0.0,
+  "point_inside": 0.6623376623376623,
+  "n_points": 154,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": true,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 1089.5104895104896,
+  "sec_point": 1.1182132867132866,
+  "sec_step": 1.209965034965035,
+  "peak_gb": 3.24,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    7,
+    12
+   ],
+   "chain": [
+    8,
+    16
+   ],
+   "typing": [
+    6,
+    12
+   ],
+   "drag": [
+    6,
+    10
+   ],
+   "scroll": [
+    4,
+    9
+   ],
+   "menu": [
+    6,
+    12
+   ],
+   "shortcut": [
+    3,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    12,
+    20
+   ],
+   "2-3": [
+    19,
+    39
+   ],
+   "4-5": [
+    6,
+    11
+   ],
+   "6+": [
+    3,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    7,
+    10
+   ],
+   "settings": [
+    6,
+    9
+   ],
+   "mail": [
+    4,
+    9
+   ],
+   "notes": [
+    4,
+    7
+   ],
+   "reminders": [
+    3,
+    7
+   ],
+   "calendar": [
+    4,
+    8
+   ],
+   "music": [
+    3,
+    7
+   ],
+   "browser": [
+    5,
+    6
+   ],
+   "sheet": [
+    2,
+    7
+   ],
+   "calculator": [
+    2,
+    5
+   ]
+  }
+ },
+ {
+  "name": "m-4b-joint-head-s7500-A-s1600",
+  "complete": false,
+  "agent": "guided",
+  "model": "mlx-4b-head",
+  "tag": "4b-joint-head-s7500",
+  "patch": "bonsai2-4b-joint-h1-trunk-s7500.patch.safetensors",
+  "input": "s1600",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 5,
+  "tasks": 5,
+  "seeds": [
+   9101
+  ],
+  "success": 0.8,
+  "lo": 0.4,
+  "hi": 1.0,
+  "success_act": 0.8,
+  "n_act": 5,
+  "mean_steps": 2.8,
+  "mean_needed": 1.8,
+  "seconds_per_step": 1.8046666666666666,
+  "invalid": 0,
+  "model_steps": 6,
+  "stopped": 1.0,
+  "strict": 0.8,
+  "stuck": 0.0,
+  "point_inside": 0.8571428571428571,
+  "n_points": 7,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": true,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 1636.0,
+  "sec_point": 1.5485833333333332,
+  "sec_step": 1.8046666666666666,
+  "peak_gb": 3.27,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    1,
+    2
+   ],
+   "chain": [
+    0,
+    0
+   ],
+   "typing": [
+    0,
+    0
+   ],
+   "drag": [
+    1,
+    1
+   ],
+   "scroll": [
+    0,
+    0
+   ],
+   "menu": [
+    1,
+    1
+   ],
+   "shortcut": [
+    1,
+    1
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    2,
+    3
+   ],
+   "2-3": [
+    1,
+    1
+   ],
+   "4-5": [
+    1,
+    1
+   ],
+   "6+": [
+    0,
+    0
+   ]
+  },
+  "by_app": {
+   "files": [
+    4,
+    5
+   ]
+  }
+ },
+ {
+  "name": "m-4b-joint-head-s7500-snap2-effect-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "mlx-4b-head",
+  "tag": "4b-joint-head-s7500",
+  "patch": "bonsai2-4b-joint-h1-trunk-s7500.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.5866666666666667,
+  "lo": 0.4666666666666667,
+  "hi": 0.6933333333333334,
+  "success_act": 0.5866666666666667,
+  "n_act": 75,
+  "mean_steps": 3.8533333333333335,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 1.4171772151898734,
+  "invalid": 0,
+  "model_steps": 158,
+  "stopped": 1.0,
+  "strict": 0.5866666666666667,
+  "stuck": 0.0,
+  "point_inside": 0.6941176470588235,
+  "n_points": 170,
+  "snap": true,
+  "check": "effect",
+  "v1": false,
+  "mlx": true,
+  "snapped": 10,
+  "checks_no": 15,
+  "retries": 15,
+  "prompt_tokens": 1055.373417721519,
+  "sec_point": 1.3687202797202798,
+  "sec_step": 1.5658321678321678,
+  "peak_gb": 3.26,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    8,
+    12
+   ],
+   "chain": [
+    10,
+    16
+   ],
+   "typing": [
+    6,
+    12
+   ],
+   "drag": [
+    5,
+    10
+   ],
+   "scroll": [
+    6,
+    9
+   ],
+   "menu": [
+    6,
+    12
+   ],
+   "shortcut": [
+    3,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    13,
+    20
+   ],
+   "2-3": [
+    20,
+    39
+   ],
+   "4-5": [
+    7,
+    11
+   ],
+   "6+": [
+    4,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    7,
+    10
+   ],
+   "settings": [
+    7,
+    9
+   ],
+   "mail": [
+    4,
+    9
+   ],
+   "notes": [
+    5,
+    7
+   ],
+   "reminders": [
+    3,
+    7
+   ],
+   "calendar": [
+    4,
+    8
+   ],
+   "music": [
+    4,
+    7
+   ],
+   "browser": [
+    5,
+    6
+   ],
+   "sheet": [
+    2,
+    7
+   ],
+   "calculator": [
+    3,
+    5
+   ]
+  }
+ },
+ {
+  "name": "m-4b-joint-head-snap2-effect-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "mlx-4b-head",
+  "tag": "4b-joint-head",
+  "patch": "bonsai2-4b-joint-h1-trunk-s4000.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.6,
+  "lo": 0.48,
+  "hi": 0.7066666666666667,
+  "success_act": 0.6,
+  "n_act": 75,
+  "mean_steps": 3.7333333333333334,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 1.1695100671140939,
+  "invalid": 0,
+  "model_steps": 149,
+  "stopped": 1.0,
+  "strict": 0.6,
+  "stuck": 0.0,
+  "point_inside": 0.7639751552795031,
+  "n_points": 161,
+  "snap": true,
+  "check": "effect",
+  "v1": false,
+  "mlx": true,
+  "snapped": 10,
+  "checks_no": 6,
+  "retries": 6,
+  "prompt_tokens": 1075.0,
+  "sec_point": 1.0977482517482517,
+  "sec_step": 1.2185804195804195,
+  "peak_gb": 3.24,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    9,
+    12
+   ],
+   "chain": [
+    11,
+    16
+   ],
+   "typing": [
+    6,
+    12
+   ],
+   "drag": [
+    6,
+    10
+   ],
+   "scroll": [
+    6,
+    9
+   ],
+   "menu": [
+    5,
+    12
+   ],
+   "shortcut": [
+    2,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    14,
+    20
+   ],
+   "2-3": [
+    20,
+    39
+   ],
+   "4-5": [
+    7,
+    11
+   ],
+   "6+": [
+    4,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    9,
+    10
+   ],
+   "settings": [
+    7,
+    9
+   ],
+   "mail": [
+    5,
+    9
+   ],
+   "notes": [
+    4,
+    7
+   ],
+   "reminders": [
+    2,
+    7
+   ],
+   "calendar": [
+    4,
+    8
+   ],
+   "music": [
+    4,
+    7
+   ],
+   "browser": [
+    5,
+    6
+   ],
+   "sheet": [
+    2,
+    7
+   ],
+   "calculator": [
+    3,
+    5
+   ]
+  }
+ },
+ {
+  "name": "m-4b-orig-A-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "mlx-4b",
+  "tag": "4b-orig",
+  "patch": null,
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.02666666666666667,
+  "lo": 0.0,
+  "hi": 0.06666666666666667,
+  "success_act": 0.02666666666666667,
+  "n_act": 75,
+  "mean_steps": 3.6933333333333334,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 1.5469020979020978,
+  "invalid": 21,
+  "model_steps": 143,
+  "stopped": 1.0,
+  "strict": 0.02666666666666667,
+  "stuck": 0.0,
+  "point_inside": 0.045454545454545456,
+  "n_points": 154,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": true,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 1089.5104895104896,
+  "sec_point": 1.4363881118881119,
+  "sec_step": 1.5469020979020978,
+  "peak_gb": 4.3,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    0,
+    12
+   ],
+   "chain": [
+    0,
+    16
+   ],
+   "typing": [
+    1,
+    12
+   ],
+   "drag": [
+    0,
+    10
+   ],
+   "scroll": [
+    1,
+    9
+   ],
+   "menu": [
+    0,
+    12
+   ],
+   "shortcut": [
+    0,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    0,
+    20
+   ],
+   "2-3": [
+    2,
+    39
+   ],
+   "4-5": [
+    0,
+    11
+   ],
+   "6+": [
+    0,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    0,
+    10
+   ],
+   "settings": [
+    0,
+    9
+   ],
+   "mail": [
+    0,
+    9
+   ],
+   "notes": [
+    0,
+    7
+   ],
+   "reminders": [
+    0,
+    7
+   ],
+   "calendar": [
+    1,
+    8
+   ],
+   "music": [
+    0,
+    7
+   ],
+   "browser": [
+    0,
+    6
+   ],
+   "sheet": [
+    0,
+    7
+   ],
+   "calculator": [
+    1,
+    5
+   ]
+  }
+ },
+ {
+  "name": "m-4b-v2-mixed-A-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "mlx-4b",
+  "tag": "4b-v2-mixed",
+  "patch": "bonsai2-4b-point-v2-mixed.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.5733333333333334,
+  "lo": 0.4666666666666667,
+  "hi": 0.68,
+  "success_act": 0.5733333333333334,
+  "n_act": 75,
+  "mean_steps": 3.6533333333333333,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 1.5521678321678323,
+  "invalid": 0,
+  "model_steps": 143,
+  "stopped": 1.0,
+  "strict": 0.5733333333333334,
+  "stuck": 0.0,
+  "point_inside": 0.7012987012987013,
+  "n_points": 154,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": true,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 1089.5104895104896,
+  "sec_point": 1.4411608391608393,
+  "sec_step": 1.5521678321678323,
+  "peak_gb": 4.3,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    8,
+    12
+   ],
+   "chain": [
+    7,
+    16
+   ],
+   "typing": [
+    4,
+    12
+   ],
+   "drag": [
+    7,
+    10
+   ],
+   "scroll": [
+    6,
+    9
+   ],
+   "menu": [
+    9,
+    12
+   ],
+   "shortcut": [
+    2,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    13,
+    20
+   ],
+   "2-3": [
+    25,
+    39
+   ],
+   "4-5": [
+    4,
+    11
+   ],
+   "6+": [
+    1,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    8,
+    10
+   ],
+   "settings": [
+    6,
+    9
+   ],
+   "mail": [
+    3,
+    9
+   ],
+   "notes": [
+    4,
+    7
+   ],
+   "reminders": [
+    6,
+    7
+   ],
+   "calendar": [
+    3,
+    8
+   ],
+   "music": [
+    5,
+    7
+   ],
+   "browser": [
+    4,
+    6
+   ],
+   "sheet": [
+    1,
+    7
+   ],
+   "calculator": [
+    3,
+    5
+   ]
+  }
+ },
+ {
+  "name": "m-4b-v2-mixed-B-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "mlx-4b",
+  "tag": "4b-v2-mixed",
+  "patch": "bonsai2-4b-point-v2-mixed.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.49333333333333335,
+  "lo": 0.37333333333333335,
+  "hi": 0.6,
+  "success_act": 0.49333333333333335,
+  "n_act": 75,
+  "mean_steps": 5.56,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 1.68286013986014,
+  "invalid": 0,
+  "model_steps": 286,
+  "stopped": 1.0,
+  "strict": 0.49333333333333335,
+  "stuck": 0.0,
+  "point_inside": 0.6618357487922706,
+  "n_points": 207,
+  "snap": true,
+  "check": "ask",
+  "v1": true,
+  "mlx": true,
+  "snapped": 15,
+  "checks_no": 72,
+  "retries": 47,
+  "prompt_tokens": 1089.4315789473685,
+  "sec_point": 1.4392482517482517,
+  "sec_step": 3.36572027972028,
+  "peak_gb": 4.32,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    9,
+    12
+   ],
+   "chain": [
+    6,
+    16
+   ],
+   "typing": [
+    3,
+    12
+   ],
+   "drag": [
+    2,
+    10
+   ],
+   "scroll": [
+    5,
+    9
+   ],
+   "menu": [
+    8,
+    12
+   ],
+   "shortcut": [
+    4,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    10,
+    20
+   ],
+   "2-3": [
+    21,
+    39
+   ],
+   "4-5": [
+    5,
+    11
+   ],
+   "6+": [
+    1,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    4,
+    10
+   ],
+   "settings": [
+    5,
+    9
+   ],
+   "mail": [
+    1,
+    9
+   ],
+   "notes": [
+    4,
+    7
+   ],
+   "reminders": [
+    4,
+    7
+   ],
+   "calendar": [
+    5,
+    8
+   ],
+   "music": [
+    5,
+    7
+   ],
+   "browser": [
+    4,
+    6
+   ],
+   "sheet": [
+    3,
+    7
+   ],
+   "calculator": [
+    2,
+    5
+   ]
+  }
+ },
+ {
+  "name": "m-4b-v2-mixed-ask2-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "mlx-4b",
+  "tag": "4b-v2-mixed",
+  "patch": "bonsai2-4b-point-v2-mixed.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.48,
+  "lo": 0.37333333333333335,
+  "hi": 0.5866666666666667,
+  "success_act": 0.48,
+  "n_act": 75,
+  "mean_steps": 5.56,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 1.700006993006993,
+  "invalid": 0,
+  "model_steps": 286,
+  "stopped": 1.0,
+  "strict": 0.48,
+  "stuck": 0.0,
+  "point_inside": 0.6585365853658537,
+  "n_points": 205,
+  "snap": false,
+  "check": "ask",
+  "v1": false,
+  "mlx": true,
+  "snapped": 0,
+  "checks_no": 68,
+  "retries": 44,
+  "prompt_tokens": 1089.4919786096257,
+  "sec_point": 1.4640664335664335,
+  "sec_step": 3.400013986013986,
+  "peak_gb": 4.32,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    8,
+    12
+   ],
+   "chain": [
+    5,
+    16
+   ],
+   "typing": [
+    4,
+    12
+   ],
+   "drag": [
+    1,
+    10
+   ],
+   "scroll": [
+    6,
+    9
+   ],
+   "menu": [
+    8,
+    12
+   ],
+   "shortcut": [
+    4,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    9,
+    20
+   ],
+   "2-3": [
+    21,
+    39
+   ],
+   "4-5": [
+    5,
+    11
+   ],
+   "6+": [
+    1,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    5,
+    10
+   ],
+   "settings": [
+    5,
+    9
+   ],
+   "mail": [
+    1,
+    9
+   ],
+   "notes": [
+    4,
+    7
+   ],
+   "reminders": [
+    4,
+    7
+   ],
+   "calendar": [
+    3,
+    8
+   ],
+   "music": [
+    5,
+    7
+   ],
+   "browser": [
+    4,
+    6
+   ],
+   "sheet": [
+    2,
+    7
+   ],
+   "calculator": [
+    3,
+    5
+   ]
+  }
+ },
+ {
+  "name": "m-4b-v2-mixed-effect-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "mlx-4b",
+  "tag": "4b-v2-mixed",
+  "patch": "bonsai2-4b-point-v2-mixed.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.6533333333333333,
+  "lo": 0.5466666666666666,
+  "hi": 0.76,
+  "success_act": 0.6533333333333333,
+  "n_act": 75,
+  "mean_steps": 3.88,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 1.4978687499999999,
+  "invalid": 0,
+  "model_steps": 160,
+  "stopped": 1.0,
+  "strict": 0.6533333333333333,
+  "stuck": 0.0,
+  "point_inside": 0.7267441860465116,
+  "n_points": 172,
+  "snap": false,
+  "check": "effect",
+  "v1": false,
+  "mlx": true,
+  "snapped": 0,
+  "checks_no": 17,
+  "retries": 17,
+  "prompt_tokens": 1051.30625,
+  "sec_point": 1.4402447552447553,
+  "sec_step": 1.675937062937063,
+  "peak_gb": 4.3,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    10,
+    12
+   ],
+   "chain": [
+    9,
+    16
+   ],
+   "typing": [
+    5,
+    12
+   ],
+   "drag": [
+    7,
+    10
+   ],
+   "scroll": [
+    6,
+    9
+   ],
+   "menu": [
+    10,
+    12
+   ],
+   "shortcut": [
+    2,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    15,
+    20
+   ],
+   "2-3": [
+    28,
+    39
+   ],
+   "4-5": [
+    5,
+    11
+   ],
+   "6+": [
+    1,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    8,
+    10
+   ],
+   "settings": [
+    6,
+    9
+   ],
+   "mail": [
+    5,
+    9
+   ],
+   "notes": [
+    4,
+    7
+   ],
+   "reminders": [
+    7,
+    7
+   ],
+   "calendar": [
+    5,
+    8
+   ],
+   "music": [
+    5,
+    7
+   ],
+   "browser": [
+    5,
+    6
+   ],
+   "sheet": [
+    1,
+    7
+   ],
+   "calculator": [
+    3,
+    5
+   ]
+  }
+ },
+ {
+  "name": "m-4b-v2-mixed-snap2-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "mlx-4b",
+  "tag": "4b-v2-mixed",
+  "patch": "bonsai2-4b-point-v2-mixed.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.6133333333333333,
+  "lo": 0.5066666666666667,
+  "hi": 0.72,
+  "success_act": 0.6133333333333333,
+  "n_act": 75,
+  "mean_steps": 3.6533333333333333,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 1.5807482517482516,
+  "invalid": 0,
+  "model_steps": 143,
+  "stopped": 1.0,
+  "strict": 0.6133333333333333,
+  "stuck": 0.0,
+  "point_inside": 0.7337662337662337,
+  "n_points": 154,
+  "snap": true,
+  "check": "",
+  "v1": false,
+  "mlx": true,
+  "snapped": 7,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 1089.5104895104896,
+  "sec_point": 1.4682307692307692,
+  "sec_step": 1.5807482517482516,
+  "peak_gb": 4.3,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    9,
+    12
+   ],
+   "chain": [
+    8,
+    16
+   ],
+   "typing": [
+    5,
+    12
+   ],
+   "drag": [
+    7,
+    10
+   ],
+   "scroll": [
+    6,
+    9
+   ],
+   "menu": [
+    9,
+    12
+   ],
+   "shortcut": [
+    2,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    14,
+    20
+   ],
+   "2-3": [
+    26,
+    39
+   ],
+   "4-5": [
+    5,
+    11
+   ],
+   "6+": [
+    1,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    8,
+    10
+   ],
+   "settings": [
+    6,
+    9
+   ],
+   "mail": [
+    4,
+    9
+   ],
+   "notes": [
+    4,
+    7
+   ],
+   "reminders": [
+    6,
+    7
+   ],
+   "calendar": [
+    4,
+    8
+   ],
+   "music": [
+    5,
+    7
+   ],
+   "browser": [
+    5,
+    6
+   ],
+   "sheet": [
+    1,
+    7
+   ],
+   "calculator": [
+    3,
+    5
+   ]
+  }
+ },
+ {
+  "name": "m-9b-orig-A-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "mlx-9b",
+  "tag": "9b-orig",
+  "patch": null,
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.08,
+  "lo": 0.02666666666666667,
+  "hi": 0.14666666666666667,
+  "success_act": 0.08,
+  "n_act": 75,
+  "mean_steps": 3.6933333333333334,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 3.274657342657343,
+  "invalid": 12,
+  "model_steps": 143,
+  "stopped": 1.0,
+  "strict": 0.08,
+  "stuck": 0.0,
+  "point_inside": 0.18831168831168832,
+  "n_points": 154,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": true,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 1089.5104895104896,
+  "sec_point": 3.070402097902098,
+  "sec_step": 3.274657342657343,
+  "peak_gb": 5.89,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    2,
+    12
+   ],
+   "chain": [
+    1,
+    16
+   ],
+   "typing": [
+    1,
+    12
+   ],
+   "drag": [
+    1,
+    10
+   ],
+   "scroll": [
+    0,
+    9
+   ],
+   "menu": [
+    0,
+    12
+   ],
+   "shortcut": [
+    1,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    3,
+    20
+   ],
+   "2-3": [
+    3,
+    39
+   ],
+   "4-5": [
+    0,
+    11
+   ],
+   "6+": [
+    0,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    4,
+    10
+   ],
+   "settings": [
+    0,
+    9
+   ],
+   "mail": [
+    0,
+    9
+   ],
+   "notes": [
+    0,
+    7
+   ],
+   "reminders": [
+    0,
+    7
+   ],
+   "calendar": [
+    0,
+    8
+   ],
+   "music": [
+    0,
+    7
+   ],
+   "browser": [
+    1,
+    6
+   ],
+   "sheet": [
+    0,
+    7
+   ],
+   "calculator": [
+    1,
+    5
+   ]
+  }
+ },
+ {
+  "name": "m-9b-v3-gentle-A-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "mlx-9b",
+  "tag": "9b-v3-gentle",
+  "patch": "bonsai2-9b-point-v3-gentle.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.7466666666666667,
+  "lo": 0.64,
+  "hi": 0.84,
+  "success_act": 0.7466666666666667,
+  "n_act": 75,
+  "mean_steps": 3.6533333333333333,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 2.64579020979021,
+  "invalid": 0,
+  "model_steps": 143,
+  "stopped": 1.0,
+  "strict": 0.7466666666666667,
+  "stuck": 0.0,
+  "point_inside": 0.8506493506493507,
+  "n_points": 154,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": true,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 1089.5104895104896,
+  "sec_point": 2.456986013986014,
+  "sec_step": 2.64579020979021,
+  "peak_gb": 5.89,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    9,
+    12
+   ],
+   "chain": [
+    11,
+    16
+   ],
+   "typing": [
+    6,
+    12
+   ],
+   "drag": [
+    8,
+    10
+   ],
+   "scroll": [
+    8,
+    9
+   ],
+   "menu": [
+    11,
+    12
+   ],
+   "shortcut": [
+    3,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    16,
+    20
+   ],
+   "2-3": [
+    28,
+    39
+   ],
+   "4-5": [
+    9,
+    11
+   ],
+   "6+": [
+    3,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    10,
+    10
+   ],
+   "settings": [
+    5,
+    9
+   ],
+   "mail": [
+    7,
+    9
+   ],
+   "notes": [
+    6,
+    7
+   ],
+   "reminders": [
+    4,
+    7
+   ],
+   "calendar": [
+    5,
+    8
+   ],
+   "music": [
+    6,
+    7
+   ],
+   "browser": [
+    5,
+    6
+   ],
+   "sheet": [
+    4,
+    7
+   ],
+   "calculator": [
+    4,
+    5
+   ]
+  }
+ },
+ {
+  "name": "m-9b-v3-mixed896-A-s1280",
+  "complete": true,
+  "agent": "guided",
+  "model": "mlx-9b",
+  "tag": "9b-v3-mixed896",
+  "patch": "bonsai2-9b-point-v3-mixed896.patch.safetensors",
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 75,
+  "tasks": 75,
+  "seeds": [
+   9101
+  ],
+  "success": 0.7333333333333333,
+  "lo": 0.64,
+  "hi": 0.84,
+  "success_act": 0.7333333333333333,
+  "n_act": 75,
+  "mean_steps": 3.6533333333333333,
+  "mean_needed": 2.6533333333333333,
+  "seconds_per_step": 2.650713286713287,
+  "invalid": 0,
+  "model_steps": 143,
+  "stopped": 1.0,
+  "strict": 0.7333333333333333,
+  "stuck": 0.0,
+  "point_inside": 0.8376623376623377,
+  "n_points": 154,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": true,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": 1089.5104895104896,
+  "sec_point": 2.46179020979021,
+  "sec_step": 2.650713286713287,
+  "peak_gb": 5.89,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    9,
+    12
+   ],
+   "chain": [
+    11,
+    16
+   ],
+   "typing": [
+    7,
+    12
+   ],
+   "drag": [
+    7,
+    10
+   ],
+   "scroll": [
+    8,
+    9
+   ],
+   "menu": [
+    10,
+    12
+   ],
+   "shortcut": [
+    3,
+    4
+   ],
+   "already_done": [
+    0,
+    0
+   ],
+   "infeasible": [
+    0,
+    0
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    0
+   ],
+   "1": [
+    15,
+    20
+   ],
+   "2-3": [
+    28,
+    39
+   ],
+   "4-5": [
+    8,
+    11
+   ],
+   "6+": [
+    4,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    10,
+    10
+   ],
+   "settings": [
+    6,
+    9
+   ],
+   "mail": [
+    6,
+    9
+   ],
+   "notes": [
+    6,
+    7
+   ],
+   "reminders": [
+    4,
+    7
+   ],
+   "calendar": [
+    4,
+    8
+   ],
+   "music": [
+    6,
+    7
+   ],
+   "browser": [
+    5,
+    6
+   ],
+   "sheet": [
+    4,
+    7
+   ],
+   "calculator": [
+    4,
+    5
+   ]
+  }
+ },
+ {
+  "name": "ref-noop",
+  "complete": true,
+  "agent": "noop",
+  "model": null,
+  "tag": "",
+  "patch": null,
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 291,
+  "tasks": 97,
+  "seeds": [
+   9101,
+   9102,
+   9103
+  ],
+  "success": 0.10309278350515463,
+  "lo": 0.041237113402061855,
+  "hi": 0.16494845360824742,
+  "success_act": 0.0,
+  "n_act": 231,
+  "mean_steps": 1.0,
+  "mean_needed": 2.075601374570447,
+  "seconds_per_step": NaN,
+  "invalid": 0,
+  "model_steps": 291,
+  "stopped": 1.0,
+  "strict": 0.10309278350515463,
+  "stuck": 0.0,
+  "point_inside": NaN,
+  "n_points": 0,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": NaN,
+  "sec_point": NaN,
+  "sec_step": 0.0,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    0,
+    36
+   ],
+   "chain": [
+    0,
+    48
+   ],
+   "typing": [
+    0,
+    36
+   ],
+   "drag": [
+    0,
+    30
+   ],
+   "scroll": [
+    0,
+    27
+   ],
+   "menu": [
+    0,
+    36
+   ],
+   "shortcut": [
+    0,
+    18
+   ],
+   "already_done": [
+    30,
+    30
+   ],
+   "infeasible": [
+    0,
+    30
+   ]
+  },
+  "by_needed": {
+   "0": [
+    30,
+    60
+   ],
+   "1": [
+    0,
+    66
+   ],
+   "2-3": [
+    0,
+    118
+   ],
+   "4-5": [
+    0,
+    31
+   ],
+   "6+": [
+    0,
+    16
+   ]
+  },
+  "by_app": {
+   "files": [
+    3,
+    36
+   ],
+   "settings": [
+    3,
+    33
+   ],
+   "mail": [
+    3,
+    33
+   ],
+   "notes": [
+    3,
+    27
+   ],
+   "reminders": [
+    3,
+    27
+   ],
+   "calendar": [
+    3,
+    30
+   ],
+   "music": [
+    3,
+    30
+   ],
+   "browser": [
+    3,
+    27
+   ],
+   "sheet": [
+    3,
+    27
+   ],
+   "calculator": [
+    3,
+    21
+   ]
+  }
+ },
+ {
+  "name": "ref-oracle",
+  "complete": true,
+  "agent": "oracle",
+  "model": null,
+  "tag": "",
+  "patch": null,
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 97,
+  "tasks": 97,
+  "seeds": [
+   9101
+  ],
+  "success": 1.0,
+  "lo": 1.0,
+  "hi": 1.0,
+  "success_act": 1.0,
+  "n_act": 77,
+  "mean_steps": 3.0721649484536084,
+  "mean_needed": 2.0721649484536084,
+  "seconds_per_step": 0.03493865030674847,
+  "invalid": 0,
+  "model_steps": 298,
+  "stopped": 1.0,
+  "strict": 1.0,
+  "stuck": 0.0,
+  "point_inside": NaN,
+  "n_points": 0,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": NaN,
+  "sec_point": NaN,
+  "sec_step": 0.0,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    12,
+    12
+   ],
+   "chain": [
+    16,
+    16
+   ],
+   "typing": [
+    12,
+    12
+   ],
+   "drag": [
+    10,
+    10
+   ],
+   "scroll": [
+    9,
+    9
+   ],
+   "menu": [
+    12,
+    12
+   ],
+   "shortcut": [
+    6,
+    6
+   ],
+   "already_done": [
+    10,
+    10
+   ],
+   "infeasible": [
+    10,
+    10
+   ]
+  },
+  "by_needed": {
+   "0": [
+    20,
+    20
+   ],
+   "1": [
+    22,
+    22
+   ],
+   "2-3": [
+    39,
+    39
+   ],
+   "4-5": [
+    11,
+    11
+   ],
+   "6+": [
+    5,
+    5
+   ]
+  },
+  "by_app": {
+   "files": [
+    12,
+    12
+   ],
+   "settings": [
+    11,
+    11
+   ],
+   "mail": [
+    11,
+    11
+   ],
+   "notes": [
+    9,
+    9
+   ],
+   "reminders": [
+    9,
+    9
+   ],
+   "calendar": [
+    10,
+    10
+   ],
+   "music": [
+    10,
+    10
+   ],
+   "browser": [
+    9,
+    9
+   ],
+   "sheet": [
+    9,
+    9
+   ],
+   "calculator": [
+    7,
+    7
+   ]
+  }
+ },
+ {
+  "name": "ref-random",
+  "complete": true,
+  "agent": "random",
+  "model": null,
+  "tag": "",
+  "patch": null,
+  "input": "s1280",
+  "ask": "point",
+  "prompt": "rules",
+  "n": 291,
+  "tasks": 97,
+  "seeds": [
+   9101,
+   9102,
+   9103
+  ],
+  "success": 0.0,
+  "lo": 0.0,
+  "hi": 0.0,
+  "success_act": 0.0,
+  "n_act": 231,
+  "mean_steps": 6.632302405498282,
+  "mean_needed": 2.075601374570447,
+  "seconds_per_step": NaN,
+  "invalid": 0,
+  "model_steps": 1930,
+  "stopped": 0.0,
+  "strict": 0.0,
+  "stuck": 0.0,
+  "point_inside": NaN,
+  "n_points": 0,
+  "snap": false,
+  "check": "",
+  "v1": false,
+  "mlx": false,
+  "snapped": 0,
+  "checks_no": 0,
+  "retries": 0,
+  "prompt_tokens": NaN,
+  "sec_point": NaN,
+  "sec_step": 0.0,
+  "peak_gb": 0,
+  "thinking": false,
+  "shard": "",
+  "orch": false,
+  "planner_sec": NaN,
+  "pointer_sec": NaN,
+  "think_tokens": 0.0,
+  "by_category": {
+   "single": [
+    0,
+    36
+   ],
+   "chain": [
+    0,
+    48
+   ],
+   "typing": [
+    0,
+    36
+   ],
+   "drag": [
+    0,
+    30
+   ],
+   "scroll": [
+    0,
+    27
+   ],
+   "menu": [
+    0,
+    36
+   ],
+   "shortcut": [
+    0,
+    18
+   ],
+   "already_done": [
+    0,
+    30
+   ],
+   "infeasible": [
+    0,
+    30
+   ]
+  },
+  "by_needed": {
+   "0": [
+    0,
+    60
+   ],
+   "1": [
+    0,
+    66
+   ],
+   "2-3": [
+    0,
+    118
+   ],
+   "4-5": [
+    0,
+    31
+   ],
+   "6+": [
+    0,
+    16
+   ]
+  },
+  "by_app": {
+   "files": [
+    0,
+    36
+   ],
+   "settings": [
+    0,
+    33
+   ],
+   "mail": [
+    0,
+    33
+   ],
+   "notes": [
+    0,
+    27
+   ],
+   "reminders": [
+    0,
+    27
+   ],
+   "calendar": [
+    0,
+    30
+   ],
+   "music": [
+    0,
+    30
+   ],
+   "browser": [
+    0,
+    27
+   ],
+   "sheet": [
+    0,
+    27
+   ],
+   "calculator": [
+    0,
+    21
+   ]
+  }
+ }
+]

@@ -1,0 +1,90 @@
+[
+ {
+  "run": "venus2-9b",
+  "input": "native",
+  "looks": 1,
+  "all": {
+   "n": 1581,
+   "hits": 1137,
+   "acc": 71.92,
+   "lo": 69.7,
+   "hi": 74.13,
+   "unparseable": 1,
+   "refusals": 3
+  },
+  "text": {
+   "n": 977,
+   "hits": 802,
+   "acc": 82.09,
+   "lo": 79.73,
+   "hi": 84.44,
+   "unparseable": 1,
+   "refusals": 1
+  },
+  "icon": {
+   "n": 604,
+   "hits": 335,
+   "acc": 55.46,
+   "lo": 51.49,
+   "hi": 59.44,
+   "unparseable": 0,
+   "refusals": 2
+  },
+  "groups": {
+   "Dev": {
+    "n": 299,
+    "hits": 223,
+    "acc": 74.58,
+    "lo": 69.57,
+    "hi": 79.26,
+    "unparseable": 0,
+    "refusals": 0
+   },
+   "Creative": {
+    "n": 341,
+    "hits": 221,
+    "acc": 64.81,
+    "lo": 59.82,
+    "hi": 69.79,
+    "unparseable": 0,
+    "refusals": 0
+   },
+   "CAD": {
+    "n": 261,
+    "hits": 187,
+    "acc": 71.65,
+    "lo": 65.9,
+    "hi": 77.01,
+    "unparseable": 0,
+    "refusals": 0
+   },
+   "Scientific": {
+    "n": 254,
+    "hits": 177,
+    "acc": 69.69,
+    "lo": 63.78,
+    "hi": 75.2,
+    "unparseable": 0,
+    "refusals": 2
+   },
+   "Office": {
+    "n": 230,
+    "hits": 192,
+    "acc": 83.48,
+    "lo": 78.7,
+    "hi": 88.26,
+    "unparseable": 1,
+    "refusals": 0
+   },
+   "OS": {
+    "n": 196,
+    "hits": 137,
+    "acc": 69.9,
+    "lo": 63.78,
+    "hi": 76.53,
+    "unparseable": 0,
+    "refusals": 1
+   }
+  }
+ }
+]

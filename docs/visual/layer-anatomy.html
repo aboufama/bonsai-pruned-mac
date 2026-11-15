@@ -1,0 +1,398 @@
+<title>Bonsai Layer Anatomy</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a textbook chapter in one reading column. Each section introduces one idea with a
+   small worked example first, then the real sizes. Boxes: definition, example, check yourself. */
+:root {
+  --bg: #f6f7f4; --panel: #ffffff; --ink: #17201b; --muted: #5b6760; --line: #d9ded8; --soft: #eef1ec;
+  --tern: #1f7a4d; --full: #3558a8; --vis: #8a4fa0; --hot: #c0621a;
+  --display: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --body: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #101613; --panel: #171f1b; --ink: #e5ebe6; --muted: #98a59d; --line: #2b3630; --soft: #1c2621;
+  --tern: #5cc48d; --full: #7fa2ee; --vis: #c58fda; --hot: #e79a52; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #101613; --panel: #171f1b; --ink: #e5ebe6; --muted: #98a59d; --line: #2b3630; --soft: #1c2621;
+  --tern: #5cc48d; --full: #7fa2ee; --vis: #c58fda; --hot: #e79a52; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 16.5px/1.65 var(--body); margin: 0 }
+.wrap { max-width: 780px; margin: 0 auto; padding-block: 28px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 52px }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: -0.01em }
+h1 { font-size: clamp(28px, 5vw, 40px); line-height: 1.1 }
+h2 { font-size: 25px; line-height: 1.25 }
+h2 .num { font: 500 13px/1 var(--mono); color: var(--muted); display: block; margin-bottom: 8px; letter-spacing: .06em }
+h3 { font-size: 17.5px; margin-top: 6px }
+p { margin: 0 } p + p { margin-top: 0 }
+section { display: flex; flex-direction: column; gap: 16px; min-width: 0 }
+.lede { font-size: 18.5px; color: var(--muted) }
+code, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: .92em }
+em.t { font-style: normal; font-weight: 600 }
+.box { border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0 }
+.box > b:first-child { font: 500 11.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase }
+.def { background: var(--soft) } .def > b:first-child { color: var(--muted) }
+.ex { background: var(--panel); border: 1px solid var(--line) } .ex > b:first-child { color: var(--tern) }
+.key-idea { border-left: 3px solid var(--hot); padding: 4px 0 4px 14px; font-weight: 500 }
+details { background: var(--panel); border: 1px dashed var(--line); border-radius: 10px; padding: 10px 14px }
+details summary { cursor: pointer; font-weight: 600 } details p { margin-top: 8px; color: var(--muted) }
+pre.math { margin: 0; font: 14px/1.8 var(--mono); background: var(--soft); border-radius: 8px; padding: 12px 14px; overflow-x: auto; white-space: pre }
+pre.math b { color: var(--hot); font-weight: 500 }
+.scroll { overflow-x: auto }
+svg { max-width: 100%; height: auto; display: block }
+svg text { font-family: var(--body); fill: var(--ink) } svg .m { fill: var(--muted) } svg .mono { font-family: var(--mono) }
+figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0 }
+figcaption { font-size: 13.5px; color: var(--muted) }
+
+.mx { display: inline-grid; gap: 2px 10px; padding: 4px 10px; border-left: 2px solid var(--ink); border-right: 2px solid var(--ink); border-radius: 4px; font-family: var(--mono); font-size: 14px; text-align: right; vertical-align: middle }
+.eq { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-family: var(--mono); font-size: 14px }
+.hl { color: var(--hot) } .hb { color: var(--full) } .hg { color: var(--tern) }
+
+.btns { display: flex; flex-wrap: wrap; gap: 6px }
+.btns button { all: unset; cursor: pointer; font-size: 13.5px; border: 1px solid var(--line); border-radius: 99px; padding: 6px 12px; background: var(--bg) }
+.btns button[aria-pressed="true"], .btns button[aria-selected="true"] { border-color: var(--ink); background: var(--soft); font-weight: 600 }
+button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--hot); outline-offset: 2px }
+.readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px }
+.readout div { background: var(--soft); border-radius: 8px; padding: 10px 12px }
+.readout b { display: block; font: 600 21px/1.2 var(--display); font-variant-numeric: tabular-nums }
+.readout span { font-size: 12.5px; color: var(--muted) }
+.barrow { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; align-items: end; height: 130px }
+.barrow div { background: var(--full); border-radius: 3px 3px 0 0; min-height: 2px; position: relative }
+.barrow div.t { background: var(--hot) }
+.barlab { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; font: 11px/1.3 var(--mono); color: var(--muted); text-align: center }
+label.sl { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; font-size: 14px }
+input[type=range] { width: 100%; accent-color: var(--hot) }
+.rowviz { display: grid; grid-template-columns: repeat(16, 1fr); gap: 3px; align-items: center; height: 84px }
+.rowviz i { display: block; border-radius: 2px; justify-self: stretch }
+.lay { display: grid; grid-template-columns: repeat(32, minmax(14px, 1fr)); gap: 2px; min-width: 520px }
+.lay i { height: 30px; border-radius: 3px; background: var(--tern); opacity: .6 } .lay i.full { background: var(--full); opacity: 1 } .lay i.mid { outline: 2px solid var(--hot); outline-offset: 1px }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted) }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px }
+.gallery { display: flex; flex-wrap: wrap; gap: 14px 18px; align-items: flex-end }
+.mat { all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px }
+.mat .r { border: 1.5px solid var(--tern); background: color-mix(in srgb, var(--tern) 14%, transparent); border-radius: 2px }
+.mat.fp .r { border-color: var(--hot); background: color-mix(in srgb, var(--hot) 16%, transparent) }
+.mat.on .r { outline: 2px solid var(--ink); outline-offset: 2px }
+.mat span { font-family: var(--mono); color: var(--muted) } .mat b { font-weight: 600 }
+.inspect { background: var(--soft); border-radius: 8px; padding: 12px 14px; font-size: 14.5px; display: grid; gap: 4px; min-height: 84px }
+table { border-collapse: collapse; width: 100%; font-size: 14px }
+th, td { text-align: left; padding: 7px 10px 7px 0; border-bottom: 1px solid var(--line); vertical-align: top }
+th { font: 500 11.5px/1.4 var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted) }
+td.n { font-family: var(--mono); font-variant-numeric: tabular-nums }
+ol.toc { margin: 0; padding-left: 22px; columns: 2; column-gap: 28px; font-size: 15px } ol.toc li { break-inside: avoid; padding: 2px 0 }
+@media (max-width: 560px) { ol.toc { columns: 1 } pre.math { font-size: 12.5px } }
+</style>
+
+<div class="wrap">
+
+<header style="display:flex;flex-direction:column;gap:16px">
+  <span class="mono" style="color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase">A short textbook chapter</span>
+  <h1>Bonsai Layer Anatomy</h1>
+  <p class="lede">How a screenshot becomes a click, in linear algebra. You know vectors, dot products and linear maps. This chapter shows what those objects are doing inside the model, with small examples first and the real sizes second, and ends with why squeezing the model to three weight values hurts pointing before anything else.</p>
+  <ol class="toc">
+    <li>A vector is a state, a direction is a feature</li><li>Three ways to read a matrix</li><li>From pixels to a sequence of vectors</li><li>The stream: add, never replace</li>
+    <li>Attention: a soft lookup made of dot products</li><li>The reading-order layers: a memory matrix</li><li>The MLP: detect, then write</li><li>Turning the last vector into digits</li>
+    <li>What ternary does to a matrix</li><li>Why pointing breaks first</li><li>Reference: every matrix to scale</li>
+  </ol>
+  <div class="box def"><b>Notation</b>
+    <p>Lower-case bold-free letters like <code>x</code>, <code>q</code>, <code>k</code> are vectors. Capitals like <code>W</code>, <code>S</code> are matrices. <code>W ∈ ℝ<sup>out × in</sup></code> means W has <code>out</code> rows and <code>in</code> columns, so it takes a vector of <code>in</code> numbers and returns one of <code>out</code> numbers. <code>a · b</code> is the dot product. <code>⊙</code> multiplies two vectors entry by entry. <code>T</code> is the number of tokens.</p>
+  </div>
+</header>
+
+<section>
+  <h2><span class="num">SECTION 1</span>A vector is a state, a direction is a feature</h2>
+  <p>Inside the model, each piece of the input (a word, or a small square of the screenshot) is represented by a list of 4,096 numbers. Think of it as a point in a 4,096-dimensional space. The individual numbers mean nothing on their own. What carries meaning is <em class="t">direction</em>.</p>
+  <p>The model has learned that some direction in that space means "this is a button", another means "near the top of the screen", another means "the user asked about saving". To ask how strongly a state <code>x</code> has a feature, take the dot product with that feature's direction <code>f</code>:</p>
+  <pre class="math">x · f  =  |x| |f| cos(angle between them)        large when x points along f, zero when perpendicular</pre>
+  <div class="box ex"><b>Small example</b>
+    <p>Pretend the space has 3 dimensions and the feature "is a button" is the direction <code>f = (1, 0, 1)</code>. A state <code>x = (2, 5, 1)</code> has button-ness <code>2·1 + 5·0 + 1·1 = 3</code>. A state <code>x′ = (−1, 4, 0)</code> has button-ness <code>−1</code>. The second number never mattered, because <code>f</code> is perpendicular to that axis.</p>
+  </div>
+  <p class="key-idea">Everything that follows is built from this one operation. A neural network is, to a first approximation, an enormous number of dot products arranged in layers.</p>
+  <details><summary>Check yourself: with 4,096 dimensions, how many features can there be?</summary><p>Only 4,096 directions can be exactly perpendicular to each other. But the model packs in far more features by using directions that are nearly perpendicular; in thousands of dimensions there is room for millions of those. The price is a little crosstalk between features, which matters later when precision is lost.</p></details>
+</section>
+
+<section>
+  <h2><span class="num">SECTION 2</span>Three ways to read a matrix</h2>
+  <p>You know a matrix as a linear map. In a neural network it helps to hold three readings of <code>y = W x</code> at once.</p>
+  <div class="box ex"><b>One matrix, read three ways</b>
+    <div class="eq"><span>W =</span>
+      <span class="mx" style="grid-template-columns:repeat(3,auto)"><span>1</span><span>0</span><span>0</span><span>0</span><span>1</span><span>1</span><span>1</span><span>−1</span><span>0</span><span>.5</span><span>.5</span><span>.5</span></span>
+      <span>x =</span><span class="mx" style="grid-template-columns:auto"><span>2</span><span>0</span><span>1</span></span>
+      <span>y = W x =</span><span class="mx" style="grid-template-columns:auto"><span>2</span><span>1</span><span>2</span><span>1.5</span></span>
+    </div>
+    <p><em class="t">As a shape.</em> W is 4 × 3: it takes 3 numbers and returns 4. The shape alone tells you what it connects.</p>
+    <p><em class="t">By rows: a bank of detectors.</em> Each output is one row dotted with the input. Row 3 is <code>(1, −1, 0)</code>, so the third output is <code>2·1 + 0·(−1) + 1·0 = 2</code>: it measures "first feature minus second". Four rows, four questions asked of the same input.</p>
+    <p><em class="t">By columns: a set of things to write.</em> The output is also a weighted sum of the columns, with the input's entries as weights: <code>2·(1, 0, 1, .5) + 0·(…) + 1·(0, 1, 0, .5) = (2, 1, 2, 1.5)</code>. Each input feature, when present, writes its column into the output.</p>
+  </div>
+  <p>So a matrix in the model is two things glued together: its rows decide <em class="t">what to look for</em> in the incoming state, its columns decide <em class="t">what to write</em> into the outgoing one. Training adjusts both.</p>
+  <div class="box def"><b>Reading the real shapes</b>
+    <p>The biggest matrices here are <code>12288 × 4096</code>. By rows: 12,288 detectors, each a direction in the 4,096-dimensional state space. It answers 12,288 questions about one token. A <code>4096 × 12288</code> matrix does the reverse: it takes those 12,288 answers and writes a combination of its 12,288 columns back into the state.</p>
+  </div>
+  <details><summary>Check yourself: W<sub>k</sub> is 1024 × 4096. What goes in and what comes out?</summary><p>A token's 4,096-number state goes in. 1,024 numbers come out: 1,024 detectors' answers. In section 5 those are cut into 4 groups of 256, each a "key".</p></details>
+</section>
+
+<section>
+  <h2><span class="num">SECTION 3</span>From pixels to a sequence of vectors</h2>
+  <p>The model never works on pixels. The screenshot is cut into 16×16-pixel patches; a first matrix turns each patch (its 1,536 raw numbers) into a vector of 1,152; a vision network of 27 layers refines those; then every 2×2 block of patches is merged by a final matrix into one vector of 4,096. So one <em class="t">image token</em> stands for a 32×32-pixel square of the screen.</p>
+  <figure>
+    <div class="btns" id="sizes" role="group" aria-label="Screenshot size"></div>
+    <div class="readout" id="readout"></div>
+    <figcaption>The question's words are turned into vectors by looking up rows of a table with 248,320 rows × 4,096 columns, and appended. The result is one sequence of T vectors. Reading speed is the 150 tokens per second measured for the 9B on a 13-inch M4 MacBook.</figcaption>
+  </figure>
+  <p>Notice what has happened to "where". Nothing in a vector's 4,096 numbers says which square of the screen it came from. Position is added separately, as a rotation applied inside the attention step (section 5). Keeping track of where things are is therefore a job the layers themselves must do well.</p>
+</section>
+
+<section>
+  <h2><span class="num">SECTION 4</span>The stream: add, never replace</h2>
+  <p>Stack the T vectors as rows of one table <code>x ∈ ℝ<sup>T × 4096</sup></code>. Every layer reads this table and <em class="t">adds</em> something to it. Nothing is overwritten.</p>
+  <pre class="math">for each of the 32 layers:
+    x ← x + <b>Mixer</b>( norm(x) )        tokens exchange information with each other
+    x ← x + <b>MLP</b>( norm(x) )          each token is processed by itself</pre>
+  <p>Picture a shared whiteboard with one row per token. Each layer reads the board, works something out, and writes it in a direction that later layers know how to read. Early layers write simple facts ("this patch has text"), later ones write conclusions ("the Save button is around here").</p>
+  <div class="box def"><b>norm</b>
+    <p>Before reading, each row is rescaled to a standard length: <code>norm(x) = x / rms(x) · (1 + w)</code>, where <code>rms</code> is the root-mean-square of the row and <code>w</code> is a learned vector of 4,096 gains. This keeps direction and discards overall size, so detectors downstream see inputs on a predictable scale.</p>
+  </div>
+  <figure>
+    <div class="scroll"><div class="lay" id="lay"></div></div>
+    <div class="legend"><span><i style="background:var(--tern)"></i>24 reading-order layers</span><span><i style="background:var(--full)"></i>8 full-attention layers, every fourth</span><span><i style="outline:2px solid var(--hot);background:transparent"></i>layers 9 to 20: where pointing is lost (section 10)</span></div>
+    <figcaption>The 32 layers in order. They differ only in their Mixer: two kinds, explained next.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2><span class="num">SECTION 5</span>Attention: a soft lookup made of dot products</h2>
+  <p>The Mixer has to move information between tokens. For pointing, the place where the answer is being written must find out <em class="t">which image square</em> matches the request. Full attention does this with a lookup.</p>
+  <p>Every token produces three vectors from its state, using three matrices:</p>
+  <pre class="math">q = W<sub>q</sub> h        <b>query</b>: what am I looking for?
+k = W<sub>k</sub> h        <b>key</b>:   what do I offer to be found by?
+v = W<sub>v</sub> h        <b>value</b>: what do I hand over if found?</pre>
+  <p>A token compares its query with every earlier token's key by dot product. A large dot product means "this one matches". The scores are turned into weights that are positive and sum to 1 (the softmax), and the token receives the weighted average of the values.</p>
+  <pre class="math">score<sub>j</sub> = q · k<sub>j</sub> / √256
+weight<sub>j</sub> = e<sup>score<sub>j</sub></sup> / Σ<sub>i</sub> e<sup>score<sub>i</sub></sup>           softmax: exaggerates the largest scores
+received = Σ<sub>j</sub> weight<sub>j</sub> · v<sub>j</sub></pre>
+  <div class="box ex"><b>Small example</b>
+    <p>The query is <code>q = (1, 0)</code>, already scaled up 8 times to make the lookup decisive. Four patches offer keys:</p>
+    <pre class="math">k₁ = (0.9, 0.1)    score 7.2    weight 0.689   ← the Save button
+k₂ = (0.1, 0.9)    score 0.8    weight 0.001
+k₃ = (−.5, 0.5)    score −4.0   weight 0.000
+k₄ = (0.8, −.2)    score 6.4    weight <b>0.310</b>   ← the button next to it</pre>
+    <p>The right patch wins, but a similar-looking neighbour takes 31%. The token receives a blend of both values. If the scores were disturbed by ±0.5, the neighbour could win.</p>
+  </div>
+  <p class="key-idea">A lookup is only as sharp as the gap between the best score and the second best. Pointing needs the right square among about a thousand, many of which look alike.</p>
+  <figure>
+    <div class="barrow" id="attBars"></div><div class="barlab" id="attLab"></div>
+    <label class="sl"><span>Error in the scores</span><input type="range" id="noise" min="0" max="3" step="0.05" value="0"><span class="mono" id="noiseV">0.00</span></label>
+    <div class="btns"><button id="reshuffle">Different random errors</button></div>
+    <p id="attMsg" style="font-size:14.5px"></p>
+    <figcaption>Twelve neighbouring squares of a toolbar. The orange bar is the correct one. Slide to add error to every score, the way imprecise matrices do, and watch the attention weights smear onto neighbours.</figcaption>
+  </figure>
+  <h3>The real sizes</h3>
+  <pre class="math">h = norm(x)                                T × 4096
+[q | gate] = h W<sub>q</sub>ᵀ     W<sub>q</sub> ∈ ℝ<sup>8192 × 4096</sup>      16 heads, each a 256-number query and a 256-number gate
+k = h W<sub>k</sub>ᵀ             W<sub>k</sub> ∈ ℝ<sup>1024 × 4096</sup>      4 keys of 256, each shared by 4 heads
+v = h W<sub>v</sub>ᵀ             W<sub>v</sub> ∈ ℝ<sup>1024 × 4096</sup>      4 values of 256
+A = softmax( q kᵀ / √256 )                 T × T per head: who looks at whom
+Mixer(x) = ( (A v) ⊙ sigmoid(gate) ) W<sub>o</sub>ᵀ   W<sub>o</sub> ∈ ℝ<sup>4096 × 4096</sup></pre>
+  <p>Sixteen <em class="t">heads</em> do this in parallel, each with its own 256-dimensional query, so one can look for "the word Save" while another looks for "things in the toolbar". Position enters here: before the dot product, each query and key is rotated by an angle that depends on the token's row and column on the screen, so the score also depends on <em class="t">relative position</em>.</p>
+  <details><summary>Check yourself: two buttons look identical. What does attention do?</summary><p>Their keys are nearly equal, so their scores are nearly equal and the weight splits between them. Only the position rotation can tell them apart, which needs precise arithmetic on small angle differences.</p></details>
+</section>
+
+<section>
+  <h2><span class="num">SECTION 6</span>The reading-order layers: a memory matrix</h2>
+  <p>Full attention compares every token with every other, which costs T² work. So only every fourth layer does it. The other 24 use a cheaper device: they read the tokens once, in order, keeping a small <em class="t">memory matrix</em> <code>S</code> that they write to and read from as they go.</p>
+  <p>The trick is that a matrix can store pairs. To store "under key <code>k</code>, remember value <code>v</code>", add the outer product <code>k vᵀ</code> to S. To recall, multiply by a query:</p>
+  <pre class="math">write:   S ← S + k vᵀ             a rank-one update
+read:    Sᵀ q  =  Σ (q · k<sub>i</sub>) v<sub>i</sub>       each stored value, weighted by how well its key matches the query</pre>
+  <div class="box ex"><b>Small example</b>
+    <p>Start with S = 0 (2 × 2). Store <code>v₁ = (3, 1)</code> under <code>k₁ = (1, 0)</code>, then <code>v₂ = (2, 5)</code> under <code>k₂ = (0, 1)</code>:</p>
+    <div class="eq"><span>S =</span><span class="mx" style="grid-template-columns:repeat(2,auto)"><span>3</span><span>1</span><span>2</span><span>5</span></span><span>reading with q = (1, 0) gives Sᵀq = (3, 1). Exactly v₁.</span></div>
+    <p>That worked because the two keys were perpendicular. Read with <code>q = (0.6, 0.8)</code> and you get <code>0.6·(3, 1) + 0.8·(2, 5) = (3.4, 4.6)</code>: a mixture. Keys that are not perpendicular bleed into each other.</p>
+  </div>
+  <p>The real layer adds two refinements. Before writing it checks what the memory already returns for this key and writes only the correction (the "delta rule"), and it lets old content fade:</p>
+  <pre class="math">for each token t, in order, in each of 32 heads:      S ∈ ℝ<sup>128 × 128</sup>
+    S ← α<sub>t</sub> S                              forget a little        (α between 0 and 1)
+    S ← S + k<sub>t</sub> · β<sub>t</sub> ( v<sub>t</sub> − Sᵀ k<sub>t</sub> )ᵀ        write the correction   (β: how strongly)
+    o<sub>t</sub> = Sᵀ q<sub>t</sub>                             read
+
+[q | k | v] come from one matrix W<sub>qkv</sub> ∈ ℝ<sup>8192 × 4096</sup>;  α and β from two tiny matrices of 32 × 4096</pre>
+  <p class="key-idea">A 128 × 128 memory can hold at most 128 perpendicular keys. A screenshot has over a thousand squares. These layers must summarise; only the eight full-attention layers can go back and look at one exact square.</p>
+  <details><summary>Check yourself: why does that matter for pointing?</summary><p>Exact position has to travel through layers that cannot store a thousand separate things. So it is the full-attention layers, and the precision of their queries and keys, that pointing leans on. It also means a small error early on is hard to undo later.</p></details>
+</section>
+
+<section>
+  <h2><span class="num">SECTION 7</span>The MLP: detect, then write</h2>
+  <p>After tokens have exchanged information, each token is processed alone by the layer's MLP. It is the row view and column view of section 2, one after the other:</p>
+  <pre class="math">h = norm(x)
+a = silu( W<sub>gate</sub> h )           12,288 detectors; silu keeps positives, mostly silences negatives
+b = W<sub>up</sub> h                   12,288 more detectors
+MLP(x) = W<sub>down</sub> ( a ⊙ b )      each active pair writes one column of W<sub>down</sub> into the stream
+
+W<sub>gate</sub>, W<sub>up</sub> ∈ ℝ<sup>12288 × 4096</sup>      W<sub>down</sub> ∈ ℝ<sup>4096 × 12288</sup></pre>
+  <p>Read it as 12,288 small rules of the form "if the state looks like <em class="t">this</em> (a row of W<sub>gate</sub>) and has <em class="t">that much of this</em> (a row of W<sub>up</sub>), then add <em class="t">that</em> (a column of W<sub>down</sub>)". This is where most of the model's knowledge lives, and most of its weights: the MLPs hold 54% of them.</p>
+</section>
+
+<section>
+  <h2><span class="num">SECTION 8</span>Turning the last vector into digits</h2>
+  <p>After 32 layers, the state at the position where the answer goes is read by one last matrix with a row for every token the model could write next:</p>
+  <pre class="math">scores = W<sub>head</sub> norm(x<sub>last</sub>)        W<sub>head</sub> ∈ ℝ<sup>248320 × 4096</sup>
+next token = the row with the largest dot product (after softmax, its probability)</pre>
+  <p>Ten of those 248,320 rows are the digits 0 to 9. A coordinate like 589 is written as three separate choices: <code>5</code>, then <code>8</code>, then <code>9</code>, each a fresh pass through all 32 layers with the digits so far appended. So for the model to write <code>5</code> first, the final state must already point more along the "5" row than along "4" or "6". Position, which began as "which square matched", has to have been converted into a direction that separates neighbouring digits.</p>
+  <details><summary>Check yourself: which digit is hardest to get right?</summary><p>You might expect the last one. But a box is usually wider than 1% of the screen, so several last digits are fine. Our measurements show the opposite: Bonsai is already unsure about the hundreds digit (right 61% of the time against the parent's 88%). It is unsure roughly where the element is, not just exactly where.</p></details>
+</section>
+
+<section>
+  <h2><span class="num">SECTION 9</span>What ternary does to a matrix</h2>
+  <p>In the parent model every entry of every matrix is a 16-bit number. Bonsai replaces each large matrix by a grid of only three values and a few multipliers:</p>
+  <pre class="math">W  ≈  C ⊙ S          C has entries −1, 0 or +1         one multiplier in S per group of 128 inputs in a row</pre>
+  <p>Take the row view. A detector used to be any direction in 4,096 dimensions. Now, within each group of 128 inputs, it can only be a pattern of −1, 0, +1 times one number. The best such pattern still points roughly the right way, but not exactly.</p>
+  <figure>
+    <div style="display:grid;gap:6px">
+      <span style="font-size:13px;color:var(--muted)">A detector as the parent has it (16 of its entries)</span><div class="rowviz" id="rowA"></div>
+      <span style="font-size:13px;color:var(--muted)">The closest ternary version: each entry is −s, 0 or +s</span><div class="rowviz" id="rowB"></div>
+    </div>
+    <div class="readout" id="ternOut"></div>
+    <div class="btns"><button id="newRow">Another detector</button></div>
+    <figcaption>Bars above the line are positive, below negative. The angle is between the original detector and its ternary stand-in. Measured over Bonsai's real matrices against the parent's, the cosine is about 0.87 in every layer: each detector points about 30° away from where the parent's does.</figcaption>
+  </figure>
+  <p>A 30° error in one dot product is survivable. But the output of one layer is the input of the next, 32 times over, and sections 5 and 6 showed operations that depend on small gaps between scores. PrismML does not simply round the parent's weights; it retrains the ternary model so that the errors of one matrix are compensated by the others. That is why the pieces of Bonsai only work as a set.</p>
+  <h3>The rotation trick</h3>
+  <p>Rounding to three values is worst when a few entries are much larger than the rest, because one multiplier must serve a whole group. So before the multiply, Bonsai mixes the input with a fixed matrix <code>H</code> whose entries are all ±1/√n (a Walsh–Hadamard matrix), which spreads any spike evenly:</p>
+  <div class="eq"><span>H =</span><span>½</span><span class="mx" style="grid-template-columns:repeat(4,auto)"><span>1</span><span>1</span><span>1</span><span>1</span><span>1</span><span>−1</span><span>1</span><span>−1</span><span>1</span><span>1</span><span>−1</span><span>−1</span><span>1</span><span>−1</span><span>−1</span><span>1</span></span><span>H · (8, 0, 0, 0) = (4, 4, 4, 4)</span></div>
+  <pre class="math">y = ( C ⊙ S ) · H( s ⊙ x )        s: a fixed vector of ±1        H: fixed, costs no storage, and H H = I
+
+W<sub>up</sub> in the parent:   12288 × 4096 sixteen-bit numbers                    100.7 MB
+W<sub>up</sub> in Bonsai:       50.3 million codes at 2 bits + 393,216 multipliers    12.6 MB</pre>
+  <p>Because H is its own inverse and preserves lengths and angles, this changes nothing mathematically; it only chooses a basis in which the matrix is easier to approximate.</p>
+  <details><summary>Check yourself: what are the legal ways to change a Bonsai matrix and keep it a Bonsai matrix?</summary><p>Change a multiplier (rescales a group of 128 entries in one row), set a code to 0 (delete a connection), or flip a code between −1, 0 and +1. Anything else needs more bits per weight. Those are exactly the moves the weight lab offers.</p></details>
+</section>
+
+<section>
+  <h2><span class="num">SECTION 10</span>Why pointing breaks first</h2>
+  <p>Put the pieces together. Answering a question in words needs the right features to be present, roughly. Pointing needs something stricter: one square out of a thousand must win a lookup against neighbours that look almost the same, the winning position must survive a stack of layers that cannot store it exactly, and at the end it must separate adjacent digits. Each step depends on small differences between dot products, and small differences are exactly what a 30° error per detector erodes.</p>
+  <p>What we have measured fits that picture:</p>
+  <table>
+    <tr><th>Measurement</th><th>What it says</th></tr>
+    <tr><td>Pointing accuracy on ordinary screens: parent 95%, Bonsai 52%</td><td>The skill is damaged, not gone: Bonsai finds the neighbourhood.</td></tr>
+    <tr><td>Hundreds digit acceptable 61% of the time (parent 88%), tens 72% (parent 94%)</td><td>The error is in coarse-to-medium position, not the last digit.</td></tr>
+    <tr><td>Vision part byte-identical to the parent's</td><td>The eyes are fine. The loss is in the 32 layers.</td></tr>
+    <tr><td>Giving Bonsai any one layer, or one kind of matrix, from the parent: no help, often harm</td><td>The matrices compensate for each other; a precise piece does not fit beside imprecise ones.</td></tr>
+    <tr><td>Giving it the parent's first 20 layers, keeping its own last 12: fully restored (73%). First 16: 44%. First 8: no change.</td><td>The position information is lost in the middle of the stack, about layers 9 to 20. The final layers read it out correctly when it is there.</td></tr>
+  </table>
+  <p class="key-idea">So the repair target is specific: the middle layers' ability to carry an exact position, in a model whose matrices must keep working together.</p>
+  <p>In the language of this chapter, the available repairs are: retune multipliers (lengthen or shorten groups of detector entries), delete or flip codes (redirect a detector within the ternary grid), give the middle layers more bits (finer directions, at a cost in file size), or retrain any of these in place on screens where the correct answer is known.</p>
+</section>
+
+<section>
+  <h2><span class="num">SECTION 11</span>Reference: every matrix to scale</h2>
+  <p>Width is the input size, height the output size, on one scale. Select a matrix for its role and storage.</p>
+  <figure>
+    <div class="btns" id="tabs" role="tablist" aria-label="Part of the model"></div>
+    <div class="scroll"><div class="gallery" id="gallery"></div></div>
+    <div class="inspect" id="inspect"></div>
+    <div class="legend"><span><i style="background:var(--tern)"></i>ternary</span><span><i style="background:var(--hot)"></i>full precision</span></div>
+  </figure>
+  <figure><div class="scroll"><table id="budget"></table></div>
+  <figcaption>Where the language model's 8.95 billion weights are. The vision part adds 0.46 billion full-precision weights.</figcaption></figure>
+</section>
+
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => n.toLocaleString("en-US");
+const big = (n) => n >= 1e9 ? (n / 1e9).toFixed(2) + " B" : n >= 1e6 ? (n / 1e6).toFixed(1) + " M" : fmt(n);
+
+// ---- section 3: screenshot size -> tokens ------------------------------------------------------
+const SIZES = [{ name: "What Clicky sends from your Air", w: 1280, h: 832 }, { name: "Your Air's full screen", w: 2940, h: 1912 }, { name: "Full HD", w: 1920, h: 1080 }, { name: "4K", w: 3840, h: 2160 }];
+function showSize(i) {
+  const s = SIZES[i], cols = Math.round(s.w / 32), rows = Math.round(s.h / 32), tok = cols * rows, T = tok + 70;
+  [...$("sizes").children].forEach((b, j) => b.setAttribute("aria-pressed", j === i));
+  $("readout").innerHTML = [[fmt(tok * 4), "patches of 16×16 px"], [fmt(tok), `image tokens (${cols} × ${rows})`], [fmt(T), "tokens with the question (T)"], [big(T * 4096), "numbers in the stream"], [(T / 150).toFixed(1) + " s", "to read on your Air (9B)"]]
+    .map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join("");
+}
+SIZES.forEach((s, i) => { const b = document.createElement("button"); b.textContent = `${s.name} · ${s.w}×${s.h}`; b.addEventListener("click", () => showSize(i)); $("sizes").appendChild(b); });
+showSize(0);
+
+// ---- section 4: layer strip ----------------------------------------------------------------------
+for (let i = 0; i < 32; i++) { const e = document.createElement("i"); e.className = (i % 4 === 3 ? "full" : "") + (i >= 8 && i <= 19 ? " mid" : ""); e.title = `Layer ${i + 1}`; $("lay").appendChild(e); }
+
+// ---- section 5: attention with noisy scores ---------------------------------------------------------
+const TRUE = [1.2, 0.8, 2.1, 1.5, 3.9, 6.0, 4.6, 2.2, 1.0, 1.7, 0.6, 1.3], TARGET = 5;
+let seed = 7;
+const rand = () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
+const gauss = () => Math.sqrt(-2 * Math.log(rand() + 1e-9)) * Math.cos(2 * Math.PI * rand());
+let ERR = TRUE.map(gauss);
+$("attLab").innerHTML = TRUE.map((_, i) => `<span>${i === TARGET ? "Save" : i + 1}</span>`).join("");
+function drawAtt() {
+  const s = parseFloat($("noise").value), sc = TRUE.map((v, i) => v + s * ERR[i]), m = Math.max(...sc), e = sc.map(v => Math.exp(v - m)), z = e.reduce((a, b) => a + b, 0), w = e.map(v => v / z);
+  $("noiseV").textContent = s.toFixed(2);
+  $("attBars").innerHTML = w.map((v, i) => `<div class="${i === TARGET ? "t" : ""}" style="height:${Math.max(1.5, v * 100)}%" title="${(v * 100).toFixed(1)}%"></div>`).join("");
+  const win = w.indexOf(Math.max(...w));
+  $("attMsg").innerHTML = `Weight on the correct square: <b>${(w[TARGET] * 100).toFixed(0)}%</b>. ` + (win === TARGET ? "It still wins." : `<span class="hl">Square ${win + 1} now wins, so the model points next to the button.</span>`);
+}
+$("noise").addEventListener("input", drawAtt);
+$("reshuffle").addEventListener("click", () => { ERR = TRUE.map(gauss); drawAtt(); });
+drawAtt();
+
+// ---- section 9: ternary approximation of a row --------------------------------------------------------
+function drawRow() {
+  const w = Array.from({ length: 16 }, gauss);
+  const meanAbs = w.reduce((a, v) => a + Math.abs(v), 0) / w.length, thr = 0.7 * meanAbs;
+  const c = w.map(v => Math.abs(v) > thr ? Math.sign(v) : 0), kept = w.filter((v, i) => c[i] !== 0);
+  const s = kept.reduce((a, v) => a + Math.abs(v), 0) / Math.max(1, kept.length), t = c.map(v => v * s);
+  const dot = w.reduce((a, v, i) => a + v * t[i], 0), nw = Math.hypot(...w), nt = Math.hypot(...t), cos = dot / (nw * nt);
+  const mx = Math.max(...w.map(Math.abs), s);
+  const bars = (arr, col) => arr.map(v => `<i style="height:${Math.max(2, Math.abs(v) / mx * 40)}px;background:var(${col});transform:translateY(${v >= 0 ? -Math.abs(v) / mx * 20 : Math.abs(v) / mx * 20}px);opacity:${v === 0 ? .25 : 1}"></i>`).join("");
+  $("rowA").innerHTML = bars(w, "--full"); $("rowB").innerHTML = bars(t, "--tern");
+  $("ternOut").innerHTML = [[cos.toFixed(2), "cosine between them"], [(Math.acos(Math.min(1, cos)) * 180 / Math.PI).toFixed(0) + "°", "angle between them"], [c.filter(v => v === 0).length + " of 16", "entries set to 0"], [s.toFixed(2), "the one multiplier s"]]
+    .map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join("");
+}
+$("newRow").addEventListener("click", drawRow); drawRow();
+
+// ---- section 11: matrices and budget ---------------------------------------------------------------
+const M = {
+  attn: { label: "Full attention", items: [
+    { n: "W_q", o: 8192, i: 4096, d: "Rows are the detectors that build each token's 16 queries and 16 gates." },
+    { n: "W_k", o: 1024, i: 4096, d: "Builds 4 keys of 256 numbers per token." },
+    { n: "W_v", o: 1024, i: 4096, d: "Builds 4 values of 256 numbers per token." },
+    { n: "W_o", o: 4096, i: 4096, d: "Columns are what the gathered information writes back into the stream." }] },
+  gdn: { label: "Reading-order layer", items: [
+    { n: "W_qkv", o: 8192, i: 4096, d: "Builds query (2,048), key (2,048) and value (4,096) for the memory in one go." },
+    { n: "W_z", o: 4096, i: 4096, d: "Output gate: how much of what was read is passed on." },
+    { n: "W_out", o: 4096, i: 4096, d: "Writes the result into the stream." },
+    { n: "W_a", o: 32, i: 4096, fp: 1, d: "Forgetting rate α for each of the 32 heads. Full precision." },
+    { n: "W_b", o: 32, i: 4096, fp: 1, d: "Writing strength β for each of the 32 heads. Full precision." }] },
+  mlp: { label: "MLP", items: [
+    { n: "W_gate", o: 12288, i: 4096, d: "12,288 detectors acting as switches." },
+    { n: "W_up", o: 12288, i: 4096, d: "12,288 detectors measuring how much." },
+    { n: "W_down", o: 4096, i: 12288, d: "12,288 columns: what each active rule writes." }] },
+  io: { label: "Entry and exit", items: [
+    { n: "Embedding", o: 248320, i: 4096, clip: 1, d: "One row per vocabulary token; looking a word up means taking its row. Drawn clipped: 60 times taller than wide." },
+    { n: "W_head", o: 248320, i: 4096, clip: 1, d: "One detector per possible next token, ten of them the digits." }] },
+};
+const U = 44 / 4096, sub = (n) => n.replace(/_(\w+)/, "<sub>$1</sub>");
+function inspect(m) {
+  const w = m.o * m.i;
+  $("inspect").innerHTML = `<b style="font-family:var(--display);font-size:16px">${sub(m.n)} ∈ ℝ<sup>${fmt(m.o)} × ${fmt(m.i)}</sup></b><span>${m.d}</span><span class="mono" style="color:var(--muted)">` +
+    (m.fp ? `${big(w)} numbers at full precision` : `${big(w)} codes + ${fmt(w / 128)} multipliers · ${(w / 4e6 + w / 128 * 2 / 1e6).toFixed(1)} MB (${(w * 2 / 1e6).toFixed(1)} MB in the parent)`) + "</span>";
+}
+function selectTab(t) {
+  [...$("tabs").children].forEach(b => b.setAttribute("aria-selected", b.dataset.t === t));
+  $("gallery").innerHTML = "";
+  M[t].items.forEach((m, j) => {
+    const b = document.createElement("button"); b.className = "mat" + (m.fp ? " fp" : "");
+    b.innerHTML = `<div class="r" style="width:${Math.max(4, m.i * U)}px;height:${m.clip ? 140 : Math.max(4, m.o * U)}px${m.clip ? ";border-bottom-style:dashed" : ""}"></div><b>${sub(m.n)}</b><span>${fmt(m.o)} × ${fmt(m.i)}</span>`;
+    b.addEventListener("click", () => { [...$("gallery").children].forEach(e => e.classList.remove("on")); b.classList.add("on"); inspect(m); });
+    $("gallery").appendChild(b); if (j === 0) { b.classList.add("on"); inspect(m); }
+  });
+}
+Object.entries(M).forEach(([t, v]) => { const b = document.createElement("button"); b.textContent = v.label; b.dataset.t = t; b.setAttribute("role", "tab"); b.addEventListener("click", () => selectTab(t)); $("tabs").appendChild(b); });
+selectTab("attn");
+const ROWS = [["MLPs", "32 layers × 3 matrices", 32 * 3 * 12288 * 4096], ["Reading-order layers", "24 × (W_qkv, W_z, W_out)", 24 * 16384 * 4096], ["Embedding", "248,320 × 4,096", 248320 * 4096], ["Output head", "248,320 × 4,096", 248320 * 4096], ["Full attention", "8 × (W_q, W_k, W_v, W_o)", 8 * 14336 * 4096]];
+const total = ROWS.reduce((a, r) => a + r[2], 0);
+$("budget").innerHTML = "<tr><th>Part</th><th>Made of</th><th>Weights</th><th>Share</th></tr>" + ROWS.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td class="n">${big(r[2])}</td><td class="n">${(100 * r[2] / total).toFixed(0)}%</td></tr>`).join("") + `<tr><td><b>Total</b></td><td></td><td class="n"><b>${big(total)}</b></td><td></td></tr>`;
+</script>

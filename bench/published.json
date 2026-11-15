@@ -1,0 +1,30 @@
+{
+ "collected": "2026-11-14 and 2026-11-15, by opening each linked page. None of these was run by us. Values are percentages as printed.",
+ "rows": [
+  {"model": "UI-Venus-2-9B", "sspro": "73.0", "osworld_g_refined": "78.5", "source_name": "own model card and README", "url": "https://huggingface.co/inclusionAI/UI-Venus-2-9B", "note": "Single pass, reasoning off, temperature 0. ScreenSpot-v2 and original OSWorld-G not reported."},
+  {"model": "UI-Venus-2-27B", "sspro": "74.1", "osworld_g_refined": "79.1", "source_name": "own model card and README", "url": "https://github.com/inclusionAI/UI-Venus", "note": "Same setting."},
+  {"model": "Qwen3.5-9B", "sspro": "65.2", "source_name": "own model card", "url": "https://huggingface.co/Qwen/Qwen3.5-9B", "note": "No resolution or reasoning-mode note. Nothing reported on ScreenSpot-v2 or OSWorld-G."},
+  {"model": "Qwen3.5-4B", "sspro": "60.3", "source_name": "Qwen3.5-9B model card (comparison column)", "url": "https://huggingface.co/Qwen/Qwen3.5-9B", "note": "Full precision, not the 4-bit file we ran."},
+  {"model": "UI-Venus-1.5-8B", "ssv2": "95.9", "sspro": "68.4", "osworld_g": "69.7", "osworld_g_refined": "74.1", "source_name": "own paper", "url": "https://arxiv.org/abs/2602.09082", "note": "End to end, no zoom."},
+  {"model": "MAI-UI-8B", "ssv2": "95.2", "sspro": "65.8", "osworld_g": "60.1", "osworld_g_refined": "68.6", "source_name": "own paper", "url": "https://arxiv.org/abs/2512.22047", "note": "Single pass. With its zoom-in second pass: ScreenSpot-Pro 70.9, OSWorld-G 64.2 / 72.9."},
+  {"model": "Holo2-8B", "ssv2": "93.2", "sspro": "58.9", "osworld_g_refined": "70.1", "source_name": "own model card", "url": "https://huggingface.co/Hcompany/Holo2-30B-A3B", "note": "Single step. The card does not say which OSWorld-G instructions; the UI-Venus-1.5 paper lists the value as refined."},
+  {"model": "GTA1-7B", "ssv2": "92.4", "sspro": "50.1", "osworld_g": "55.1", "osworld_g_refined": "67.7", "source_name": "own paper", "url": "https://arxiv.org/abs/2507.05791", "note": "The ScreenSpot-Pro leaderboard lists 55.5 for the released weights."},
+  {"model": "OpenCUA-7B", "ssv2": "92.3", "sspro": "50.0", "osworld_g": "55.3", "source_name": "own paper", "url": "https://arxiv.org/abs/2508.09123", "note": "Up to 12,845,056 pixels per image. The paper does not say which OSWorld-G instructions."},
+  {"model": "Jedi-7B", "ssv2": "91.7", "sspro": "39.5", "osworld_g": "54.1", "osworld_g_refined": "63.8", "source_name": "own paper; refined value from the GTA1 paper's table", "url": "https://arxiv.org/abs/2505.13227", "note": "Images limited to about 1080p."},
+  {"model": "GUI-Actor-7B (Qwen2.5-VL)", "ssv2": "92.1", "sspro": "44.6", "source_name": "own paper", "url": "https://arxiv.org/abs/2506.03143", "note": "Without its verifier model."},
+  {"model": "UI-TARS-1.5 (size not stated)", "ssv2": "94.2", "sspro": "61.6", "source_name": "own README", "url": "https://github.com/bytedance/UI-TARS", "note": "The 7B release is listed there at 49.6 on ScreenSpot-Pro; other papers' own runs of it give 39.0 to 42.0."},
+  {"model": "UI-TARS-7B", "ssv2": "91.6", "sspro": "35.7", "osworld_g": "47.5", "source_name": "own paper; OSWorld-G from the Jedi paper's table", "url": "https://arxiv.org/abs/2501.12326", "note": ""},
+  {"model": "Qwen3-VL-8B", "ssv2": "91.7", "sspro": "49.9", "osworld_g": "54.8", "osworld_g_refined": "64.4", "source_name": "MAI-UI paper's table (their run)", "url": "https://arxiv.org/abs/2512.22047", "note": "Not Qwen's own numbers."},
+  {"model": "Qwen2.5-VL-7B", "ssv2": "88.8", "sspro": "26.8", "osworld_g": "31.4", "source_name": "Jedi paper's table; ScreenSpot-Pro from its leaderboard", "url": "https://gui-agent.github.io/grounding-leaderboard/", "note": ""},
+  {"model": "UGround-V1-7B", "ssv2": "87.6", "sspro": "31.1", "osworld_g": "36.4", "source_name": "GUI-Actor paper's table, ScreenSpot-Pro leaderboard, Jedi paper's table", "url": "https://gui-agent.github.io/grounding-leaderboard/", "note": ""},
+  {"model": "OS-Atlas-7B", "ssv2": "84.1", "sspro": "18.9", "osworld_g": "27.7", "source_name": "UI-TARS paper's table, ScreenSpot-Pro leaderboard, Jedi paper's table", "url": "https://gui-agent.github.io/grounding-leaderboard/", "note": "Other papers print 85.1 for the same ScreenSpot-v2 cells."},
+  {"model": "ShowUI-2B", "ssv2": "77.3", "sspro": "7.7", "source_name": "grounding leaderboard", "url": "https://gui-agent.github.io/grounding-leaderboard/", "note": ""},
+  {"model": "SeeClick", "ssv2": "55.1", "sspro": "1.1", "source_name": "UI-TARS paper's table, ScreenSpot-Pro leaderboard", "url": "https://gui-agent.github.io/grounding-leaderboard/", "note": ""},
+  {"model": "OpenAI Operator", "ssv2": "70.5", "sspro": "36.6", "osworld_g": "40.6", "osworld_g_refined": "57.8", "source_name": "Jedi and GTA1 papers' tables", "url": "https://arxiv.org/abs/2505.13227", "note": "Not OpenAI's own numbers."},
+  {"model": "Claude (Computer Use)", "sspro": "17.1", "source_name": "ScreenSpot-Pro leaderboard", "url": "https://gui-agent.github.io/grounding-leaderboard/", "note": "The 2024 computer-use model."},
+  {"model": "Claude Haiku 5.5", "sspro": "85.4", "source_name": "Inkling 2 Small release table", "url": "https://thinkingmachines.ai/news/inkling-2-small/", "note": "88.7 when the model may run Python on the image. Not Anthropic's own number."},
+  {"model": "GPT-6 Luna", "sspro": "81.1", "source_name": "Inkling 2 Small release table", "url": "https://thinkingmachines.ai/news/inkling-2-small/", "note": "87.7 with Python."},
+  {"model": "Gemini 3.8 Flash", "sspro": "65.7", "source_name": "Inkling 2 Small release table", "url": "https://thinkingmachines.ai/news/inkling-2-small/", "note": "93.7 with Python."},
+  {"model": "Inkling 2 Small", "sspro": "83.8", "source_name": "own release post", "url": "https://thinkingmachines.ai/news/inkling-2-small/", "note": "92.0 with Python. Its model card says images are capped at 4,096 px on the long side."}
+ ]
+}

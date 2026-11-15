@@ -1,0 +1,92 @@
+[
+ {
+  "run": "bonsai9b-new@v3-gentle",
+  "files": "Ternary-Bonsai-2-9B-mlx-2bit + bonsai2-9b-point-v3-gentle.patch.safetensors (sha256 bcea0672)",
+  "jobs": 2,
+  "commits": "5f176be+",
+  "torch": "2.9.1+cu128",
+  "transformers": "5.23.0",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Server Edition, 97887 MiB, 595.91.07",
+  "hosts": "rtx-pro-6000-pod"
+ },
+ {
+  "run": "bonsai9b-new",
+  "files": "Ternary-Bonsai-2-9B-mlx-2bit + bonsai2-9b-point-v2.patch.safetensors (sha256 fde98d68)",
+  "jobs": 3,
+  "commits": "7f27eb0+",
+  "torch": "2.9.1+cu128",
+  "transformers": "5.23.0",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Server Edition, 97887 MiB, 595.91.07",
+  "hosts": "rtx-pro-6000-pod"
+ },
+ {
+  "run": "bonsai9b-new@v4-gentle",
+  "files": "Ternary-Bonsai-2-9B-mlx-2bit + bonsai2-9b-point-v4-gentle.patch.safetensors (sha256 d3249925)",
+  "jobs": 2,
+  "commits": "5f176be+",
+  "torch": "2.9.1+cu128",
+  "transformers": "5.23.0",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Server Edition, 97887 MiB, 595.91.07",
+  "hosts": "rtx-pro-6000-pod"
+ },
+ {
+  "run": "bonsai9b-orig",
+  "files": "Ternary-Bonsai-2-9B-mlx-2bit",
+  "jobs": 2,
+  "commits": "5f176be+",
+  "torch": "2.9.1+cu128",
+  "transformers": "5.23.0",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Server Edition, 97887 MiB, 595.91.07",
+  "hosts": "rtx-pro-6000-pod"
+ },
+ {
+  "run": "qwen35-9b",
+  "files": "Qwen3.5-9B",
+  "jobs": 3,
+  "commits": "5f176be+, 7f27eb0+",
+  "torch": "2.9.1+cu128",
+  "transformers": "5.23.0",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Server Edition, 97887 MiB, 595.91.07",
+  "hosts": "rtx-pro-6000-pod"
+ },
+ {
+  "run": "venus2-9b",
+  "files": "UI-Venus-2-9B",
+  "jobs": 4,
+  "commits": "5f176be+, 7f27eb0+, ab007d6",
+  "torch": "2.14.1+cu130, 2.9.1+cu128",
+  "transformers": "5.23.0",
+  "gpu": "NVIDIA GB10, [N/A], 580.173.02, NVIDIA RTX PRO 6000 Blackwell Server Edition, 97887 MiB, 595.91.07",
+  "hosts": "rtx-pro-6000-pod, dgx-spark"
+ },
+ {
+  "run": "qwen35-4b-q4",
+  "files": "Qwen3.5-4B-Q4_K_M.gguf",
+  "jobs": 2,
+  "commits": "5f176be+",
+  "torch": "2.9.1+cu128",
+  "transformers": "5.23.0",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Server Edition, 97887 MiB, 595.91.07",
+  "hosts": "rtx-pro-6000-pod"
+ },
+ {
+  "run": "bonsai4b-new",
+  "files": "Ternary-Bonsai-2-4B-mlx-2bit + bonsai2-4b-point-v1.patch.safetensors (sha256 e9013fd9)",
+  "jobs": 2,
+  "commits": "5f176be+",
+  "torch": "2.9.1+cu128",
+  "transformers": "5.23.0",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Server Edition, 97887 MiB, 595.91.07",
+  "hosts": "rtx-pro-6000-pod"
+ },
+ {
+  "run": "bonsai4b-orig",
+  "files": "Ternary-Bonsai-2-4B-mlx-2bit",
+  "jobs": 2,
+  "commits": "5f176be+",
+  "torch": "2.9.1+cu128",
+  "transformers": "5.23.0",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Server Edition, 97887 MiB, 595.91.07",
+  "hosts": "rtx-pro-6000-pod"
+ }
+]

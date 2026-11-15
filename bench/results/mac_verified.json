@@ -1,0 +1,272 @@
+[
+ {
+  "run": "bonsai9b-new@v3-gentle",
+  "looked_at": {
+   "n": 150,
+   "hits": 58,
+   "acc": 38.67,
+   "lo": 30.67,
+   "hi": 46.67,
+   "unparseable": 0,
+   "refusals": 0
+  },
+  "label_ok": {
+   "n": 114,
+   "hits": 56,
+   "acc": 49.12,
+   "lo": 40.33,
+   "hi": 57.89,
+   "unparseable": 0,
+   "refusals": 0
+  },
+  "label_not_ok": {
+   "n": 36,
+   "hits": 2,
+   "acc": 5.56,
+   "lo": 0.0,
+   "hi": 13.89,
+   "unparseable": 0,
+   "refusals": 0
+  }
+ },
+ {
+  "run": "bonsai9b-new",
+  "looked_at": {
+   "n": 150,
+   "hits": 51,
+   "acc": 34.0,
+   "lo": 26.67,
+   "hi": 42.0,
+   "unparseable": 0,
+   "refusals": 0
+  },
+  "label_ok": {
+   "n": 114,
+   "hits": 50,
+   "acc": 43.86,
+   "lo": 35.09,
+   "hi": 52.63,
+   "unparseable": 0,
+   "refusals": 0
+  },
+  "label_not_ok": {
+   "n": 36,
+   "hits": 1,
+   "acc": 2.78,
+   "lo": 0.0,
+   "hi": 8.33,
+   "unparseable": 0,
+   "refusals": 0
+  }
+ },
+ {
+  "run": "bonsai9b-new@v4-gentle",
+  "looked_at": {
+   "n": 150,
+   "hits": 57,
+   "acc": 38.0,
+   "lo": 30.0,
+   "hi": 46.0,
+   "unparseable": 0,
+   "refusals": 0
+  },
+  "label_ok": {
+   "n": 114,
+   "hits": 54,
+   "acc": 47.37,
+   "lo": 38.6,
+   "hi": 56.14,
+   "unparseable": 0,
+   "refusals": 0
+  },
+  "label_not_ok": {
+   "n": 36,
+   "hits": 3,
+   "acc": 8.33,
+   "lo": 0.0,
+   "hi": 19.44,
+   "unparseable": 0,
+   "refusals": 0
+  }
+ },
+ {
+  "run": "bonsai9b-orig",
+  "looked_at": {
+   "n": 150,
+   "hits": 18,
+   "acc": 12.0,
+   "lo": 7.33,
+   "hi": 17.33,
+   "unparseable": 0,
+   "refusals": 1
+  },
+  "label_ok": {
+   "n": 114,
+   "hits": 17,
+   "acc": 14.91,
+   "lo": 8.77,
+   "hi": 21.93,
+   "unparseable": 0,
+   "refusals": 1
+  },
+  "label_not_ok": {
+   "n": 36,
+   "hits": 1,
+   "acc": 2.78,
+   "lo": 0.0,
+   "hi": 8.33,
+   "unparseable": 0,
+   "refusals": 0
+  }
+ },
+ {
+  "run": "qwen35-9b",
+  "looked_at": {
+   "n": 150,
+   "hits": 94,
+   "acc": 62.67,
+   "lo": 54.67,
+   "hi": 70.0,
+   "unparseable": 0,
+   "refusals": 0
+  },
+  "label_ok": {
+   "n": 114,
+   "hits": 87,
+   "acc": 76.32,
+   "lo": 68.42,
+   "hi": 84.21,
+   "unparseable": 0,
+   "refusals": 0
+  },
+  "label_not_ok": {
+   "n": 36,
+   "hits": 7,
+   "acc": 19.44,
+   "lo": 8.33,
+   "hi": 33.33,
+   "unparseable": 0,
+   "refusals": 0
+  }
+ },
+ {
+  "run": "venus2-9b",
+  "looked_at": {
+   "n": 150,
+   "hits": 114,
+   "acc": 76.0,
+   "lo": 69.33,
+   "hi": 82.67,
+   "unparseable": 0,
+   "refusals": 0
+  },
+  "label_ok": {
+   "n": 114,
+   "hits": 103,
+   "acc": 90.35,
+   "lo": 85.09,
+   "hi": 95.61,
+   "unparseable": 0,
+   "refusals": 0
+  },
+  "label_not_ok": {
+   "n": 36,
+   "hits": 11,
+   "acc": 30.56,
+   "lo": 16.67,
+   "hi": 44.51,
+   "unparseable": 0,
+   "refusals": 0
+  }
+ },
+ {
+  "run": "qwen35-4b-q4",
+  "looked_at": {
+   "n": 150,
+   "hits": 91,
+   "acc": 60.67,
+   "lo": 52.67,
+   "hi": 68.67,
+   "unparseable": 0,
+   "refusals": 0
+  },
+  "label_ok": {
+   "n": 114,
+   "hits": 86,
+   "acc": 75.44,
+   "lo": 67.54,
+   "hi": 83.33,
+   "unparseable": 0,
+   "refusals": 0
+  },
+  "label_not_ok": {
+   "n": 36,
+   "hits": 5,
+   "acc": 13.89,
+   "lo": 2.78,
+   "hi": 25.0,
+   "unparseable": 0,
+   "refusals": 0
+  }
+ },
+ {
+  "run": "bonsai4b-new",
+  "looked_at": {
+   "n": 150,
+   "hits": 43,
+   "acc": 28.67,
+   "lo": 21.33,
+   "hi": 36.0,
+   "unparseable": 0,
+   "refusals": 0
+  },
+  "label_ok": {
+   "n": 114,
+   "hits": 41,
+   "acc": 35.96,
+   "lo": 27.19,
+   "hi": 44.74,
+   "unparseable": 0,
+   "refusals": 0
+  },
+  "label_not_ok": {
+   "n": 36,
+   "hits": 2,
+   "acc": 5.56,
+   "lo": 0.0,
+   "hi": 13.89,
+   "unparseable": 0,
+   "refusals": 0
+  }
+ },
+ {
+  "run": "bonsai4b-orig",
+  "looked_at": {
+   "n": 150,
+   "hits": 7,
+   "acc": 4.67,
+   "lo": 1.33,
+   "hi": 8.0,
+   "unparseable": 0,
+   "refusals": 18
+  },
+  "label_ok": {
+   "n": 114,
+   "hits": 7,
+   "acc": 6.14,
+   "lo": 1.75,
+   "hi": 10.53,
+   "unparseable": 0,
+   "refusals": 8
+  },
+  "label_not_ok": {
+   "n": 36,
+   "hits": 0,
+   "acc": 0.0,
+   "lo": 0.0,
+   "hi": 0.0,
+   "unparseable": 0,
+   "refusals": 10
+  }
+ }
+]

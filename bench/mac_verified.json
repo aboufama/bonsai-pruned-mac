@@ -1,0 +1,760 @@
+{
+"what": "150 evenly spaced cases of the reserved Mac set (bench/suites.py: pick(mac(), 150)), each judged from a crop with the target box drawn and the request beside it: would a careful person asked to do this click inside the box? Judged on 2026-11-15 by a Claude subagent reading contact sheets; one sheet was read a second time. The rule is strict: a box on a neighbouring control counts as wrong.",
+"counts": {
+"ok": 114,
+"wrong": 17,
+"unclear": 19
+},
+"cases": [
+{
+"id": "screen2ax-05b8826dbcd68783-000",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-05b8826dbcd68783-014",
+"verdict": "wrong",
+"why": "box on debug-area toggle, not a window minimize control"
+},
+{
+"id": "screen2ax-05b8826dbcd68783-028",
+"verdict": "unclear",
+"why": "breadcrumb item; scheme selector also matches the request"
+},
+{
+"id": "screen2ax-05b8826dbcd68783-042",
+"verdict": "unclear",
+"why": "two identical close buttons visible in adjacent panes"
+},
+{
+"id": "screen2ax-062945c4070b162e-000",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-0767a011d282d459-013",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-076c7922cd3671ea-008",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-08bba8ddd0fa1e61-004",
+"verdict": "unclear",
+"why": "three layout icons, cannot tell which is horizontal"
+},
+{
+"id": "screen2ax-08bba8ddd0fa1e61-018",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-08bba8ddd0fa1e61-032",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-09635d94c42c9917-009",
+"verdict": "wrong",
+"why": "box on loop-slideshow checkbox, unrelated to request"
+},
+{
+"id": "screen2ax-09635d94c42c9917-023",
+"verdict": "unclear",
+"why": "any of several slides fits the request"
+},
+{
+"id": "screen2ax-0ab2265ef95d30b4-002",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-0cacc1706828ee2b-001",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-0cacc1706828ee2b-015",
+"verdict": "unclear",
+"why": "four identical Record buttons, request names none"
+},
+{
+"id": "screen2ax-0e540e49a44ba53c-006",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-0e540e49a44ba53c-020",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-13bf6aa3ff495929-001",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-17f3546fb91bc484-001",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-18066d2ee4b118c6-007",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-18fb1ddaee3a6a09-008",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-1c5182bad38939fe-007",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-1c5182bad38939fe-021",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-1c5182bad38939fe-035",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-1d99f24ccc8c769f-011",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-1e32fd316c3fefcc-002",
+"verdict": "unclear",
+"why": "chevron row has no visible label"
+},
+{
+"id": "screen2ax-214bd5b274638418-010",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-2158873413b566a7-005",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-22453a1a39763af5-013",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-22453a1a39763af5-027",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-236dc5874a838f95-000",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-243cc47b2d94f2ce-009",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-2897600e64448456-010",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-28cfd2de87b3e0e7-009",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-2eba6b59b3219f0f-008",
+"verdict": "unclear",
+"why": "two identical +5m buttons for different fields"
+},
+{
+"id": "screen2ax-3148ce4165d7aa41-008",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-327d9f3cca67d348-001",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-327d9f3cca67d348-015",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-33e9e7ea8dacab66-013",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-355ccf836ca4dc60-010",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-3657246f7e89ff13-012",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-3750eaa493525508-002",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-38b2db7f9afe09fd-005",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-38b2db7f9afe09fd-019",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-3e0d56ba76bc2f5b-012",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-4539a0d15f5c839a-009",
+"verdict": "wrong",
+"why": "box on example colour swatch, not the scheme selector"
+},
+{
+"id": "screen2ax-4539a0d15f5c839a-023",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-4539a0d15f5c839a-037",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-48364cc9d05d2757-009",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-48364cc9d05d2757-023",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-4912c1bf2ebcd248-005",
+"verdict": "unclear",
+"why": "several presentations visible, request names none"
+},
+{
+"id": "screen2ax-4aee9d53e877cf35-004",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-538012c9b63d1d49-006",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-5634247a7ed2ecd7-009",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-570614aeaf0e4c00-008",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-5a9d64137bdb6b5f-001",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-5d7de37e79440893-005",
+"verdict": "wrong",
+"why": "box on new-notes-start-with popup, not an ordering control"
+},
+{
+"id": "screen2ax-5da4483b35df81b5-009",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-64323159a30f7396-010",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-64323159a30f7396-024",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-67e6dc2d856412a1-003",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-68ef8355bbdee4b7-003",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-691d388d5aad2568-012",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-6aa6696502676e70-007",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-6aa6696502676e70-021",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-6aac05ab4e7abb9d-006",
+"verdict": "unclear",
+"why": "chevron beside workspace name may collapse section, not sidebar"
+},
+{
+"id": "screen2ax-6aac05ab4e7abb9d-020",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-6aac05ab4e7abb9d-034",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-6be363069aed3d14-008",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-6be363069aed3d14-022",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-6c975771d90ce98a-010",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-709e5f525c163e2a-012",
+"verdict": "unclear",
+"why": "header dropdown boxed; sidebar Contacts item also matches"
+},
+{
+"id": "screen2ax-713d552c6ba8573e-006",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-72446745595e6a11-000",
+"verdict": "wrong",
+"why": "box on dialog expand chevron, not the location popup"
+},
+{
+"id": "screen2ax-72930067f15ccc20-010",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-72d11a17748e5c2d-011",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-7375b695bbf20618-008",
+"verdict": "wrong",
+"why": "box on customize-layout icon, not split editor"
+},
+{
+"id": "screen2ax-7375b695bbf20618-022",
+"verdict": "wrong",
+"why": "box on top command search bar, not extensions search"
+},
+{
+"id": "screen2ax-7650250614d01538-005",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-7aeb8d48f9450b57-005",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-7b037c790517bdff-001",
+"verdict": "unclear",
+"why": "vague request; several time and offset controls present"
+},
+{
+"id": "screen2ax-7b037c790517bdff-015",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-7b037c790517bdff-029",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-7b037c790517bdff-043",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-7b037c790517bdff-057",
+"verdict": "unclear",
+"why": "three identical popups; boxed one is disabled third row"
+},
+{
+"id": "screen2ax-7b15d96742cb8f5f-008",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-7b15d96742cb8f5f-022",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-7eb373e227ebb0f3-009",
+"verdict": "unclear",
+"why": "template name not visible in crop"
+},
+{
+"id": "screen2ax-8a033521cd4aa74b-000",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-8a043eb008e16f48-000",
+"verdict": "wrong",
+"why": "tiny box on line-style control, no page navigation"
+},
+{
+"id": "screen2ax-8a043eb008e16f48-014",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-8a043eb008e16f48-028",
+"verdict": "wrong",
+"why": "tiny box on empty toolbar area, no page navigation"
+},
+{
+"id": "screen2ax-8a043eb008e16f48-042",
+"verdict": "wrong",
+"why": "box on centre-align button, not a view mode control"
+},
+{
+"id": "screen2ax-8a7bc2909ababec6-012",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-8a7bc2909ababec6-026",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-8c6eb0da999a4b26-003",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-8d8cddf027311b86-000",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-8d8cddf027311b86-014",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-8e6b2efcd32e2caa-010",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-9011a674d5a7c081-009",
+"verdict": "wrong",
+"why": "box on paste clipboard icon, copy icon is adjacent"
+},
+{
+"id": "screen2ax-90329cba10fb2459-003",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-90329cba10fb2459-017",
+"verdict": "wrong",
+"why": "box on list paragraph-style icon, not a template control"
+},
+{
+"id": "screen2ax-90329cba10fb2459-031",
+"verdict": "unclear",
+"why": "several similar update icons, meaning not readable"
+},
+{
+"id": "screen2ax-903627693bd18dda-007",
+"verdict": "unclear",
+"why": "up-chevron on unlabeled section; expand versus collapse unclear"
+},
+{
+"id": "screen2ax-96813791c8c4b44d-000",
+"verdict": "wrong",
+"why": "box on bottom debug-bar indicator, not the stop button"
+},
+{
+"id": "screen2ax-96813791c8c4b44d-014",
+"verdict": "wrong",
+"why": "box on go-forward chevron, not a pause control"
+},
+{
+"id": "screen2ax-96813791c8c4b44d-028",
+"verdict": "unclear",
+"why": "tree disclosure triangle; request is too vague"
+},
+{
+"id": "screen2ax-96813791c8c4b44d-042",
+"verdict": "unclear",
+"why": "folder breadcrumb boxed; request names no folder"
+},
+{
+"id": "screen2ax-96813791c8c4b44d-056",
+"verdict": "wrong",
+"why": "box on issue navigator icon, not a stop control"
+},
+{
+"id": "screen2ax-98fcb9c8426cc01b-006",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-9aa6d351b00f98de-007",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-9aa6d351b00f98de-021",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-9d3208b81e6b704e-013",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-9d3208b81e6b704e-027",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-aa89235f2dbf8e51-001",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-abf317e3fd6fb7e4-001",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-ae4e9a613b694b4a-011",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-ae4e9a613b694b4a-025",
+"verdict": "wrong",
+"why": "tiny box on column sort indicator, not scrolling"
+},
+{
+"id": "screen2ax-b1406afcf5799238-012",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-b1406afcf5799238-026",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-b14fa9cee3380809-006",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-b2060e49263cdaf8-004",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-b42fc7c21dca2297-001",
+"verdict": "wrong",
+"why": "box on Native checkbox, Safari checkbox is next to it"
+},
+{
+"id": "screen2ax-b6d2bc455b568e92-003",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-ba7a6724d2b5254f-005",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-be72f3c3c7f70163-003",
+"verdict": "unclear",
+"why": "one of several unnamed calendar checkboxes"
+},
+{
+"id": "screen2ax-be72f3c3c7f70163-017",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-be72f3c3c7f70163-031",
+"verdict": "unclear",
+"why": "one of several unnamed calendar checkboxes"
+},
+{
+"id": "screen2ax-c02c51720730afd6-000",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-c02c51720730afd6-014",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-c33f771c1a08179f-007",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-c7082f136bd64043-004",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-c899e1c74136a436-005",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-c9c75075f6d1e2b1-011",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-cc20287228cd342d-013",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-d0ae98483d4d59a2-009",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-d518e716371bb879-012",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-d5a68dc443e8cab7-000",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-d85216d4837a01f1-001",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-d85216d4837a01f1-015",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-da4fc1b620b1381d-013",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-da5db91372eeb83b-006",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-da5db91372eeb83b-020",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-e26b51a692f564df-002",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-e739c0d7eda7412f-001",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-eeaa7f82f67fbbe5-003",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-eeaa7f82f67fbbe5-017",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-f711a492d1ed5a8c-000",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-fa5232b328641cd4-008",
+"verdict": "ok",
+"why": "box on the element the request names"
+},
+{
+"id": "screen2ax-fa6dcfc44b4bef61-008",
+"verdict": "ok",
+"why": "box on the element the request names"
+}
+]
+}

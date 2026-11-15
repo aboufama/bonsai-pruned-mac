@@ -1,0 +1,14 @@
+.DS_Store
+__pycache__/
+.venv*/
+
+# model weights and datasets stay out of git
+*.gguf
+*.safetensors
+models/
+sspro/
+
+# sample screenshots from public datasets can show third parties' personal data
+docs/mac_data_samples/
+# benchmark run outputs live on the Spark
+bench/*/runs/

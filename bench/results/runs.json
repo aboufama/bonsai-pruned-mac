@@ -1,0 +1,48 @@
+{
+ "runs": {
+  "bonsai4b-new": {
+   "mac:s1280": 2106,
+   "ssv2:s1280": 1272
+  },
+  "bonsai4b-orig": {
+   "mac:s1280": 2106,
+   "ssv2:s1280": 1272
+  },
+  "bonsai9b-new": {
+   "gen:s1280": 413,
+   "mac:s1280": 2106,
+   "ssv2:s1280": 1272
+  },
+  "bonsai9b-new@v3-gentle": {
+   "mac:s1280": 2106,
+   "ssv2:s1280": 1272
+  },
+  "bonsai9b-new@v3-tools": {
+   "ssv2:s1280": 160
+  },
+  "bonsai9b-new@v4-gentle": {
+   "mac:s1280": 2106,
+   "ssv2:s1280": 1272
+  },
+  "bonsai9b-orig": {
+   "mac:s1280": 2106,
+   "ssv2:s1280": 1272
+  },
+  "qwen35-4b-q4": {
+   "mac:s1280": 2106,
+   "ssv2:s1280": 1272
+  },
+  "qwen35-9b": {
+   "mac:s1280": 2106,
+   "ssv2:native": 1272,
+   "ssv2:s1280": 1272
+  },
+  "venus2-9b": {
+   "mac:s1280": 2106,
+   "sspro:native": 1581,
+   "ssv2:native": 1272,
+   "ssv2:s1280": 1272
+  }
+ },
+ "new": "bonsai9b-new@v3-gentle"
+}
