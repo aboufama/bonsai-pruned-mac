@@ -162,6 +162,7 @@ def main():
     ap.add_argument("--pointer-model")
     ap.add_argument("--pointer-patch")
     ap.add_argument("--pointer-head")
+    ap.add_argument("--pointer-input", help="input size for the pointer when it differs from the orchestrator's (--input)")
     ap.add_argument("--tasks", nargs="*", default=[])
     ap.add_argument("--seeds", nargs="*", default=["dev"])
     ap.add_argument("--out", required=True)
@@ -211,10 +212,10 @@ def main():
         from taskenv import policy
         model = policy.load(args.model, args.root, patch=args.patch)
         pm = policy.load(args.pointer_model, args.root, patch=args.pointer_patch, **({"head": args.pointer_head} if args.pointer_head else {})) if args.pointer_model else model
-        agent = policy.OrchestratedAgent(model, policy.Pointer(pm, args.input, "point"), args.input, snap=args.snap)
+        agent = policy.OrchestratedAgent(model, policy.Pointer(pm, args.pointer_input or args.input, "point"), args.input, snap=args.snap)
         args.agent = "agent"                                      # same limits, cut-off and tables as agent mode
         orch = {"orchestrated": True, "pointer_model": args.pointer_model or args.model, "pointer_patch": args.pointer_patch if args.pointer_model else args.patch,
-                "pointer_head": args.pointer_head}
+                "pointer_head": args.pointer_head, "pointer_input": args.pointer_input or args.input}
     elif args.agent in ("guided", "agent"):
         from taskenv import policy
         model = policy.ScriptedModel() if args.model == "scripted" else policy.load(args.model, args.root, patch=args.patch, **({"head": args.head} if args.head else {}))

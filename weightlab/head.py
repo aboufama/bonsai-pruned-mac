@@ -375,6 +375,10 @@ class HeadBench:
         """Prompt-token range of each question: from the end of the image (first question) or of
         the previous answer (later ones) to the position that precedes its answer."""
         out, start = [], int(img[-1]) + 1
+        if getattr(self.lab, "text_first", False):       # the first request sits before the image
+            (a, n), spans = spans[0], spans[1:]
+            out.append((0, int(img[0])))
+            start = a + n
         for a, n in spans:
             out.append((start, a))
             start = a + n
@@ -449,7 +453,7 @@ class HeadBench:
             for case, present in cases:
                 inputs, n_prompt = self.lab._inputs(self.model, case)
                 states, img, centres, cell, grid = self.forward(inputs)
-                ranges = [(int(img[-1]) + 1, n_prompt)]
+                ranges = [(0, int(img[0]))] if getattr(self.lab, "text_first", False) else [(int(img[-1]) + 1, n_prompt)]
                 for spec in self.specs:
                     out = self.heads[spec[0]](*self.features(spec, states, img, centres, cell, grid, ranges))
                     r = res[spec[0]]
@@ -483,7 +487,7 @@ class HeadBench:
         torch.cuda.synchronize(); t = time.time()
         states, img, centres, cell, grid = self.forward(inputs)
         torch.cuda.synchronize(); full = 1000 * (time.time() - t)
-        ranges = [(int(img[-1]) + 1, n_prompt)]
+        ranges = [(0, int(img[0]))] if getattr(self.lab, "text_first", False) else [(int(img[-1]) + 1, n_prompt)]
         out = {"whole forward, image included": full}
         for spec in self.specs:
             f = self.features(spec, states, img, centres, cell, grid, ranges)

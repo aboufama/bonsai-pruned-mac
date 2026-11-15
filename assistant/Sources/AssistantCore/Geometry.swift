@@ -56,6 +56,15 @@ public enum Geometry {
         return CGRect(x: cx - w / 2, y: cy - h / 2, width: w, height: h)
     }
 
+    /// The window of a second look: a square of the given side around a point, moved so that
+    /// it stays inside the region (and cut to the region where the region is smaller than it).
+    public static func squareWindow(around p: CGPoint, in region: CGRect, side: CGFloat) -> CGRect {
+        let w = min(side, region.width), h = min(side, region.height)
+        let cx = min(max(p.x, region.minX + w / 2), region.maxX - w / 2)
+        let cy = min(max(p.y, region.minY + h / 2), region.maxY - h / 2)
+        return CGRect(x: cx - w / 2, y: cy - h / 2, width: w, height: h)
+    }
+
     /// A screen region as whole pixels of the full-resolution capture of a display.
     /// `displayOrigin` is the display's top-left corner in points, `scale` its pixels per point.
     public static func pixelRect(points r: CGRect, displayOrigin: CGPoint, scale: CGFloat) -> CGRect {

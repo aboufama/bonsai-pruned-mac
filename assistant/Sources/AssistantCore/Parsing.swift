@@ -17,7 +17,7 @@ public enum PointAnswer: Equatable {
 }
 
 public enum Parsing {
-    static func matches(_ pattern: String, _ text: String) -> [[String]] {
+    public static func matches(_ pattern: String, _ text: String) -> [[String]] {
         guard let re = try? NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators]) else { return [] }
         let ns = text as NSString
         return re.matches(in: text, range: NSRange(location: 0, length: ns.length)).map { m in
@@ -92,7 +92,7 @@ public enum Parsing {
     ]
 
     /// Every JSON object written in `text`, outermost first, found by matching braces.
-    static func jsonObjects(in text: String) -> [[String: Any]] {
+    public static func jsonObjects(in text: String) -> [[String: Any]] {
         var found: [[String: Any]] = []
         let chars = Array(text.utf16)
         var i = 0
@@ -122,7 +122,7 @@ public enum Parsing {
     }
 
     /// The arguments of a step out of whatever shape the object has.
-    static func stepArguments(_ obj: [String: Any]) -> [String: Any]? {
+    public static func stepArguments(_ obj: [String: Any]) -> [String: Any]? {
         if let args = obj["arguments"] ?? obj["parameters"] {
             if let d = args as? [String: Any] { return d }
             if let s = args as? String, let d = s.data(using: .utf8),

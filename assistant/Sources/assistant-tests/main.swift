@@ -64,6 +64,33 @@ do {
     check(near(Geometry.appKitPoint(quartz: CGPoint(x: 100, y: 56), mainScreenHeight: 956), CGPoint(x: 100, y: 900)), "Quartz to AppKit")
 }
 
+// ---------------------------------------------------------------- the pointer's flight
+do {
+    let s = CGPoint(x: 100, y: 700), t = CGPoint(x: 900, y: 300)
+    let path = Flight.points(from: s, to: t)
+    check(near(path.first!, s) && near(path.last!, t), "a flight starts at the cursor and lands on the target")
+    var travelled: CGFloat = 0
+    for i in 1..<path.count { travelled += hypot(path[i].x - path[i - 1].x, path[i].y - path[i - 1].y) }
+    let straight = hypot(t.x - s.x, t.y - s.y)
+    check(travelled > straight && travelled < straight * 1.08, "a flight is one gentle arc, a little longer than a straight line and with no loop")
+    check(near(Flight.position(on: path, at: 0), s) && near(Flight.position(on: path, at: 1), t), "the ends of the way")
+    let half = Flight.position(on: path, at: 0.5)
+    check(hypot(half.x - s.x, half.y - s.y) > 150 && hypot(half.x - t.x, half.y - t.y) > 150, "half way is in between")
+    check(Flight.eased(0) == 0 && Flight.eased(1) == 1 && abs(Flight.eased(0.5) - 0.5) < 0.001, "easing runs from 0 to 1")
+}
+
+// ---------------------------------------------------------------- faces
+do {
+    check(Faces.face(.listening, beat: 3) == "(o_o)" && Faces.face(.listening, beat: 15) == "(-_-)" && Faces.face(.listening, beat: 16) == "(o_o)", "listening blinks once every sixteen beats")
+    check(Faces.face(.thinking, beat: 0) == Faces.face(.thinking, beat: 7) && Faces.face(.thinking, beat: 8) != Faces.face(.thinking, beat: 0), "thinking changes its face every eight beats")
+    check((0..<200).allSatisfy { Faces.face(.thinking, beat: $0) == Faces.face(.thinking, beat: $0) && !Faces.words(.thinking, beat: $0).isEmpty }, "the same beat always gives the same face")
+    check(Faces.face(.done) == "\\(^o^)/" && Faces.face(.sorry) == "(;_;)" && Faces.face(.lost) == "(?_?)", "a face for done, for sorry and for not catching it")
+    let all: [Mood] = [.hello, .listening, .heard, .thinking, .acting, .done, .answer, .lost, .sorry]
+    check(all.allSatisfy { m in Faces.face(m).unicodeScalars.allSatisfy { $0.isASCII } }, "every face is plain ASCII")
+    check(Faces.move(0) != Faces.move(1) && Faces.move(8) == Faces.move(0) && Faces.move(-1) == Faces.moves.last!, "the thinking moves come round in a fixed order")
+    check(Faces.typing("") == "(^_^)" && Faces.typing("click") == "(o_o)" && Faces.typing("clic") == "(o_o)" && Faces.typing("where is it?") == "(o_O)", "the typing face is friendly while it waits and steady once you type")
+}
+
 // ---------------------------------------------------------------- pointing answers
 do {
     check(Parsing.parsePoint("[512, 87]") == .point(CGPoint(x: 512, y: 87)), "[x, y]")
@@ -137,11 +164,262 @@ do {
     check(Commands.plan("press command and s") == [Step(action: .key, keys: ["command", "s"])], "a combination in words")
     check(Commands.plan("scroll down in the sidebar") == [Step(action: .scroll, target: "the sidebar", direction: "down")], "scroll in a place")
     check(Commands.plan("right click the desktop and click New Folder") == [Step(action: .right_click, target: "the desktop"), Step(action: .click, target: "New Folder")], "and before another command")
-    check(Commands.plan("open the settings") == [Step(action: .click, target: "open the settings")], "open: the whole phrase is the target")
+    check(Commands.plan("close the Claude window") == [Step(action: .click, target: "close the Claude window")], "close: the whole phrase is the target")
+    check(Commands.plan("open the settings") == nil && Commands.plan("Open the Keyboard settings") == nil && Commands.plan("Open a new Finder window") == nil
+          && Commands.plan("Open a Finder window at Applications") == nil && Commands.plan("Open Notes and write a note: buy milk") == nil
+          && Commands.plan("Open Calendar and make a new event: lunch") == nil && Commands.plan("go to the store page") == nil
+          && Commands.plan("write a note about the meeting") == nil, "a request that starts with open, or is a task, is never one click")
+    check(Commands.plan("click the search field, then type \"apple\" and press enter") != nil && Commands.plan("type hello into the message box") != nil
+          && Commands.plan("write \"hello\" in the search field") != nil, "plain clicks and typing are still read")
     check(Commands.plan("Please click the Save button.") == [Step(action: .click, target: "the Save button")], "politeness and a full stop")
     check(Commands.plan("turn on dark mode") == nil && Commands.plan("click Save then make it pretty") == nil, "anything else is left to the model to plan")
     check(Commands.isQuestion("where do I turn on dark mode?") && Commands.isQuestion("show me the search field") && !Commands.isQuestion("click the search field"), "questions are shown, commands are done")
     check(Commands.plan("click the search field")?.allSatisfy { $0.problem() == nil } == true, "the steps are usable as they are")
+}
+
+// ---------------------------------------------------------------- names of controls
+do {
+    check(Labels.fit(target: "the Today button", name: "Today") == 1, "the Today button is the control named Today")
+    check(Labels.fit(target: "Today", name: "") == 0 && Labels.fit(target: "Today", name: "Go to next week") == 0, "an unnamed arrow or another name does not fit")
+    check(Labels.fit(target: "Calendar icon in dock", name: "Calendar") > 0 && Labels.fit(target: "Calendar icon in dock", name: "Calendar") < 1, "a name within the target fits, less than a whole match")
+    check(Labels.fit(target: "Save", name: "Save As…") > 0 && Labels.fit(target: "Save", name: "Save") > Labels.fit(target: "Save", name: "Save As…"), "the closer name fits better")
+    check(Labels.phrase("The Today button") == "today" && Labels.phrase("New Event") == "new event", "phrases are compared without filler words")
+}
+
+// ---------------------------------------------------------------- the planner, format v1
+do {
+    let list = [ListedControl(id: 3, role: "button", name: "Today"), ListedControl(id: 4, role: "text field", name: "Search", value: "current value"),
+                ListedControl(id: 5, role: "radio", name: "Month", value: "selected")]
+    check(Planner.line(list[0]) == "[3] button \"Today\"" && Planner.line(list[1]) == "[4] text field \"Search\" = \"current value\""
+          && Planner.line(list[2]) == "[5] radio \"Month\" selected", "the three kinds of control line")
+    let user = Planner.user(task: "open Brave and draft an email", apps: ["Finder", "Brave Browser", "Mail"], frontApp: "Finder", window: "Documents",
+                            done: ["open_app Brave Browser", "click \"Compose\""], controls: list)
+    check(user == "Task: open Brave and draft an email\nApps: Finder, Brave Browser, Mail\nFront app: Finder | Window: Documents\n"
+          + "Done so far:\n1. open_app Brave Browser\n2. click \"Compose\"\nControls:\n[3] button \"Today\"\n[4] text field \"Search\" = \"current value\"\n[5] radio \"Month\" selected", "the user message, line for line")
+    check(Planner.user(task: "x", apps: [], frontApp: "", window: "", done: [], controls: []).hasSuffix("Front app: none | Window: none\nDone so far: nothing\nControls: none"), "nothing done, nothing listed")
+    check(Planner.system.hasPrefix("You operate a Mac for the user, one step at a time. Reply with exactly one next_step call.") && Planner.system.hasSuffix("call done with one sentence for the user."), "the system text")
+    check((try? JSONSerialization.data(withJSONObject: Planner.tool)) != nil, "the tool is valid JSON")
+
+    let call: [[String: Any]] = [["type": "function", "function": ["name": "next_step", "arguments": "{\"action\":\"open_app\",\"app\":\"Brave Browser\"}"]]]
+    check(Planner.parse(content: "", toolCalls: call) == PlannedStep(action: "open_app", app: "Brave Browser"), "a call from the API's tool_calls")
+    let xml = "<tool_call>\n<function=next_step>\n<parameter=action>\nmenu\n</parameter>\n<parameter=path>\nFile > New Message\n</parameter>\n</function>\n</tool_call>"
+    check(Planner.parse(content: xml) == PlannedStep(action: "menu", path: "File > New Message"), "a call as the chat template writes it")
+    check(Planner.parse(content: "{\"action\":\"click\",\"id\":3}") == PlannedStep(action: "click", id: 3)
+          && Planner.parse(content: "{\"action\":\"type\",\"text\":\"Lunch\\n\",\"id\":\"[4]\"}") == PlannedStep(action: "type", id: 4, text: "Lunch\n"), "JSON, and an id written as [4]")
+    check(Planner.parse(content: "{\"action\":\"key\",\"keys\":\"cmd+n\"}")?.keys == ["cmd", "n"] && Planner.parse(content: "{\"action\":\"open\",\"text\":\"Mail\"}") == PlannedStep(action: "open_app", app: "Mail", text: "Mail"), "keys as cmd+n; a name in the wrong argument")
+    check(Planner.parse(content: "{\"action\":\"fly\"}") == nil && Planner.parse(content: "no idea") == nil, "anything else is not a step")
+    check(Planner.problem(PlannedStep(action: "click", id: 9), controls: list) != nil && Planner.problem(PlannedStep(action: "click", id: 3), controls: list) == nil
+          && Planner.problem(PlannedStep(action: "click", target: "the blue arrow"), controls: list) == nil && Planner.problem(PlannedStep(action: "click"), controls: list) != nil, "a click needs a listed id or a target in words")
+    check(Planner.doneLine(PlannedStep(action: "open_app", app: "Brave Browser"), control: nil) == "open_app Brave Browser"
+          && Planner.doneLine(PlannedStep(action: "click", id: 3), control: list[0]) == "click \"Today\""
+          && Planner.doneLine(PlannedStep(action: "type", id: 4, text: "hello"), control: list[1]) == "type \"hello\" into \"Search\""
+          && Planner.doneLine(PlannedStep(action: "key", keys: ["cmd", "n"]), control: nil) == "key cmd+n"
+          && Planner.doneLine(PlannedStep(action: "menu", path: "File > New Message"), control: nil) == "menu File > New Message", "the lines of Done so far")
+    var changed = list
+    changed[2] = ListedControl(id: 5, role: "radio", name: "Month")
+    check(Planner.signature(app: "Calendar", window: "Calendar", controls: list) != Planner.signature(app: "Calendar", window: "Calendar", controls: changed), "a changed selection is a change")
+}
+
+// ---------------------------------------------------------------- plain requests that need no planning
+do {
+    let apps = ["Brave Browser", "Google Chrome", "Mail", "System Settings", "Calendar"]
+    let find = { (said: String) -> String? in
+        let s = said.lowercased()
+        return apps.first { $0.lowercased() == s } ?? apps.first { $0.lowercased().hasPrefix(s) } ?? (s == "settings" ? "System Settings" : nil)
+    }
+    check(Recipes.plan("open Brave", app: find) == [PlannedStep(action: "open_app", app: "Brave Browser")], "open an app by the name people say")
+    check(Recipes.plan("open the settings app", app: find) == [PlannedStep(action: "open_app", app: "System Settings")], "settings")
+    check(Recipes.plan("go to github.com", app: find) == [PlannedStep(action: "open_url", url: "https://github.com")], "open a site")
+    check(Recipes.plan("search for ternary neural networks", app: find)?.first?.url == "https://www.google.com/search?q=ternary%20neural%20networks", "search the web")
+    check(Recipes.plan("open Brave and draft an email to Sam about the demo on Sunday", app: find)
+          == [PlannedStep(action: "open_app", app: "Brave Browser"), PlannedStep(action: Recipes.draftEmail, target: "Sam", text: "the demo on Sunday")], "open a browser, then draft an email")
+    check(Recipes.plan("open the report I wrote", app: find) == nil && Recipes.plan("open Brave and book a flight", app: find) == nil, "anything else goes to the planner")
+    check(Recipes.emailLink(to: "sam@example.com", subject: "The demo", body: "Hi Sam,\nsee you.", inBrowser: false) == "mailto:sam%40example.com?subject=The%20demo&body=Hi%20Sam%2C%0Asee%20you.", "a mailto link")
+    check(Recipes.emailLink(to: "sam@example.com", subject: "Hi", body: "x", inBrowser: true).hasPrefix("https://mail.google.com/mail/?view=cm&fs=1&to=sam%40example.com&su=Hi"), "a compose link for the browser")
+}
+
+// ---------------------------------------------------------------- skills
+do {
+    check(Skills.text("rewrite this more politely")?.instruction == "Rewrite the text in this way: more politely. Keep its meaning." && Skills.text("rewrite this more politely")?.replaces == true, "rewrite the selection")
+    check(Skills.text("Translate this to Spanish.")?.instruction == "Translate the text into Spanish." && Skills.text("translate to French")?.replaces == true
+          && Skills.text("fix the grammar")?.replaces == true && Skills.text("make this shorter")?.instruction == "Rewrite the text in this way: shorter. Keep its meaning.", "translate, fix the grammar, make it shorter")
+    check(Skills.text("summarise this")?.replaces == false && Skills.text("summarize the selection")?.replaces == false && Skills.text("explain this")?.replaces == false, "a summary or an explanation is shown, not pasted")
+    check(Skills.text("read this to me")?.instruction == "" && Skills.text("read this aloud")?.replaces == false, "reading the selection aloud needs no model")
+    check(Skills.text("click this") == nil && Skills.text("open Mail") == nil && Skills.text("make a new folder") == nil && Skills.text("make it bold") == nil
+          && Skills.text("make this window fill the screen") == nil && Skills.text("explain this error") == nil, "other requests are not selection skills")
+    check(Skills.prompt(Skills.text("summarise this")!, text: "abc").hasSuffix("Text:\nabc"), "the text follows the instruction")
+
+    let apps = ["Safari", "Notes", "Brave Browser", "Mail", "Calendar", "Home"]
+    let find = { (said: String) -> String? in apps.first { $0.lowercased() == said.lowercased() } ?? apps.first { $0.lowercased().hasPrefix(said.lowercased()) } }
+    check(Router.direct("put Safari and Notes side by side", app: find) == [PlannedStep(action: "side_by_side", app: "Safari", target: "Notes")]
+          && Router.direct("put Mail on the left and Calendar on the right", app: find) == [PlannedStep(action: "side_by_side", app: "Mail", target: "Calendar")]
+          && Router.direct("put Safari and Nothing side by side", app: find) == nil, "two apps side by side")
+    check(Router.direct("move this window to the left", app: find) == [PlannedStep(action: "window", direction: "left")] && Router.direct("maximize this window", app: find)?.first?.direction == "full"
+          && Router.direct("make this bigger", app: find)?.first?.action == "window", "a window to a half, or filling the screen")
+    check(Router.direct("turn on dark mode", app: find) == [PlannedStep(action: "appearance", text: "dark")] && Router.direct("turn dark mode off", app: find)?.first?.text == "light"
+          && Router.direct("toggle dark mode", app: find)?.first?.text == "toggle" && Router.direct("switch to light mode", app: find)?.first?.text == "light", "dark mode")
+    check(Router.direct("set the volume to 30%", app: find) == [PlannedStep(action: "volume", text: "30")] && Router.direct("mute", app: find)?.first?.text == "mute"
+          && Router.direct("turn the volume up", app: find)?.first?.text == "up" && Router.direct("set the volume to 300", app: find)?.first?.text == "100", "volume")
+    check(Router.direct("make a new folder called Demo on the desktop", app: find) == [PlannedStep(action: "new_folder", target: "desktop", text: "Demo")]
+          && Router.direct("create a new folder", app: find)?.first?.text == "New Folder" && Router.direct("open my downloads folder", app: find) == [PlannedStep(action: "reveal", target: "downloads")]
+          && Router.direct("open home", app: find) == [PlannedStep(action: "open_app", app: "Home")] && Router.direct("open my home folder", app: find)?.first?.target == "home", "folders")
+    check(Router.direct("close this tab", app: find) == [PlannedStep(action: "key", keys: ["cmd", "w"])] && Router.direct("open a new tab", app: find)?.first?.keys == ["cmd", "t"]
+          && Router.direct("minimize this window", app: find)?.first?.keys == ["cmd", "m"] && Router.direct("select all", app: find)?.first?.keys == ["cmd", "a"]
+          && Router.direct("open Safari and open a new tab", app: find) == [PlannedStep(action: "open_app", app: "Safari"), PlannedStep(action: "key", keys: ["cmd", "t"])]
+          && Router.direct("close the Claude window", app: find) == nil && Router.direct("save the report as final", app: find) == nil, "requests that are one shortcut")
+    check(Skills.shortcuts.allSatisfy { Keys.combo($0.1) != nil }, "every shortcut is a key the app can press")
+    check(Router.direct("add a meeting with Sam tomorrow at 3pm", app: find) == [PlannedStep(action: "calendar_event", target: "meeting", text: "with Sam tomorrow at 3pm")], "a calendar event")
+    check(Skills.eventTitle(kind: "meeting", rest: "with Sam tomorrow at 3pm", datePhrase: "tomorrow at 3pm") == "Meeting with Sam"
+          && Skills.eventTitle(kind: "meeting", rest: "tomorrow at 3pm", datePhrase: "tomorrow at 3pm") == "Meeting"
+          && Skills.eventTitle(kind: "event", rest: "called Demo day on Sunday at noon", datePhrase: "Sunday at noon") == "Demo day", "the title of an event")
+    var utc = Calendar(identifier: .gregorian)
+    utc.timeZone = TimeZone(identifier: "UTC")!
+    let ics = Skills.calendarFile(title: "Meeting with Sam", start: Date(timeIntervalSince1970: 1_794_841_200), calendar: utc)
+    check(ics.contains("DTSTART:20261116T150000\r\nDTEND:20261116T160000\r\nSUMMARY:Meeting with Sam") && ics.hasPrefix("BEGIN:VCALENDAR") && ics.hasSuffix("END:VCALENDAR\r\n"), "a calendar file of one hour")
+    check(Skills.caption(PlannedStep(action: "volume", text: "30")) == "Setting the volume to 30%" && Skills.caption(PlannedStep(action: "side_by_side", app: "Safari", target: "Notes")) == "Putting Safari and Notes side by side"
+          && Skills.caption(PlannedStep(action: "open_app", app: "Mail")) == nil, "captions of the direct steps")
+    check(Captions.step(PlannedStep(action: "click", id: 3), control: ListedControl(id: 3, role: "button", name: "Today")) == "Clicking Today"
+          && Captions.step(PlannedStep(action: "type", id: 2, text: "milk"), control: ListedControl(id: 2, role: "text field", name: "")) == "Typing in the text field"
+          && Captions.step(PlannedStep(action: "open_url", url: "mailto:a@b.c"), control: nil) == "Opening an email draft"
+          && Captions.step(PlannedStep(action: "look", target: "the Today button in the toolbar, between the two arrow buttons"), control: nil) == "Looking for the Today button in the toolbar,…"
+          && Captions.step(PlannedStep(action: "volume", text: "mute"), control: nil) == "Muting the sound", "captions of the steps")
+
+    check(Answers.asksWhere("where is the search field?") && Answers.asksWhere("show me the settings") && Answers.asksWhere("how do I turn on dark mode?")
+          && !Answers.asksWhere("is Wi-Fi on?") && !Answers.asksWhere("what's in this menu?"), "where-questions are pointed at, the others are answered")
+    check(Answers.wantsLook("LOOK") && Answers.wantsLook(" look. ") && !Answers.wantsLook("Wi-Fi is on.") && !Answers.wantsLook("Look at the top of the window for the toolbar, it holds the buttons."), "LOOK means the list did not hold the answer")
+    check(Answers.needsScreen("what does this chart say?") && Answers.needsScreen("what am I looking at?") && Answers.needsScreen("explain this error") && !Answers.needsScreen("is Wi-Fi on?"), "what only a look can answer")
+    let q = Answers.user(facts: "Wi-Fi is on.", app: "Finder", window: "Documents", controls: [ListedControl(id: 1, role: "button", name: "Back")],
+                         previous: (question: "what is this?", answer: "A Finder window."), question: "and the button?")
+    check(q == "Facts: Wi-Fi is on.\nApp: Finder\nWindow: Documents\nControls:\n[1] button \"Back\"\n\nEarlier question: what is this?\nEarlier answer: A Finder window.\nQuestion: and the button?", "a question with the earlier exchange")
+    check(Answers.fromScreen(app: "Safari", window: "Sales", previous: nil, question: "what does this chart say?").hasSuffix("The front app is Safari; its window is titled \"Sales\".\nQuestion: what does this chart say?"), "a question asked of the screenshot")
+    check(Answers.clean("<think>hm</think>\n\"Wi-Fi is **on**.\"\n") == "Wi-Fi is on." && Answers.clean("a\n\nb", keepLines: true) == "a\n\nb" && Answers.clean("a\n b") == "a b", "an answer as it is shown")
+    check(Answers.readingSeconds("ok") == 6 && Answers.readingSeconds(String(repeating: "a", count: 130)) == 13 && Answers.readingSeconds(String(repeating: "a", count: 900)) == 22, "how long an answer stays")
+
+    // the pilot's five requests that were taken as one click: where they go now
+    do {
+        let route = { (r: String) in Router.route(r, app: find) }
+        check(route("Open the Keyboard settings") == .direct([PlannedStep(action: "open_url", url: Places.pane("Keyboard")!.url)])
+              && route("Open a new Finder window") == .plan            // no Finder in this list of apps: the planner
+              && route("Open a new Safari window") == .direct([PlannedStep(action: "open_app", app: "Safari"), PlannedStep(action: "key", keys: ["cmd", "n"])])
+              && route("open a new tab in Safari") == .direct([PlannedStep(action: "open_app", app: "Safari"), PlannedStep(action: "key", keys: ["cmd", "t"])])
+              && route("Open a Finder window at Applications") == .direct([PlannedStep(action: "reveal", target: "applications")])
+              && route("Open Notes and write a note: buy milk") == .plan && route("Open Calendar and book the dentist") == .plan, "open requests go to a direct route or the planner")
+    }
+
+    // folders anywhere, either order; the Dock's plain settings
+    check(Router.direct("make a new folder named Taxes inside my Documents folder", app: find) == [PlannedStep(action: "new_folder", target: "documents", text: "Taxes")]
+          && Router.direct("create a folder in Downloads called Demo", app: find) == [PlannedStep(action: "new_folder", target: "downloads", text: "Demo")]
+          && Router.direct("make a folder called \"Trip photos\" in ~/Pictures/2026", app: find) == [PlannedStep(action: "new_folder", target: "~/Pictures/2026", text: "Trip photos")]
+          && Router.direct("make a new folder on the desktop", app: find) == [PlannedStep(action: "new_folder", target: "desktop", text: "New Folder")]
+          && Router.direct("make a new folder named Taxes in the garage", app: find) == nil, "a new folder: any place, either order; an unknown place is left to the planner")
+    check(Router.direct("turn on Dock auto-hide", app: find) == [PlannedStep(action: "dock", target: "autohide", text: "on")]
+          && Router.direct("automatically hide the Dock", app: find)?.first?.text == "on" && Router.direct("stop hiding the Dock", app: find)?.first?.text == "off"
+          && Router.direct("move the Dock to the left", app: find) == [PlannedStep(action: "dock", target: "position", text: "left")]
+          && Router.direct("put the Dock on the right side of the screen", app: find)?.first?.text == "right"
+          && Router.direct("make the Dock bigger", app: find) == [PlannedStep(action: "dock", target: "size", text: "bigger")]
+          && Router.direct("set the Dock size to 40%", app: find)?.first?.text == "40"
+          && Router.direct("turn off Dock magnification", app: find) == [PlannedStep(action: "dock", target: "magnification", text: "off")]
+          && Router.direct("add Safari to the Dock", app: find) == nil, "the Dock's plain settings")
+    check(Skills.doneLine(PlannedStep(action: "new_folder", target: "documents", text: "Taxes")) == "new folder \"Taxes\" in documents"
+          && Skills.doneLine(PlannedStep(action: "open_app", app: "Calendar")) == "open_app Calendar"
+          && Skills.caption(PlannedStep(action: "dock", target: "position", text: "left")) == "Moving the Dock to the left", "a direct step as the planner is told it")
+
+    // a planner's slips put right, what is missing said exactly, and the budget for steps with no effect
+    do {
+        let list = [ListedControl(id: 1, role: "button", name: "Today"), ListedControl(id: 2, role: "text field", name: "Search")]
+        let fixed = Repair.step(PlannedStep(action: "open_app", id: 2), controls: list)
+        check(fixed.step == PlannedStep(action: "click", id: 2) && fixed.note != nil
+              && Repair.step(PlannedStep(action: "open_app", id: 9), controls: list).note == nil
+              && Repair.step(PlannedStep(action: "open_app", app: "Mail", id: 2), controls: list).step.action == "open_app", "open_app with an id and no app is a click on that control")
+        check(Repair.step(PlannedStep(action: "menu", text: "File > New Window"), controls: list).step == PlannedStep(action: "menu", path: "File > New Window")
+              && Repair.step(PlannedStep(action: "key", text: "cmd+n"), controls: list).step.keys == ["cmd", "n"]
+              && Repair.step(PlannedStep(action: "click", id: 7, target: "the red button"), controls: list).step == PlannedStep(action: "click", target: "the red button")
+              && Repair.step(PlannedStep(action: "click", id: 1), controls: list).note == nil, "a path or keys in the wrong argument; an id that is not listed beside a target in words")
+        check(Repair.missing(PlannedStep(action: "open_app"), controls: list) == "open_app needs the app's name in app"
+              && Repair.missing(PlannedStep(action: "click", id: 7), controls: list) == "there is no control 7 in Controls; the ids go from 1 to 2"
+              && Repair.missing(PlannedStep(action: "type", id: 2), controls: list) == "type needs the text in text"
+              && Repair.missing(PlannedStep(action: "click", id: 1), controls: list) == nil && Repair.missing(PlannedStep(action: "done"), controls: list) == nil, "what is missing, said exactly")
+
+        var budget = StepBudget()
+        let scroll = PlannedStep(action: "scroll", direction: "down"), click = PlannedStep(action: "click", id: 1)
+        check(budget.refusal(scroll) == nil, "a first scroll is carried out")
+        budget.record(scroll, changed: false)
+        check(budget.refusal(scroll) != nil && budget.refusalsInARow == 1 && budget.refusal(PlannedStep(action: "scroll", direction: "up")) == nil, "the same step right after it changed nothing is refused; another is not")
+        budget.record(PlannedStep(action: "scroll", direction: "up"), changed: false)
+        check(budget.refusal(PlannedStep(action: "scroll", direction: "left")) != nil && budget.refusal(click) == nil, "scrolling that changed nothing twice: no more scrolling, but a click is fine")
+        budget.record(click, changed: true)
+        check(budget.refusal(scroll) != nil, "a click that worked does not make scrolling worth trying again")
+        budget.record(PlannedStep(action: "key", keys: ["cmd", "f"]), changed: true)
+        check(budget.refusal(scroll) == nil, "a step of another kind that had an effect does")
+        var run = StepBudget()
+        for _ in 0..<3 { run.record(scroll, changed: true) }
+        check(run.refusal(scroll) != nil && run.refusal(click) == nil, "three scrolls in a row, even ones that moved: a fourth is refused")
+        var twice = StepBudget()
+        twice.record(click, changed: false)
+        _ = twice.refusal(click); _ = twice.refusal(click)
+        check(twice.refusal(click) != nil && twice.refusalsInARow == 3, "three refusals in a row end the request")
+    }
+
+    // the window of a second look
+    let display = CGRect(x: 0, y: 0, width: 1470, height: 956)
+    check(Geometry.squareWindow(around: CGPoint(x: 700, y: 500), in: display, side: 735) == CGRect(x: 332.5, y: 132.5, width: 735, height: 735)
+          && Geometry.squareWindow(around: CGPoint(x: 10, y: 950), in: display, side: 735) == CGRect(x: 0, y: 221, width: 735, height: 735)
+          && Geometry.squareWindow(around: CGPoint(x: 1465, y: 3), in: display, side: 735) == CGRect(x: 735, y: 0, width: 735, height: 735)
+          && Geometry.squareWindow(around: CGPoint(x: 400, y: 100), in: CGRect(x: 0, y: 0, width: 1000, height: 300), side: 500) == CGRect(x: 150, y: 0, width: 500, height: 300), "a square around a point, kept on the screen")
+    let cutOut = Geometry.squareWindow(around: CGPoint(x: 10, y: 950), in: display, side: 735)
+    let back = Geometry.screenPoint(grid: CGPoint(x: 500, y: 500), region: Geometry.pointsRect(pixels: Geometry.pixelRect(points: cutOut, displayOrigin: .zero, scale: 2), displayOrigin: .zero, scale: 2))
+    check(abs(back.x - 367.5) < 0.01 && abs(back.y - 588.5) < 0.01, "an answer on the square maps back to the screen")
+
+    // places: settings panes, folders, sites
+    check(Places.pane("Wi-Fi")?.id == "com.apple.wifi-settings-extension" && Places.pane("wifi settings")?.name == "Wi-Fi" && Places.pane("System Settings > Sound")?.name == "Sound"
+          && Places.pane("privacy and security")?.name == "Privacy & Security" && Places.pane("the displays pane")?.name == "Displays" && Places.pane("Displays pane")?.name == "Displays"
+          && Places.pane("General")?.url == "x-apple.systempreferences:com.apple.systempreferences.GeneralSettings" && Places.pane("Safari") == nil && Places.pane("") == nil, "a settings pane by its name")
+    check(["Wi-Fi", "Bluetooth", "Appearance", "Displays", "Sound", "Notifications", "Focus", "Battery", "Keyboard", "General"].allSatisfy { Places.pane($0) != nil }
+          && Places.pane(ofLink: "x-apple.systempreferences:com.apple.Sound-Settings.extension")?.name == "Sound", "the ten panes asked for are all known")
+    check(Places.folder("downloads") == "downloads" && Places.folder("my Documents folder") == "documents" && Places.folder("Desktop in Finder") == "desktop"
+          && Places.folder("music") == nil && Places.folder("music folder") == "music" && Places.folder("home") == nil && Places.folder("home folder") == "home"
+          && Places.folder("~/Projects/demo") == "~/Projects/demo" && Places.folder("/Applications/Utilities") == "/Applications/Utilities" && Places.folder("Mail") == nil, "a folder by its name or its path")
+    check(Places.site(named: "YouTube") == "https://www.youtube.com" && Places.site(named: "the New York Times website") == "https://www.nytimes.com"
+          && Places.site(named: "the acme website") == "https://www.acme.com" && Places.site(named: "acme") == nil && Places.site(named: "two words website") == nil, "a site by its name")
+    check(Places.resolve("Sound settings") == .link("x-apple.systempreferences:com.apple.Sound-Settings.extension") && Places.resolve("downloads folder") == .folder("downloads")
+          && Places.resolve("youtube") == .link("https://www.youtube.com") && Places.resolve("Nonesuch") == nil, "what an open that names no app may mean")
+    check(Router.direct("open Wi-Fi settings", app: find) == [PlannedStep(action: "open_url", url: "x-apple.systempreferences:com.apple.wifi-settings-extension")]
+          && Router.direct("open the Sound pane in System Settings", app: find)?.first?.url == Places.pane("Sound")?.url
+          && Router.direct("open System Settings > Displays", app: find)?.first?.url == Places.pane("Displays")?.url
+          && Router.direct("go to Battery", app: find)?.first?.url == Places.pane("Battery")?.url
+          && Router.direct("open Safari settings", app: find) == [PlannedStep(action: "open_app", app: "Safari"), PlannedStep(action: "key", keys: ["cmd", ","])]
+          && Keys.combo(["cmd", ","]) != nil, "routes to a settings pane, or to an app's own settings")
+    check(Router.direct("go to the Downloads folder in Finder", app: find) == [PlannedStep(action: "reveal", target: "downloads")]
+          && Router.direct("open ~/Projects", app: find) == [PlannedStep(action: "reveal", target: "~/Projects")]
+          && Router.direct("go to desktop", app: find) == [PlannedStep(action: "reveal", target: "desktop")]
+          && Router.direct("open YouTube", app: find) == [PlannedStep(action: "open_url", url: "https://www.youtube.com")]
+          && Router.direct("go to the nytimes website", app: find)?.first?.url == "https://www.nytimes.com"
+          && Router.direct("open notes", app: find) == [PlannedStep(action: "open_app", app: "Notes")], "routes to a folder, a path, a site by name; an app still wins")
+    check(Router.direct("center this window", app: find) == [PlannedStep(action: "window", direction: "center")]
+          && Router.direct("move this window to the middle of the screen", app: find)?.first?.direction == "center", "centring a window")
+    check(Captions.step(PlannedStep(action: "open_url", url: Places.pane("Sound")!.url), control: nil) == "Opening Sound settings"
+          && Captions.step(PlannedStep(action: "reveal", target: "~/Projects"), control: nil) == "Opening ~/Projects", "captions of the places")
+
+    let studio = ["bonsai-2-9b-planner", "bonsai-2-9b-pointer", "ternary-bonsai-2-2b", "ternary-bonsai-2-4b", "ternary-bonsai-2-9b"]
+    check(ModelChoice.best(of: studio) == "bonsai-2-9b-planner" && ModelChoice.best(of: Array(studio.dropFirst())) == "bonsai-2-9b-pointer"
+          && ModelChoice.best(of: Array(studio.dropFirst(2))) == "ternary-bonsai-2-9b" && ModelChoice.best(of: ["Bonsai-2-9B-orch-v1-u3000-Q2_0.gguf", "x"]) == "Bonsai-2-9B-orch-v1-u3000-Q2_0.gguf"
+          && ModelChoice.best(of: ["ternary-bonsai-2-9b-mlx", "ternary-bonsai-2-9b"]) == "ternary-bonsai-2-9b" && ModelChoice.best(of: []) == nil, "the planner before the pointer before a model as shipped")
+    check(ModelChoice.isPlanner("bonsai-2-9b-planner") && !ModelChoice.isPointer("bonsai-2-9b-planner") && ModelChoice.isPointer("bonsai-2-9b-pointer")
+          && !ModelChoice.isPlanner("ternary-bonsai-2-9b") && !ModelChoice.isPlanner("pytorch-model"), "which model plans and which only points")
+    check(Pipeline.planTokens >= 256, "a planning reply has room for a long text to type")
+
+    // what each kind of request becomes (the phrases of docs/DEMO.md, "What to try")
+    let route = { (r: String) in Router.route(r, app: find) }
+    check(route("where is the search field?") == .point && route("how do I make a new note?") == .point && Router.route("open Mail", showOnly: true, app: find) == .point, "routes: pointing")
+    check(route("is Wi-Fi on?") == .answer(screen: false) && route("what's in this menu?") == .answer(screen: false) && route("what does this button do?") == .answer(screen: false)
+          && route("what am I looking at?") == .answer(screen: true) && route("what does this chart say?") == .answer(screen: true) && route("explain this error") == .answer(screen: true), "routes: answers in words")
+    check(route("rewrite this more politely") == .text(Skills.text("rewrite this more politely")!) && route("summarise this") == .text(Skills.text("summarise this")!)
+          && route("translate this to Spanish") == .text(Skills.text("translate this to Spanish")!) && route("fix the grammar") == .text(Skills.text("fix the grammar")!), "routes: the selected text")
+    check(route("put Safari and Notes side by side") == .direct([PlannedStep(action: "side_by_side", app: "Safari", target: "Notes")])
+          && route("turn on dark mode") == .direct([PlannedStep(action: "appearance", text: "dark")]) && route("can you open Safari") == .direct([PlannedStep(action: "open_app", app: "Safari")])
+          && route("open Mail, then set the volume to 20") == .direct([PlannedStep(action: "open_app", app: "Mail"), PlannedStep(action: "volume", text: "20")]), "routes: done directly")
+    check(route("click the search field, then type \"apple\" and press enter") == .scripted(Commands.plan("click the search field, then type \"apple\" and press enter")!)
+          && route("add milk to my shopping list in Notes") == .plan && route("close this tab") == .direct([PlannedStep(action: "key", keys: ["cmd", "w"])]), "routes: spelled out, planned, or a shortcut")
 }
 
 // ---------------------------------------------------------------- keys
@@ -240,6 +518,263 @@ do {
     let url = ImageOps.dataURL(small) ?? ""
     check(url.hasPrefix("data:image/png;base64,iVBOR"), "PNG data URL")
     check(ImageOps.annotated(changed, at: CGPoint(x: 140, y: 140)) != nil, "drawing a ring")
+}
+
+// ---------------------------------------------------------------- requests in parts; a done that is not done
+do {
+    let apps = ["Safari", "Notes", "Reminders", "Calendar", "Contacts", "TextEdit", "Finder", "Mail", "System Settings"]
+    let app = { (said: String) -> String? in apps.first { $0.lowercased() == said.lowercased() } }
+    check(Commands.parts("Open python.org, then write a note saying Water the plants") == ["Open python.org", "write a note saying Water the plants"], "cut at then")
+    check(Commands.parts("Go to python.org and afterwards write a note: Water the plants twice a week") == ["Go to python.org", "write a note: Water the plants twice a week"], "cut at and afterwards")
+    check(Commands.parts("Search the web for bonsai tree care; add a reminder called Pick up dry cleaning").count == 2, "cut at a semicolon")
+    check(Commands.parts("add a contact named Alan Turing. After that, make a note that says Call the dentist").count == 2, "cut at after that")
+    check(Commands.parts("Open Notes and write a note about the trip").count == 1, "and alone does not cut")
+    check(Commands.parts("Add a reminder called Water plants and a calendar event called Coffee with Maya")
+          == ["Add a reminder called Water plants", "Add a calendar event called Coffee with Maya"], "two things made with one verb are two parts")
+    check(Commands.parts("type \"first this, then that\" into the search field").count == 1, "quoted text is never cut")
+    check(Commands.parts("lengthen the note") == ["lengthen the note"], "then inside a word does not cut")
+    check(Router.parts("Open python.org, then write a note saying Water the plants", app: app).count == 2, "a planned request is carried out in parts")
+    check(Router.parts("open Safari, then open Notes", app: app).count == 1, "a request that is direct as a whole stays whole")
+    check(Router.parts("click the search field, then type \"apple\" and press enter", app: app).count == 1, "a spelled-out request stays whole")
+    check(Router.parts("write a note saying hello", app: app) == ["write a note saying hello"], "one part: the request as it is")
+    check(Router.route("Open python.org", app: app) == .direct([PlannedStep(action: "open_url", url: "https://python.org")]), "the first part takes the direct route")
+    check(Router.refersBack("put the file budget.csv inside it"), "inside it refers back")
+    check(Router.refersBack("open that folder"), "that folder refers back")
+    check(!Router.refersBack("make a note that says Call the dentist on Monday"), "that says does not refer back")
+    check(!Router.refersBack("write \"send it\" in a new note"), "it inside quotes does not count")
+    check(Router.kind(.plan) == "planned" && Router.kind(.direct([])) == "direct" && Router.kind(.scripted([])) == "spelled out", "kinds for the log")
+
+    check(Repair.unfinished("I have opened python.org. Now I need to write a note saying Water the plants."), "now I need to")
+    check(Repair.unfinished("I'm sorry, I don't see a \"Red\" control in the list. Could you clarify what you'd like me to do?"), "sorry, could you clarify")
+    check(Repair.unfinished("The View > Show Path Bar option is not available in Finder."), "is not available")
+    check(Repair.unfinished("Safari is open. Next I will type the address."), "next I will")
+    check(Repair.unfinished("I couldn’t find the file on the Desktop."), "could not find, with a curly apostrophe")
+    check(!Repair.unfinished("The note has been created."), "a plain done")
+    check(!Repair.unfinished("Groceries folder created."), "another plain done")
+    check(!Repair.unfinished("Dark mode is now on."), "now on is not now I need")
+    check(!Repair.unfinished(""), "no sentence")
+}
+
+// ---------------------------------------------------------------- names and routing (the real-Mac pilot)
+do {
+    let names = ["Finder", "Safari", "Notes", "Reminders", "Calendar", "Contacts", "TextEdit", "Mail", "System Settings", "Siri", "Time Machine",
+                 "Bluetooth File Exchange", "Screen Sharing", "Terminal", "Calculator", "Stickies", "Google Chrome"]
+    let app = { (said: String) -> String? in AppNames.resolve(said, names: names, aliases: ["settings": "System Settings", "chrome": "Google Chrome"]) }
+    check(AppNames.bare("the Finder app") == "finder" && AppNames.bare("Finder.app") == "finder" && AppNames.bare("my Calendar application") == "calendar", "a name without the words around it")
+    check(app("the Finder app") == "Finder" && app("Finder.app") == "Finder" && app("chrome") == "Google Chrome" && app("the notes app") == "Notes", "the Finder app is Finder")
+    check(app("Remiders") == nil && AppNames.resolve("Remiders", names: names, nearest: true) == "Reminders", "a slip of a letter, only where asked for")
+    check(AppNames.resolve("Calender app", names: names, nearest: true) == "Calendar", "a slip with app after it")
+    check(AppNames.resolve("nots", names: names, nearest: true) == nil && AppNames.resolve("Photoshop", names: names, nearest: true) == nil, "short or unknown names are not guessed")
+    check(AppNames.named(in: "Create a contact for Ada Lovelace in Contacts", among: names) == ["Contacts"], "the app a task names")
+    check(AppNames.named(in: "Remind me to send invoice", among: names) == ["Reminders"], "remind me means Reminders")
+    check(AppNames.named(in: "write \"open Safari\" in a new note", among: names) == ["Notes"], "names in quotation marks do not count")
+    check(AppNames.named(in: "Open Safari and Notes", among: names).count == 2, "two apps named")
+    check(AppNames.named(in: "Put Chrome and Safari side by side", among: names) == ["Safari"], "only whole names count")
+    let list = [ListedControl(id: 1, role: "button", name: "Add"), ListedControl(id: 2, role: "text field", name: "Search")]
+    let filled = Repair.step(PlannedStep(action: "open_app", id: 2), controls: list, task: "Create a contact for Ada Lovelace in Contacts", apps: names, frontApp: "Finder")
+    check(filled.step.action == "open_app" && filled.step.app == "Contacts" && filled.note != nil, "open_app with no app takes the app the task names")
+    check(Repair.step(PlannedStep(action: "open_app", id: 2), controls: list, task: "Create a contact in Contacts", apps: names, frontApp: "Contacts").step.action == "click",
+          "not when that app is already in front: then the id is a click")
+    check(Repair.step(PlannedStep(action: "open_app"), controls: list, task: "Open Safari and Notes", apps: names, frontApp: "Finder").step.app == nil, "two apps named: nothing is guessed")
+
+    check(Commands.plan("Move the Dock back to the bottom of the screen") == nil, "moving the Dock is not a drag")
+    check(Commands.plan("move this window to the left side of the screen") == nil, "moving a window is not a drag")
+    check(Commands.plan("Press the shortcut that takes a full screenshot") == nil, "a shortcut to work out is not a click")
+    check(Commands.plan("move the file to the Trash") == [Step(action: .drag, target: "the file", targetEnd: "the Trash")], "a file is still dragged")
+    check(Commands.plan("drag the Dock divider to the top") != nil, "drag stays a drag")
+    check(Commands.plan("press the Send button") == [Step(action: .click, target: "the Send button")] && Commands.plan("press cmd+s") == [Step(action: .key, keys: ["cmd", "s"])], "press still clicks and still presses keys")
+    let dock = { (what: String, value: String) in Route.direct([PlannedStep(action: "dock", target: what, text: value)]) }
+    check(Router.route("Move the Dock back to the bottom of the screen", app: app) == dock("position", "bottom"), "the Dock back to the bottom, directly")
+    check(Router.route("Put the Dock on the right side", app: app) == dock("position", "right"), "the Dock on the right")
+    check(Router.route("Enlarge the Dock icons", app: app) == dock("size", "bigger") && Router.route("Shrink the Dock a little", app: app) == dock("size", "smaller"), "the Dock's size, said another way")
+    check(Router.route("Turn on magnification for the Dock", app: app) == dock("magnification", "on") && Router.route("Stop the Dock from magnifying", app: app) == dock("magnification", "off"), "magnification, said another way")
+    check(Router.route("Make the Dock hide itself when I am not using it", app: app) == dock("autohide", "on") && Router.route("Stop hiding the Dock", app: app) == dock("autohide", "off"), "hiding, said another way")
+    check(Router.route("Add Safari to the Dock", app: app) == .plan && Router.route("Remove Notes from the Dock", app: app) == .plan, "other things about the Dock are planned")
+    let shot = Route.direct([PlannedStep(action: "key", keys: ["cmd", "shift", "3"])])
+    check(Router.route("Press the shortcut that takes a full screenshot", app: app) == shot && Router.route("take a screenshot", app: app) == shot
+          && Router.route("Take a screenshot of the whole screen", app: app) == shot, "a picture of the whole screen is command-shift-3")
+    check(Router.route("take a screenshot of this window", app: app) == .plan, "a picture of a window is planned")
+    check(Keys.combo(["cmd", "shift", "3"]) != nil, "the screenshot keys are known keys")
+
+    let look = { (text: String) in Route.direct([PlannedStep(action: "appearance", text: text)]) }
+    for (said, wanted) in [("turn on dark mode", "dark"), ("Turn dark mode off", "light"), ("disable dark mode", "light"), ("switch to light mode", "light"),
+                           ("toggle dark mode", "toggle"), ("Make my Mac use the dark appearance", "dark"), ("Set the appearance to Dark", "dark"),
+                           ("Take the Mac out of dark mode", "light"), ("go back to light mode", "light"), ("Switch from dark mode to light mode", "light"),
+                           ("can you put the Mac in dark mode?", "dark"), ("I want to use the light theme", "light"), ("Change the system appearance to light", "light"),
+                           ("stop using dark mode", "light"), ("Turn on night mode", "dark")] {
+        check(Router.route(said, app: app) == look(wanted), "dark or light, however it is said: \(said)")
+    }
+    check(Router.route("is dark mode on?", app: app) == .answer(screen: false), "a question about dark mode is answered")
+    check(Router.route("open the dark mode settings", app: app) == .direct([PlannedStep(action: "open_url", url: Places.pane("Appearance")!.url)]), "the settings for it are the pane")
+    check(Router.route("write a note about dark mode", app: app) == .plan, "writing about dark mode is planned")
+
+    let pane = { (name: String) in Route.direct([PlannedStep(action: "open_url", url: Places.pane(name)!.url)]) }
+    check(Router.route("open Bluetooth settings", app: app) == pane("Bluetooth") && Router.route("Open Sharing settings", app: app) == pane("Sharing"), "a pane wins over an app of a similar name")
+    check(Router.route("open Siri settings", app: app) == pane("Siri") && Router.route("open the Time Machine settings", app: app) == pane("Time Machine"), "a pane wins over an app of the same name when settings is said")
+    check(Router.route("open Safari settings", app: app) == .direct([PlannedStep(action: "open_app", app: "Safari"), PlannedStep(action: "key", keys: ["cmd", ","])]), "an app's own settings still open in the app")
+    check(Router.route("go to Bluetooth", app: app) == pane("Bluetooth"), "go to Bluetooth is the pane, not Bluetooth File Exchange")
+    check(Router.route("go to Siri", app: app) == .direct([PlannedStep(action: "open_app", app: "Siri")]), "without settings, an app of exactly that name wins")
+    let energy = Places.pane("Battery")!, saver = Places.pane("Screen Saver")!
+    check(Places.shows(energy, title: "Energy") && Places.shows(Places.pane("Wi-Fi")!, title: "Wi\u{2011}Fi") && Places.shows(Places.pane("Control Center")!, title: "Menu Bar"), "titles a pane's window has")
+    check(!Places.shows(saver, title: "General") && !Places.shows(saver, title: ""), "General is not the Screen Saver pane")
+    check(Places.shows(Places.pane("Apple Account")!, title: "Ada Lovelace"), "the account pane is titled with a name")
+    check(Places.moved(saver)?.name == "Wallpaper" && Places.moved(Places.pane("VPN")!)?.name == "Network" && Places.moved(energy) == nil, "where a missing pane's settings are")
+    check(Router.route("On the Desktop, make a new folder named Trip Photos", app: app) == .direct([PlannedStep(action: "new_folder", target: "desktop", text: "Trip Photos")]), "the place said first")
+    check(Router.route("In Documents, create a folder called Taxes", app: app) == .direct([PlannedStep(action: "new_folder", target: "documents", text: "Taxes")]), "the place said first, another folder")
+}
+
+// ---------------------------------------------------------------- talking back
+do {
+    let app = { (said: String) -> String? in ["Safari", "Notes", "Reminders"].first { $0.lowercased() == said.lowercased() } }
+    check(Talk.fact("is Wi-Fi on?") == .wifi && Talk.fact("Is the wifi turned off?") == .wifi, "Wi-Fi on or off is a fact")
+    check(Talk.fact("am I online?") == .internet && Talk.fact("is the Mac connected to the internet?") == .internet, "being online is a fact")
+    check(Talk.fact("how much battery is left?") == .battery && Talk.fact("what time is it?") == .time && Talk.fact("what's the date today?") == .date, "battery, time and date are facts")
+    check(Talk.fact("is dark mode on?") == .appearance && Talk.fact("what's the volume?") == .volume && Talk.fact("is the sound muted?") == .volume, "dark mode and the volume are facts")
+    check(Talk.fact("which Wi-Fi network am I on?") == nil && Talk.fact("what can I do in this menu?") == nil && Talk.fact("how many reminders do I have?") == nil, "other questions are not facts")
+    check(Talk.menu("what can I do in this menu?") == "" && Talk.menu("what's in the File menu?") == "file" && Talk.menu("What does the View menu have?") == "view", "the menu a question is about")
+    check(Talk.menu("which view am I in?") == nil && Talk.menu("what menus are there?") == "", "no menu, and the menu bar")
+    check(Talk.asksDock("what's on my Dock?") && !Talk.asksDock("what's on my desk?"), "a question about the Dock")
+    check(Talk.outcome(step: PlannedStep(action: "done", text: "You are in Month view."), content: "") == .say("You are in Month view."), "the done sentence is the answer")
+    check(Talk.outcome(step: PlannedStep(action: "done", text: " "), content: "") == .look && Talk.outcome(step: PlannedStep(action: "look", target: "the toolbar"), content: "") == .look, "an empty done, or look: a screenshot")
+    check(Talk.outcome(step: PlannedStep(action: "click", id: 3), content: "") == .point && Talk.outcome(step: PlannedStep(action: "open_app", app: "Reminders"), content: "") == .point, "an action is not carried out: pointing")
+    check(Talk.outcome(step: nil, content: "<think>hm</think>You have three reminders.") == .say("You have three reminders."), "plain words are an answer")
+    check(Talk.outcome(step: nil, content: "") == .look && Talk.outcome(step: nil, content: "{\"action\":") == .look, "nothing usable: a screenshot")
+    for q in ["what can I do in this menu?", "which view am I in?", "what's on my Dock?", "how many reminders do I have?", "is Wi-Fi on?"] {
+        check(Router.route(q, app: app) == .answer(screen: false), "answered in words: \(q)")
+    }
+    for q in ["where is the Send button?", "show me the search field", "point at the Wi-Fi icon"] {
+        check(Router.route(q, app: app) == .point, "answered by pointing: \(q)")
+    }
+}
+
+// ---------------------------------------------------------------- an event with no day or time; more joined requests
+do {
+    let app = { (said: String) -> String? in ["Safari", "Notes", "Calendar"].first { $0.lowercased() == said.lowercased() } }
+    check(Skills.eventTitle(kind: "event", rest: ": Budget meeting", datePhrase: "") == "Budget meeting", "a title after a colon")
+    check(Skills.eventTitle(kind: "event", rest: "called Lunch with Sam", datePhrase: "") == "Lunch with Sam", "a title after called")
+    check(Skills.saysWhen("tomorrow at 3pm") && Skills.saysWhen("Friday") && Skills.saysWhen("at 15:00") && !Skills.saysWhen("Lunch") && !Skills.saysWhen("dinner"), "words that say when")
+    var utc = Calendar(identifier: .gregorian)
+    utc.timeZone = TimeZone(identifier: "UTC")!
+    let now = Date(timeIntervalSince1970: 1_800_000_000 + 1234)          // 34 past some hour
+    let next = Skills.nextHour(after: now, calendar: utc)
+    check(next > now && next.timeIntervalSince(now) <= 3600 && Int(next.timeIntervalSince1970) % 3600 == 0, "the next full hour")
+    check(Router.route("Open Calendar and make a new event: Budget meeting", app: app)
+          == .direct([PlannedStep(action: "open_app", app: "Calendar"), PlannedStep(action: "calendar_event", target: "event", text: ": Budget meeting")]), "an app and then an event, directly")
+    check(Router.route("open Notes and turn on dark mode", app: app)
+          == .direct([PlannedStep(action: "open_app", app: "Notes"), PlannedStep(action: "appearance", text: "dark")]), "an app and then a switch, directly")
+    check(Router.route("open Safari and take a screenshot", app: app)
+          == .direct([PlannedStep(action: "open_app", app: "Safari"), PlannedStep(action: "key", keys: ["cmd", "shift", "3"])]), "an app and then a screenshot, directly")
+    check(Router.route("Open Notes and write a note: Buy oat milk and eggs", app: app) == .plan, "an app and then something to plan is planned as a whole")
+}
+
+// ---------------------------------------------------------------- panes checked against macOS 26.6
+do {
+    // identifiers that are the same in /System/Library/ExtensionKit/Extensions of macOS 15.6 and 26.6
+    check(Places.pane("Siri")?.id == "com.apple.Siri-Settings.extension" && Places.pane("Time Machine")?.id == "com.apple.Time-Machine-Settings.extension"
+          && Places.pane("Trackpad")?.id == "com.apple.Trackpad-Settings.extension", "Siri, Time Machine and Trackpad as on macOS 26.6")
+    check(Places.pane("AirDrop")?.name == "AirDrop & Handoff" && Places.pane("family sharing settings")?.name == "Family"
+          && Places.pane("Wallet & Apple Pay")?.id == "com.apple.WalletSettingsExtension" && Places.pane("game controllers")?.name == "Game Controllers", "more panes by name")
+    check(Places.pane("reset") == nil && Places.pane("transfer or reset")?.name == "Transfer or Reset", "a bare word like reset is not a pane")
+    check(Places.shows(Places.pane("Sharing")!, title: "Sharing") && !Places.shows(Places.pane("Sharing")!, title: "General"), "General is not Sharing")
+}
+
+// ---------------------------------------------------------------- the last twelve of the real-Mac pilot
+do {
+    let names = ["Finder", "Safari", "Notes", "Reminders", "Calendar", "Contacts", "TextEdit", "Calculator", "System Settings"]
+    let app = { (said: String) -> String? in AppNames.resolve(said, names: names) }
+    // parts and what they are told
+    check(Router.refersBack("another one called Submit report") && Router.refersBack("press Return", apps: names), "another, or no app and no place: refers back")
+    check(!Router.refersBack("write a note that says Call the dentist on Monday", apps: names) && !Router.refersBack("open the Downloads folder", apps: names), "an app or a place of its own: does not")
+    check(Router.task("another one called Submit report", earlier: ["Create a reminder called Pick up dry cleaning"])
+          == "another one called Submit report (earlier in the same request: \"Create a reminder called Pick up dry cleaning\")", "the task of a part that refers back")
+    check(Router.task("write a note", earlier: []) == "write a note", "the task of a part that does not")
+    check(AppNames.named(in: "write a note that says Call the dentist on Monday", among: names) == ["Notes"]
+          && AppNames.named(in: "Add a calendar event called Coffee with Maya", among: names) == ["Calendar"], "the app a part speaks of")
+    check(AppNames.named(in: "Rename the file notes.txt on the Desktop to final-notes.txt", among: names).isEmpty, "a file called notes.txt is not the Notes app")
+    // files
+    check(Router.route("Rename the file notes.txt on the Desktop to final-notes.txt", app: app)
+          == .direct([PlannedStep(action: "rename_file", app: "desktop", target: "notes.txt", text: "final-notes.txt")]), "a rename is direct")
+    check(Router.route("Move the file notes.txt on the Desktop into the Invoices folder", app: app)
+          == .direct([PlannedStep(action: "move_file", app: "desktop", target: "notes.txt", text: "Invoices")]), "a move is direct")
+    check(Router.route("put the file budget.csv inside it", app: app) == .direct([PlannedStep(action: "move_file", app: "", target: "budget.csv", text: "it")]), "inside it is the folder made before")
+    check(Commands.plan("drag the file notes.txt on the Desktop into the Invoices folder") == nil && Commands.plan("drag the report to the Trash") != nil, "a file and a folder are never dragged by words; the Trash still is")
+    check(Router.route("rename this window", app: app) == .plan && Router.route("move Safari to the left", app: app) != .direct([PlannedStep(action: "move_file")]), "other renames and moves are not file steps")
+    let trash = Route.direct([PlannedStep(action: "move_file", app: "desktop", target: "notes.txt", text: "Trash")])
+    check(Router.route("Move the file notes.txt on the Desktop to the Trash", app: app) == trash && Router.route("Delete notes.txt from the Desktop", app: app) == trash
+          && Router.route("Throw away notes.txt that is on my Desktop", app: app) == trash, "to the Trash, three ways")
+    check(Router.route("delete the last paragraph from the document", app: app) != .direct([PlannedStep(action: "move_file")]) && Router.route("Delete the Desktop", app: app) == .plan, "other deletes are not file steps")
+    check(Skills.doneLine(PlannedStep(action: "move_file", app: "desktop", target: "notes.txt", text: "Trash")) == "move notes.txt to the Trash", "the line for a file put in the Trash")
+    // Calculator
+    check(Router.route("Open Calculator and compute 25 * 4", app: app) == .direct([PlannedStep(action: "calculate", text: "25*4")]), "a sum with Calculator named is direct")
+    check(Router.route("use the calculator to work out 12.5 plus 7 times 2", app: app) == .direct([PlannedStep(action: "calculate", text: "12.5+7*2")]), "a sum in words")
+    check(Router.route("Open Calculator", app: app) == .direct([PlannedStep(action: "open_app", app: "Calculator")]) && Router.route("compute 25 * 4", app: app) != .direct([PlannedStep(action: "calculate", text: "25*4")]), "no sum, or no Calculator: not this route")
+    check(Arithmetic.value("25*4") == 100 && Arithmetic.value("2+3*4") == 14 && Arithmetic.value("10/4") == 2.5 && Arithmetic.value("7-10") == -3, "sums, times and divide first")
+    check(Arithmetic.value("5/0") == nil && Arithmetic.value("25") == nil && Arithmetic.value("2+") == nil, "what is not a sum")
+    check(Arithmetic.shown(100) == ["100"] && Arithmetic.shown(2.5) == ["2.5"] && Arithmetic.shown(12500) == ["12500", "12,500"], "the result as shown")
+    check(Arithmetic.keys("25*4") == [["2"], ["5"], ["shift", "8"], ["4"], ["="]] && Arithmetic.keys("1.5+2").allSatisfy { Keys.combo($0) != nil }, "the keys of a sum")
+    // menu commands
+    let items: [(menu: String, title: String)] = [("File", "New Finder Window"), ("File", "New Folder"), ("View", "Show Path Bar"), ("View", "Show Status Bar"),
+                                                   ("View", "Hide Sidebar"), ("Go", "Downloads"), ("Finder", "Empty Trash…")]
+    check(MenuCommand.match(request: "Show the status bar in Finder", items: items, app: "Finder") == 3, "a command by its name")
+    check(MenuCommand.match(request: "In Finder, choose View > Show Path Bar", items: items, app: "Finder") == 2, "a command by its path")
+    check(MenuCommand.match(request: "make a new folder called Taxes and put the reports in it", items: items, app: "Finder") == nil, "a longer request is not one command")
+    check(MenuCommand.match(request: "show the toolbar", items: items, app: "Finder") == nil && MenuCommand.match(request: "downloads", items: items, app: "Finder") == nil, "no such command, or one word only")
+    // said another way
+    check(Router.route("Enable Dark Mode in settings", app: app) == .direct([PlannedStep(action: "appearance", text: "dark")]), "dark mode in settings is the switch")
+    check(Router.route("Put the Dock on the left side and make it hide automatically", app: app)
+          == .direct([PlannedStep(action: "dock", target: "position", text: "left"), PlannedStep(action: "dock", target: "autohide", text: "on")]), "two Dock settings in one request")
+}
+
+// ---------------------------------------------------------------- holding the key to speak
+do {
+    let down = Date(timeIntervalSince1970: 1_800_000_000)
+    check(PushToTalk.release(pressed: down, released: down.addingTimeInterval(0.12)) == .tap, "let go at once: a tap")
+    check(PushToTalk.release(pressed: down, released: down.addingTimeInterval(0.34)) == .tap, "just under the limit: still a tap")
+    check(PushToTalk.release(pressed: down, released: down.addingTimeInterval(0.35)) == .hold, "at the limit: a hold")
+    check(PushToTalk.release(pressed: down, released: down.addingTimeInterval(4)) == .hold, "held while speaking: a hold")
+    check(PushToTalk.release(pressed: down, released: down.addingTimeInterval(-1)) == .tap, "a clock that went back is not a hold")
+    let rate = 16000.0
+    let tone = { (seconds: Double, level: Float) -> [Float] in (0..<Int(seconds * rate)).map { level * Float(sin(Double($0) * 2 * .pi * 220 / rate)) } }
+    let hiss = { (seconds: Double) -> [Float] in (0..<Int(seconds * rate)).map { 0.001 * Float(($0 * 7919) % 13 - 6) / 6 } }
+    check(PushToTalk.voicedSeconds([]) == 0 && PushToTalk.voicedSeconds([Float](repeating: 0, count: 32000)) == 0, "nothing, and silence: no voice")
+    check(abs(PushToTalk.voicedSeconds(tone(1.0, 0.1)) - 1.0) < 0.05, "a second of sound is a second of voice")
+    check(PushToTalk.voicedSeconds(hiss(2.0)) == 0, "the hiss of a quiet room is not voice")
+    let short = PushToTalk.voicedSeconds(hiss(1.0) + tone(0.2, 0.1) + hiss(1.0)), long = PushToTalk.voicedSeconds(hiss(1.0) + tone(0.8, 0.05) + hiss(1.0))
+    check(abs(short - 0.2) < 0.11 && !PushToTalk.caught(voiced: short), "a click of sound in a quiet recording is not a request")
+    check(abs(long - 0.8) < 0.11 && PushToTalk.caught(voiced: long), "most of a second of speech is")
+    check(PushToTalk.caught(voiced: 0.3) && !PushToTalk.caught(voiced: 0.2), "the least voice that counts")
+    check(PushToTalk.clean(" [BLANK_AUDIO] ") == "" && PushToTalk.clean("(music) open Notes ♪") == "open Notes" && PushToTalk.clean("Open  Safari.") == "Open Safari.", "marks for sounds that are not words are dropped")
+}
+
+// ---------------------------------------------------------------- a helper that only points
+do {
+    check(PointerHelper("http://127.0.0.1:1235")?.base.absoluteString == "http://127.0.0.1:1235" && PointerHelper("127.0.0.1:1235/")?.base.absoluteString == "http://127.0.0.1:1235",
+          "the helper's address, with or without http and a slash")
+    check(PointerHelper("") == nil && PointerHelper("   ") == nil && PointerHelper("ftp://host") == nil, "what is not an address")
+    let body = PointerHelper.body(imageURL: "data:image/png;base64,iVBORw0KGgo=", request: "the Today button", looks: 1)
+    check(body?["image_b64"] as? String == "iVBORw0KGgo=" && body?["request"] as? String == "the Today button" && body?["looks"] as? Int == 1, "what is sent: the picture, the words, one look")
+    check(PointerHelper.body(imageURL: "data:image/jpeg;base64,/9j/4AAQ", request: "x", looks: 2)?["looks"] as? Int == 2
+          && PointerHelper.body(imageURL: "data:image/jpeg;base64,/9j/4AAQ", request: "x", looks: 7)?["looks"] as? Int == 2, "two looks when a second look is on")
+    check(PointerHelper.body(imageURL: "https://example.com/a.png", request: "x", looks: 1) == nil && PointerHelper.body(imageURL: "data:image/png;base64,", request: "x", looks: 1) == nil,
+          "a picture that is not in the message cannot be sent")
+    let good = Data("{\"x\": 0.5, \"y\": 0.25, \"seconds\": 0.41, \"read_seconds\": 0.3, \"cached\": true}".utf8)
+    check(PointerHelper.read(status: 200, data: good, elapsed: 0.5) == .point(x: 0.5, y: 0.25, seconds: 0.41, readSeconds: 0.3, cached: true), "a good reply is a point")
+    check(PointerHelper.read(status: 200, data: Data("{\"x\": 0, \"y\": 1}".utf8), elapsed: 2) == .point(x: 0, y: 1, seconds: 2, readSeconds: 0, cached: false), "the corners count, and the rest may be missing")
+    let unusable = { (reply: PointerHelper.Reply) -> Bool in if case .unusable = reply { return true } else { return false } }
+    check(unusable(PointerHelper.read(status: 500, data: good, elapsed: 0.5)) && unusable(PointerHelper.read(status: 0, data: good, elapsed: 0.5)), "not a 200: the language model points")
+    check(unusable(PointerHelper.read(status: 200, data: good, elapsed: 30.5)), "a reply after 30 s: the language model points")
+    check(unusable(PointerHelper.read(status: 200, data: Data("{\"x\": 1.2, \"y\": 0.5}".utf8), elapsed: 1))
+          && unusable(PointerHelper.read(status: 200, data: Data("{\"x\": 0.2, \"y\": -0.1}".utf8), elapsed: 1)), "a point outside the picture: the language model points")
+    check(unusable(PointerHelper.read(status: 200, data: Data("{\"x\": 0.2}".utf8), elapsed: 1)) && unusable(PointerHelper.read(status: 200, data: Data("oops".utf8), elapsed: 1))
+          && unusable(PointerHelper.read(status: 200, data: Data("{\"x\": true, \"y\": 0.5}".utf8), elapsed: 1)), "no x and y, or not JSON: the language model points")
+    // the helper's fractions land on the screen where the same place on the model's grid does
+    let air = CGRect(x: 0, y: 0, width: 1470, height: 956)
+    check(PointerHelper.grid(x: 0.5, y: 0.25) == CGPoint(x: 500, y: 250), "fractions of the picture on the 0 to 1000 grid")
+    check(near(Geometry.screenPoint(grid: PointerHelper.grid(x: 0.5, y: 0.5), region: air), CGPoint(x: 735, y: 478))
+          && near(Geometry.screenPoint(grid: PointerHelper.grid(x: 1, y: 1), region: air), CGPoint(x: 1469, y: 955)), "and from there to the screen like any answer")
+    let window = CGRect(x: 400, y: 300, width: 490, height: 318.667)
+    check(near(Geometry.screenPoint(grid: PointerHelper.grid(x: 0.1, y: 0.9), region: window), CGPoint(x: 449, y: 586.8003)), "also in a closer look")
+    check(PointerHelper.name == "bonsai-pruned-4b" && PointerHelper.languageModel == "language model", "the two names in the steps file")
 }
 
 print(failures == 0 ? "all \(checks) checks passed" : "\(failures) of \(checks) checks FAILED")

@@ -76,7 +76,7 @@ def parse_point(text):
         if v[0] == -1 and v[1] == -1:
             return None, "refusal"
         return ((v[0] + v[2]) / 2, (v[1] + v[3]) / 2), "box_center"
-    m = re.search(r"\[\s*(-?\d+)\s*,\s*(-?\d+)\s*\]", t)
+    m = re.search(r"\[\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\]", t)
     if m:
         x, y = float(m.group(1)), float(m.group(2))
         return (None, "refusal") if (x == -1 and y == -1) else ((x, y), "point")
@@ -203,7 +203,7 @@ def _template_messages(messages):
 class TorchModel:
     """A model held in this process (kinds "bonsai" and "hf")."""
 
-    def __init__(self, key, root, patch=None):
+    def __init__(self, key, root, patch=None, head=None):
         import torch
         from transformers import AutoProcessor, Qwen3_5ForConditionalGeneration
         from weightlab import core
@@ -237,11 +237,22 @@ class TorchModel:
         with torch.inference_mode():
             self.model(input_ids=torch.tensor([[self.stop_ids[0]] * 4], device=self.model.device))
         torch.cuda.empty_cache()
+        # a pointing decoder (weightlab/head.py, DecoderHead "cross_dec:768:2" reading layer 20): when given,
+        # point() returns its answer instead of the written one
+        self.head_file, self.bench = None, None
+        if head:
+            from safetensors.torch import load_file
+            from weightlab import head as headmod
+            self.head_file = os.path.join(root, head) if not os.path.isabs(head) else head
+            self.head_spec = ("H1 dec2x768 k20", "cross_dec:768:2", 20, (20,))
+            self.bench = headmod.HeadBench(self.lab, [self.head_spec])
+            self.bench.heads[self.head_spec[0]].load_state_dict(load_file(self.head_file))
+            self.bench.heads[self.head_spec[0]].eval()
         self.load_seconds = time.time() - t
 
     def describe(self):
         torch = self.torch
-        return {"kind": self.spec["kind"], "source": self.source, "patch": self.patch, "patch_counts": self.patch_counts,
+        return {"kind": self.spec["kind"], "source": self.source, "patch": self.patch, "patch_counts": self.patch_counts, "head": self.head_file,
                 "dtype": "bfloat16", "parameters": sum(p.numel() for p in self.model.parameters()),
                 "gpu_memory_after_load_gb": round(torch.cuda.memory_allocated() / 1e9, 2),
                 "generation_config": self.model.generation_config.to_dict(), "load_seconds": round(self.load_seconds, 1)}
@@ -263,6 +274,16 @@ class TorchModel:
                                                  {"type": "text", "text": point_text(self.prompt_id, instruction)}]}]
         inputs = self.processor.apply_chat_template(messages, add_generation_prompt=True, tokenize=True, return_dict=True,
                                                     return_tensors="pt", enable_thinking=False).to(self.model.device)
+        if self.bench is not None:
+            n = inputs["input_ids"].shape[1]
+            with self.torch.no_grad():
+                states, img, centres, cell, grid = self.bench.forward(inputs)
+                out = self.bench.heads[self.head_spec[0]](*self.bench.features(self.bench.specs[0], states, img, centres, cell, grid,
+                                                                                [(int(img[-1]) + 1, n)]))
+            x, y = out[1][0].tolist()
+            self.torch.cuda.synchronize()
+            return {"raw": f"[{x:.1f}, {y:.1f}]", "prompt_tokens": n, "new_tokens": 0, "click_logit": round(out[2].item(), 3),
+                    "seconds": round(time.perf_counter() - t, 3)}
         new, n = self._generate(inputs, max_new_tokens)
         raw = self.processor.decode(new, skip_special_tokens=True)
         return {"raw": raw, "prompt_tokens": n, "new_tokens": int(new.shape[0]), "seconds": round(time.perf_counter() - t, 3)}
@@ -377,7 +398,7 @@ class ServerModel:
                 self.proc.kill()
 
 
-def load(key, root, patch=None, port=8131, gguf=None):
+def load(key, root, patch=None, port=8131, gguf=None, head=None):
     if MODELS[key]["kind"] == "gguf":
         return ServerModel(key, root, port=port, gguf=gguf)
-    return TorchModel(key, root, patch=patch)
+    return TorchModel(key, root, patch=patch, head=head)

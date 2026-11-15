@@ -37,7 +37,8 @@ try:
             time.sleep(1)
     nums = lambda t: [float(v) for v in re.findall(r"-?\d+(?:\.\d+)?", t)][:2]
     same = near = hit_l = hit_g = n = 0
-    for line in open(f"{adir}/answers.jsonl"):
+    import os
+    for line in ([] if os.environ.get("STEPS_ONLY") else open(f"{adir}/answers.jsonl")):
         c = json.loads(line)
         img = base64.b64encode(open(f"{adir}/images/{c['image']}", "rb").read()).decode()
         body = {"messages": [{"role": "user", "content": [
@@ -52,6 +53,39 @@ try:
         inbox = lambda p: len(p) == 2 and b[0] <= p[0] <= b[2] and b[1] <= p[1] <= b[3]
         n += 1; same += d == 0; near += d is not None and d <= 10; hit_l += inbox(a); hit_g += inbox(g)
         print("%-14s lab %-12s gguf %-12s distance %s   [%.0f s]" % (c["id"], c["answer"].strip(), text, "n/a" if d is None else "%.0f" % d, time.time() - t), flush=True)
-    print("GGUF VS LAB: %d cases; identical answers %d; within 10 units %d; on target: lab %d, gguf %d" % (n, same, near, hit_l, hit_g), flush=True)
+    if n:
+        print("GGUF VS LAB: %d cases; identical answers %d; within 10 units %d; on target: lab %d, gguf %d" % (n, same, near, hit_l, hit_g), flush=True)
+    import os
+    if os.path.exists(f"{adir}/steps.jsonl"):            # planner patches: next_step calls through the server's tool-call path
+        par = lambda text, key: (re.search(r"<parameter=%s>\s*(.*?)\s*</parameter>" % key, text, flags=re.S) or [None, None])[1]
+        n = calls = same_action = same_all = 0
+        for line in open(f"{adir}/steps.jsonl"):
+            c = json.loads(line)
+            content = [{"type": "text", "text": c["request"]}]
+            if c.get("image"):                           # planner turns carry no screenshot
+                img = base64.b64encode(open(f"{adir}/images/{c['image']}", "rb").read()).decode()
+                content.insert(0, {"type": "image_url", "image_url": {"url": "data:image/png;base64," + img}})
+            body = {"messages": [{"role": "system", "content": c["system"]},
+                                 {"role": "user", "content": content if c.get("image") else c["request"]}],
+                    "tools": c["tools"], "temperature": 0, "max_tokens": 256, "chat_template_kwargs": {"enable_thinking": False}}
+            req = urllib.request.Request(f"http://127.0.0.1:{port}/v1/chat/completions", json.dumps(body).encode(), {"Content-Type": "application/json"})
+            msg = json.load(urllib.request.urlopen(req, timeout=900))["choices"][0]["message"]
+            tc = (msg.get("tool_calls") or [None])[0]
+            args = {}
+            if tc:
+                args = tc["function"]["arguments"]
+                if isinstance(args, str):
+                    try:
+                        args = json.loads(args)
+                    except ValueError:                   # the server passed arguments it could not close as JSON: read them by pattern
+                        args = dict(re.findall(r'"(\w+)"\s*:\s*"((?:[^"\\]|\\.)*)', args), _raw=args[:300])
+            lab_args = {k: par(c["answer"], k) for k in ("action", "app", "url", "id", "target", "text", "keys", "path", "direction", "target_end") if par(c["answer"], k) is not None}
+            got = {k: (v if isinstance(v, str) else json.dumps(v)) for k, v in args.items()}
+            ok_call = bool(tc and tc["function"]["name"] == "next_step")
+            n += 1; calls += ok_call; same_action += ok_call and got.get("action") == lab_args.get("action")
+            same_all += ok_call and {k: str(v).strip() for k, v in got.items()} == {k: str(v).strip() for k, v in lab_args.items()}
+            print("%-12s lab %s\n             gguf %s%s" % (c["image"] or "planner turn", json.dumps(lab_args), json.dumps(got) if tc else "NO TOOL CALL; content: " + repr((msg.get("content") or "")[:200]),
+                                                  "" if ok_call else "   <- not a next_step call"), flush=True)
+        print("GGUF VS LAB, next_step: %d cases; a well-formed next_step call %d; same action as the lab %d; every argument the same %d" % (n, calls, same_action, same_all), flush=True)
 finally:
     proc.terminate()

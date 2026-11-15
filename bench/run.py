@@ -70,12 +70,14 @@ def environment():
 
 def parse_job(job):
     parts = job.split(":")
-    spec = {"name": parts[0], "input": "s1280", "looks": 1, "limit": 0}
+    spec = {"name": parts[0], "input": "s1280", "looks": 1, "limit": 0, "window": 0}
     for p in parts[1:]:
         if p == "native" or (p.startswith("s") and p[1:].isdigit()):
             spec["input"] = p
         elif p.startswith("looks"):
             spec["looks"] = int(p[5:])
+        elif p.startswith("win") and p[3:].isdigit():      # second look on a window of this many original pixels, shown twice as large
+            spec["window"] = int(p[3:])
         elif p.startswith("n") and p[1:].isdigit():
             spec["limit"] = int(p[1:])
         else:
@@ -125,12 +127,15 @@ def run_pointing(model, spec, job, out_dir, shard):
                    "prompt_tokens": a["prompt_tokens"], "new_tokens": a["new_tokens"], "seconds": a["seconds"],
                    "image_size": [W, H], "sent_size": list(sent.size)}
             if spec["looks"] == 2 and point is not None:
-                cw, ch = W / ZOOM, H / ZOOM
+                if spec["window"]:                         # a fixed window of the original screenshot, enlarged twice
+                    cw, ch = min(spec["window"], W), min(spec["window"], H)
+                else:
+                    cw, ch = W / ZOOM, H / ZOOM
                 cx = min(max(point[0] / 1000 * W, cw / 2), W - cw / 2)
                 cy = min(max(point[1] / 1000 * H, ch / 2), H - ch / 2)
                 x0, y0 = cx - cw / 2, cy - ch / 2
                 crop = full.crop((round(x0), round(y0), round(x0 + cw), round(y0 + ch)))
-                s = SECOND_SIDE / max(crop.size)
+                s = 2.0 if spec["window"] else SECOND_SIDE / max(crop.size)
                 crop = crop.resize((round(crop.width * s), round(crop.height * s)), Image.LANCZOS)
                 b = model.point(crop, c["instruction"])
                 p2, kind2 = models.parse_point(b["raw"])
@@ -143,6 +148,14 @@ def run_pointing(model, spec, job, out_dir, shard):
                 rec["point"] = point
             px = None if point is None else (point[0] / 1000 * W, point[1] / 1000 * H)
             rec["hit"] = bool(suites.hit(px, c["target"]))
+            if c["target"]["type"] == "box":              # within 20 px of the box, measured with the long side at 1280 px
+                b, k = c["target"]["box"], 1280 / max(W, H)
+                rec["near20"] = bool(px is not None and ((max(b[0] - px[0], 0, px[0] - b[2]) * k) ** 2
+                                                         + (max(b[1] - px[1], 0, px[1] - b[3]) * k) ** 2) ** 0.5 <= 20)
+            for i, key in enumerate(("first_point",)):
+                if key in rec:
+                    fp = (rec[key][0] / 1000 * W, rec[key][1] / 1000 * H)
+                    rec["first_hit"] = bool(suites.hit(fp, c["target"]))
             rec.update(group=c["group"], ui_type=c["ui_type"], cluster=c["cluster"], flags=c.get("flags", {}),
                        target_type=c["target"]["type"])
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
@@ -163,6 +176,7 @@ def main():
     ap.add_argument("--root", default=suites.root())
     ap.add_argument("--out", default=None)
     ap.add_argument("--patch", default=None, help="patch file for a Bonsai model (overrides the registry)")
+    ap.add_argument("--head", default=None, help="pointing decoder file for a Bonsai model: answers come from the decoder")
     ap.add_argument("--gguf", default=None, help="GGUF file for a served model (overrides the registry)")
     ap.add_argument("--tag", default="", help="names this variant of the model, e.g. the patch version")
     ap.add_argument("--shard", default=None, help="k/n: every n-th case starting at k (for parallel processes)")
@@ -173,7 +187,7 @@ def main():
     out_dir = os.path.join(args.out or f"{args.root}/benchruns", name)
     os.makedirs(out_dir, exist_ok=True)
 
-    model = models.load(args.model, args.root, patch=args.patch, port=args.port, gguf=args.gguf)
+    model = models.load(args.model, args.root, patch=args.patch, port=args.port, gguf=args.gguf, head=args.head)
     env = environment()
     desc = model.describe()
     if desc.get("patch"):

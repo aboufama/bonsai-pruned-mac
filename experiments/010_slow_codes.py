@@ -206,7 +206,7 @@ if extra_packs:
         len(base_packs), len(extra_packs), 100 * len(extra_packs) / len(train_list), STEPS,
         STEPS * len(extra_packs) / len(train_list) * (sum(len(p) for p in extra_packs) / len(extra_packs)) / max(1, sum(extra_counts.values()))), flush=True)
 if globals().get("EMPH10"):                          # small targets and buttons three times as often (lanes/_emphasis.py)
-    exec(open(f"{lab.root}/experiments/lanes/_emphasis.py").read())
+    exec(open(f"{lab.root}/experiments/lanes/" + globals().get("EMPH_FILE10", "_emphasis.py")).read())
     train_list = emphasise(train_list)
 train_packs = train_list
 if SIZES:

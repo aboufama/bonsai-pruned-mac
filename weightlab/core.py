@@ -247,9 +247,11 @@ class Lab:
         return im
 
     def _inputs(self, model, it, answer=None):
-        messages = [{"role": "user", "content": [
-            {"type": "image", "image": self.image(it)},
-            {"type": "text", "text": PROMPT.format(instruction=it["instruction"].rstrip("."))}]}]
+        content = [{"type": "image", "image": self.image(it)},
+                   {"type": "text", "text": PROMPT.format(instruction=it["instruction"].rstrip("."))}]
+        if getattr(self, "text_first", False):           # the request before the image, so the image tokens can attend to it
+            content.reverse()
+        messages = [{"role": "user", "content": content}]
         inputs = self.processor.apply_chat_template(
             messages, add_generation_prompt=True, tokenize=True, return_dict=True,
             return_tensors="pt", enable_thinking=False).to(model.device)

@@ -225,8 +225,8 @@ assert [actions.describe_step(c["step"]) for c in (step, press, roll, end)] == [
     'click the "PDF" item in the Export To submenu', "press cmd+s", "scroll down in the list of files", "done"]
 words = actions.NEXT_STEP_TOOL["function"]
 assert "Do not give coordinates" in words["description"] and "point at it" in words["description"]
-assert words["parameters"]["properties"]["action"]["enum"] == ["click", "double_click", "right_click", "drag", "type", "key", "scroll", "done"]
-assert set(words["parameters"]["properties"]) == {"action", "target", "target_end", "text", "keys", "direction"}
+assert words["parameters"]["properties"]["action"]["enum"] == ["open_app", "open_url", "click", "double_click", "right_click", "drag", "type", "key", "scroll", "menu", "look", "done"]   # planner format v1; the first eight of the old list are all in it
+assert set(words["parameters"]["properties"]) == {"action", "target", "target_end", "text", "keys", "direction", "app", "url", "id", "path"}
 
 # ---- the optional mix entries are off by default
 from weightlab import mixes

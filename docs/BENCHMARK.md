@@ -436,8 +436,76 @@ The plan was cut back on 15 November to the headline sets and the detector ablat
 - **Our generated screens, our tool-calling set, the canary**: queued behind the headline runs for our models only; any that finished appear in their tables, the rest read "not run".
 - **BFCL v3 subset, MMLU, ChartQA**: not run.
 - **Input sizes**: 896, 640 and 448 px were queued for our models only; not run for the references. Full resolution on ScreenSpot-v2 was run for the parent and UI-Venus only.
-- **Second look**: not run in this harness (the lab measured +2.5 points for patch v2 on 158 cases).
+- **Second look**: run only for the three decoder pairs of the section "15 Nov, new models".
 - **Cost table**: not run. File sizes are in the method table; speeds on the Mac are in FINDINGS.md.
 - **Shipped GGUF in llama.cpp**: the patched file was exported and verified byte for byte, but not benchmarked.
 - **Detector assist for the 4B and v3-gentle, and the pick-a-box run**: not run.
-- **Later checkpoints** (mixed-size 9B and 4B, the actions patches, `v2-full`): not run.
+- **Later checkpoints**: the ones in the section "15 Nov, new models" were run on three sets at 1280 px; the others (the actions patches, `v2-full`) were not run.
+
+## 15 Nov, new models
+
+Measured on 15 November 2026 with the same harness as the rest of this report (`bench/run.py`, greedy, thinking off,
+long side 1280 px), so the rows sit beside the headline table. Table made by `bench/newmodels.py`; numbers in
+`bench/results/new_models_20261115.json`.
+
+- **Models.** Three pairs of a trunk patch and a pointing decoder (the decoder's answer is used, not the written one):
+  9B `joint-nb-l7-best`, 9B `s2-s5000`, 4B `s12500`. Two 9B patches that answer in writing: `v3-mixed896` and the
+  orchestrator patch `orch-v1-u3000`.
+- **Sets.** ScreenSpot-v2, all 1,272 cases. The reserved macOS app windows, all 2,106 cases (labels are noisy: about
+  one in nine checked labels is wrong, see the verified subset above). The neighbour slice: 600 of those reserved
+  macOS cases whose target is a small control with other controls close by; it is a subset of the Mac set, not a
+  separate one.
+- **Second look** (decoder pairs only): a window of 640 x 640 px of the original screenshot around the first answer
+  (smaller where the screenshot is smaller) is enlarged twice, the question is asked again, and the second answer is
+  mapped back. Job suffix `:looks2:win640`.
+- **Within 20 px**: the answer is on the target or at most 20 px from its box, measured with the long side at 1280 px.
+- Intervals are 95% percentile bootstrap intervals over cases (10,000 resamples).
+
+| Model | Set | Looks | Cases | On target (95% interval) | Within 20 px (95% interval) |
+|---|---|---|---|---|---|
+| 9B, pointing decoder (pair nb-l7-best) | ScreenSpot-v2 | one | 1272 | 85.5 (83.5–87.3) | 90.0 (88.4–91.7) |
+| 9B, pointing decoder (pair nb-l7-best) | ScreenSpot-v2 | two | 1272 | 86.4 (84.5–88.3) | 87.7 (85.9–89.5) |
+| 9B, pointing decoder (pair nb-l7-best) | macOS app windows | one | 2106 | 46.8 (44.6–48.8) | 58.6 (56.5–60.6) |
+| 9B, pointing decoder (pair nb-l7-best) | macOS app windows | two | 2106 | 57.5 (55.3–59.5) | 62.7 (60.6–64.7) |
+| 9B, pointing decoder (pair nb-l7-best) | Neighbour slice | one | 600 | 54.7 (50.7–58.7) | 67.8 (64.2–71.5) |
+| 9B, pointing decoder (pair nb-l7-best) | Neighbour slice | two | 600 | 65.7 (61.8–69.5) | 69.0 (65.3–72.7) |
+| 9B, pointing decoder (pair s2-s5000) | ScreenSpot-v2 | one | 1272 | 85.0 (82.9–87.0) | 89.5 (87.8–91.2) |
+| 9B, pointing decoder (pair s2-s5000) | ScreenSpot-v2 | two | 1272 | 87.7 (85.8–89.5) | 89.4 (87.7–91.0) |
+| 9B, pointing decoder (pair s2-s5000) | macOS app windows | one | 2106 | 46.4 (44.2–48.5) | 57.9 (55.8–60.0) |
+| 9B, pointing decoder (pair s2-s5000) | macOS app windows | two | 2106 | 55.6 (53.4–57.6) | 64.6 (62.5–66.6) |
+| 9B, pointing decoder (pair s2-s5000) | Neighbour slice | one | 600 | 53.3 (49.3–57.3) | 65.5 (61.7–69.3) |
+| 9B, pointing decoder (pair s2-s5000) | Neighbour slice | two | 600 | 64.3 (60.5–68.2) | 68.3 (64.7–72.0) |
+| 4B, pointing decoder (pair s12500) | ScreenSpot-v2 | one | 1272 | 82.4 (80.3–84.4) | 88.1 (86.3–89.9) |
+| 4B, pointing decoder (pair s12500) | ScreenSpot-v2 | two | 1272 | 85.2 (83.2–87.2) | 87.2 (85.4–89.0) |
+| 4B, pointing decoder (pair s12500) | macOS app windows | one | 2106 | 46.4 (44.2–48.5) | 59.1 (56.9–61.2) |
+| 4B, pointing decoder (pair s12500) | macOS app windows | two | 2106 | 55.3 (53.1–57.4) | 61.3 (59.2–63.4) |
+| 4B, pointing decoder (pair s12500) | Neighbour slice | one | 600 | 50.8 (46.8–54.8) | 63.2 (59.3–67.0) |
+| 4B, pointing decoder (pair s12500) | Neighbour slice | two | 600 | 61.5 (57.5–65.5) | 66.0 (62.2–69.7) |
+| 9B, written answer (v3-mixed896) | ScreenSpot-v2 | one | 1272 | 84.0 (81.9–85.9) | 90.1 (88.4–91.8) |
+| 9B, written answer (v3-mixed896) | macOS app windows | one | 2106 | 43.8 (41.7–45.9) | 60.0 (57.9–62.0) |
+| 9B, written answer (v3-mixed896) | Neighbour slice | one | 600 | 50.5 (46.5–54.5) | 68.2 (64.3–71.8) |
+| 9B, written answer (orchestrator u3000) | ScreenSpot-v2 | one | 1272 | 83.8 (81.8–85.8) | 90.0 (88.4–91.6) |
+| 9B, written answer (orchestrator u3000) | macOS app windows | one | 2106 | 44.8 (42.7–46.9) | 61.4 (59.4–63.5) |
+| 9B, written answer (orchestrator u3000) | Neighbour slice | one | 600 | 52.0 (48.0–56.0) | 68.0 (64.2–71.7) |
+
+Check against the lanes' own numbers, the 158-case report slice of ScreenSpot-v2, one look:
+
+| Model | On target | Within 20 px |
+|---|---|---|
+| 9B, pointing decoder (pair nb-l7-best) | 89.9 (142 of 158) | 91.8 |
+| 9B, pointing decoder (pair s2-s5000) | 87.3 (138 of 158) | 91.8 |
+| 4B, pointing decoder (pair s12500) | 83.5 (132 of 158) | 88.0 |
+| 9B, written answer (v3-mixed896) | 86.1 (136 of 158) | 90.5 |
+| 9B, written answer (orchestrator u3000) | 84.8 (134 of 158) | 89.2 |
+
+What the table shows:
+
+- On ScreenSpot-v2 the three 9B candidates are within each other's intervals with one look (83.8 to 85.5). The second
+  look adds 2.7 points to pair `s2-s5000` and 2.8 to the 4B pair, but only 0.9 to pair `nb-l7-best`.
+- On the macOS sets the second look adds 9 to 11 points to every pair. Pair `nb-l7-best` with two looks is the best
+  row on both (57.5 and 65.7).
+- With one look, the written answers land within 20 px as often as the decoders or more often; the decoders are ahead
+  only on exact hits.
+- The lanes' figures are reproduced: 89.9 for `nb-l7-best` and 87.3 for `s2-s5000` on the 158-case report slice, and
+  54.7 for `nb-l7-best` and 50.8 for the 4B pair on the neighbour slice. The report slice flatters `nb-l7-best`:
+  89.9 there, 85.5 on all 1,272 cases.

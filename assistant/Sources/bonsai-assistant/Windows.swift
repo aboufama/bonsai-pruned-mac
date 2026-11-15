@@ -1,5 +1,6 @@
 // The floating input bar and the log window.
 import AppKit
+import AssistantCore
 
 /// A panel that takes typing without making this app the active one, so the app the user was
 /// in stays in front (as Spotlight does).
@@ -28,17 +29,65 @@ final class InputPanel: NSPanel {
     override func cancelOperation(_ sender: Any?) { onEscape?() }
 }
 
+/// Small drawings shared by the bar and the menu, so that the app has one look.
+enum Look {
+    /// A stretchable rounded rectangle. As the mask of a visual-effect view it gives the window
+    /// itself the rounded shape, so its shadow and edge follow the curve (a corner radius on the
+    /// layer leaves the window square, which shows as a rectangle around the glass).
+    static func roundedMask(radius: CGFloat) -> NSImage {
+        let edge = radius * 2 + 1
+        let image = NSImage(size: NSSize(width: edge, height: edge), flipped: false) { rect in
+            NSColor.black.setFill()
+            NSBezierPath(roundedRect: rect, xRadius: radius, yRadius: radius).fill()
+            return true
+        }
+        image.capInsets = NSEdgeInsets(top: radius, left: radius, bottom: radius, right: radius)
+        image.resizingMode = .stretch
+        return image
+    }
+
+    /// The pointer's arrow as a small picture: clear glass with a bright rim, no colour.
+    static func arrow(height: CGFloat) -> NSImage {
+        let k = height / 24
+        return NSImage(size: NSSize(width: 22 * k, height: 25 * k), flipped: true) { _ in
+            let shape = NSBezierPath()
+            shape.move(to: NSPoint(x: 2.5 * k, y: 2.5 * k))
+            shape.line(to: NSPoint(x: 6.9 * k, y: 22.5 * k))
+            shape.line(to: NSPoint(x: 11.2 * k, y: 15.4 * k))
+            shape.line(to: NSPoint(x: 19.8 * k, y: 13.2 * k))
+            shape.close()
+            shape.lineJoinStyle = .round
+            NSColor(calibratedWhite: 0, alpha: 0.3).setStroke()
+            shape.lineWidth = 3.6 * k
+            shape.stroke()
+            NSGradient(colors: [NSColor(calibratedWhite: 1, alpha: 0.8), NSColor(calibratedWhite: 1, alpha: 0.22)])?
+                .draw(in: shape, angle: 60)
+            NSColor(calibratedWhite: 1, alpha: 0.96).setStroke()
+            shape.lineWidth = 1.5 * k
+            shape.stroke()
+            return true
+        }
+    }
+}
+
+/// Typing instead of speaking: the same small box as the note beside the pointer, with a
+/// face that watches what is typed. Return does it, Command-Return only points, Esc closes it.
 final class InputBar: NSObject, NSTextFieldDelegate {
+    static let size = CGSize(width: 264, height: BoxLook.height)
+
     private let panel: InputPanel
+    private let face = NSTextField(labelWithString: Faces.typing(""))
     private let field = NSTextField()
-    private let hint = NSTextField(labelWithString: "")
     /// (the request, true for "only show me, do nothing")
     var onSubmit: ((String, Bool) -> Void)?
+    var onCancel: (() -> Void)?
+    /// Called when the box goes from empty to holding text (true) or back (false).
+    var onTyping: ((Bool) -> Void)?
+    private var holdsText = false
     var isShown: Bool { panel.isVisible }
 
     override init() {
-        let size = CGSize(width: 660, height: 92)
-        panel = InputPanel(contentRect: CGRect(origin: .zero, size: size), styleMask: [.borderless, .nonactivatingPanel],
+        panel = InputPanel(contentRect: CGRect(origin: .zero, size: InputBar.size), styleMask: [.borderless, .nonactivatingPanel],
                            backing: .buffered, defer: false)
         super.init()
         panel.isFloatingPanel = true
@@ -49,59 +98,56 @@ final class InputBar: NSObject, NSTextFieldDelegate {
         panel.hasShadow = true
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
-        panel.appearance = NSAppearance(named: .vibrantDark)
+        panel.appearance = NSAppearance(named: .darkAqua)
         panel.onCommandReturn = { [weak self] in self?.submit(showOnly: true) }
-        panel.onEscape = { [weak self] in self?.hide() }
+        panel.onEscape = { [weak self] in self?.cancel() }
+        panel.contentView = InputBar.content(face: face, field: field)
+        field.delegate = self
+    }
 
-        let glass = NSVisualEffectView(frame: CGRect(origin: .zero, size: size))
-        glass.material = .hudWindow
-        glass.state = .active
-        glass.blendingMode = .behindWindow
-        glass.wantsLayer = true
-        glass.layer?.cornerRadius = 18
-        glass.layer?.masksToBounds = true
-        glass.layer?.borderWidth = 0.5
-        glass.layer?.borderColor = NSColor(calibratedWhite: 1, alpha: 0.22).cgColor
-        panel.contentView = glass
+    /// The box's contents: the look every box has, a face, and the field.
+    static func content(face: NSTextField, field: NSTextField) -> NSView {
+        let size = InputBar.size
+        let box = NSView(frame: CGRect(origin: .zero, size: size))
+        box.wantsLayer = true
+        if let layer = box.layer { BoxLook.style(layer) }
 
-        let leaf = NSImageView(frame: CGRect(x: 20, y: 46, width: 26, height: 26))
-        leaf.image = NSImage(systemSymbolName: "leaf.fill", accessibilityDescription: "Bonsai")
-        leaf.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 20, weight: .semibold)
-        leaf.contentTintColor = Overlay.accent
-        glass.addSubview(leaf)
+        face.font = BoxLook.faceFont
+        face.textColor = BoxLook.faceColor
+        face.frame = CGRect(x: 10, y: ((size.height - 15) / 2).rounded(), width: 46, height: 15)
+        box.addSubview(face)
 
-        field.frame = CGRect(x: 56, y: 42, width: size.width - 76, height: 32)
-        field.font = .systemFont(ofSize: 21, weight: .regular)
+        field.frame = CGRect(x: 60, y: ((size.height - 17) / 2).rounded(), width: size.width - 60 - 10, height: 17)
+        field.font = BoxLook.textFont
         field.isBordered = false
         field.drawsBackground = false
         field.focusRingType = .none
         field.textColor = .white
-        field.placeholderString = "Ask about what is on your screen"
-        field.delegate = self
+        field.placeholderAttributedString = NSAttributedString(string: "type what to do", attributes: [
+            .font: BoxLook.textFont, .foregroundColor: NSColor(calibratedWhite: 1, alpha: 0.4)])
         field.cell?.usesSingleLineMode = true
         field.cell?.isScrollable = true
-        glass.addSubview(field)
-
-        hint.frame = CGRect(x: 22, y: 14, width: size.width - 44, height: 16)
-        hint.font = .systemFont(ofSize: 11.5, weight: .medium)
-        hint.textColor = NSColor(calibratedWhite: 1, alpha: 0.6)
-        hint.lineBreakMode = .byTruncatingTail
-        glass.addSubview(hint)
+        box.addSubview(field)
+        return box
     }
 
-    func show(model: String) {
-        let screen = NSScreen.screens.first ?? NSScreen.main
-        if let frame = screen?.frame {
-            let size = panel.frame.size
-            panel.setFrameOrigin(CGPoint(x: frame.midX - size.width / 2, y: frame.minY + frame.height * 0.66))
-        }
-        hint.stringValue = "Return  do it (a question is answered by pointing)      ⌘ Return  only point      Esc  close      ·      " + (model.isEmpty ? "no model chosen" : model)
+    /// Shows the box with its top-left corner at a place on screen (where the note would be).
+    func show(corner: CGPoint) {
+        field.stringValue = ""
+        holdsText = false
+        face.stringValue = Faces.typing("")
+        panel.setFrameOrigin(CGPoint(x: corner.x.rounded(), y: (corner.y - InputBar.size.height).rounded()))
         panel.makeKeyAndOrderFront(nil)
+        panel.invalidateShadow()
         panel.makeFirstResponder(field)
-        field.selectText(nil)
     }
 
     func hide() { panel.orderOut(nil) }
+
+    private func cancel() {
+        hide()
+        onCancel?()
+    }
 
     private func submit(showOnly: Bool) {
         let text = field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -110,16 +156,65 @@ final class InputBar: NSObject, NSTextFieldDelegate {
         onSubmit?(text, showOnly)
     }
 
+    func controlTextDidChange(_ notification: Notification) {
+        face.stringValue = Faces.typing(field.stringValue)
+        let typing = !field.stringValue.trimmingCharacters(in: .whitespaces).isEmpty
+        if typing != holdsText {
+            holdsText = typing
+            onTyping?(typing)
+        }
+    }
+
     func control(_ control: NSControl, textView: NSTextView, doCommandBy selector: Selector) -> Bool {
         if selector == #selector(NSResponder.insertNewline(_:)) {
             submit(showOnly: NSEvent.modifierFlags.contains(.command))
             return true
         }
         if selector == #selector(NSResponder.cancelOperation(_:)) {
-            hide()
+            cancel()
             return true
         }
         return false
+    }
+}
+
+/// The top of the leaf's menu: the app's name and, under it, one line on how things stand.
+final class MenuHeader: NSView {
+    enum State { case ready, busy, problem }
+    private let name = NSTextField(labelWithString: "Bonsai")
+    private let status = NSTextField(labelWithString: "")
+    private let dot = NSView()
+
+    init() {
+        super.init(frame: CGRect(x: 0, y: 0, width: 286, height: 50))
+        let arrow = NSImageView(frame: CGRect(x: 14, y: 25, width: 15, height: 17))
+        arrow.image = Look.arrow(height: 16)
+        arrow.imageScaling = .scaleNone
+        addSubview(arrow)
+        name.frame = CGRect(x: 34, y: 25, width: 230, height: 17)
+        name.font = .systemFont(ofSize: 13, weight: .semibold)
+        name.textColor = .labelColor
+        addSubview(name)
+        dot.frame = CGRect(x: 17, y: 11, width: 7, height: 7)
+        dot.wantsLayer = true
+        dot.layer?.cornerRadius = 3.5
+        addSubview(dot)
+        status.frame = CGRect(x: 34, y: 6, width: 240, height: 15)
+        status.font = .systemFont(ofSize: 11.5, weight: .regular)
+        status.textColor = .secondaryLabelColor
+        status.lineBreakMode = .byTruncatingMiddle
+        addSubview(status)
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    func set(_ text: String, _ state: State) {
+        status.stringValue = text
+        switch state {
+        case .ready: dot.layer?.backgroundColor = NSColor.labelColor.withAlphaComponent(0.75).cgColor
+        case .busy: dot.layer?.backgroundColor = NSColor.systemOrange.cgColor
+        case .problem: dot.layer?.backgroundColor = NSColor.systemRed.cgColor
+        }
     }
 }
 
@@ -153,9 +248,14 @@ final class LogWindow {
             window.setFrameOrigin(CGPoint(x: screen.visibleFrame.maxX - frame.width - 16, y: screen.visibleFrame.minY + 16))
         }
 
-        let dir = NSHomeDirectory() + "/Library/Logs/BonsaiAssistant"
-        try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
-        path = dir + "/assistant.log"
+        if let chosen = Launch.log {
+            path = (chosen as NSString).expandingTildeInPath
+            try? FileManager.default.createDirectory(atPath: (path as NSString).deletingLastPathComponent, withIntermediateDirectories: true)
+        } else {
+            let dir = NSHomeDirectory() + "/Library/Logs/BonsaiAssistant"
+            try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
+            path = dir + "/assistant.log"
+        }
         if !FileManager.default.fileExists(atPath: path) { FileManager.default.createFile(atPath: path, contents: nil) }
         file = FileHandle(forWritingAtPath: path)
         file?.seekToEndOfFile()

@@ -110,6 +110,23 @@ def mac(R=None):
     return items
 
 
+def neighbour(R=None):
+    """The neighbour slice (tools/neighbour_cases.py): 600 held-out macOS cases whose target is a small
+    control with other controls close by. Same format and folder layout as the other Mac sets."""
+    R = R or root()
+    base = f"{R}/data/mac/neighbour_test"
+    items = []
+    for line in open(f"{base}/cases.jsonl"):
+        it = json.loads(line)
+        if it.get("split") not in (None, "test"):
+            continue
+        items.append({"id": it["id"], "image": f"{base}/{it['image']}", "instruction": it["instruction"],
+                      "target": {"type": "box", "box": list(it["bbox"])}, "group": (it.get("meta") or {}).get("app_key") or it.get("app") or "mac",
+                      "ui_type": None, "cluster": it["image"], "flags": {}})
+    items.sort(key=lambda c: c["id"])
+    return items
+
+
 def mac_agentnet(R=None):
     """AgentNet macOS, held-out recording sessions: 504 human click points. There is no box, so a
     square of +-1.2% of the image width is put around the click (as the lab does)."""
@@ -147,7 +164,7 @@ def gen(R=None, name="benchdata/pointing/dev_20261114"):
 
 
 POINTING = {"ssv2": ssv2, "sspro": sspro, "osworld_g": osworld_g, "osworld_g_refined": osworld_g_refined,
-            "mac": mac, "mac_agentnet": mac_agentnet, "gen": gen}
+            "mac": mac, "neighbour": neighbour, "mac_agentnet": mac_agentnet, "gen": gen}
 
 
 def pick(items, limit=0, shard=None):

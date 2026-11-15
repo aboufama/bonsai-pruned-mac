@@ -39,6 +39,17 @@ public enum Prompts {
         + " Leave out the fields the action does not need. Never give coordinates."
         + " When the request has been carried out, or the screen shows it is already satisfied, use the action done."
 
+    /// What a planner cannot see on the screen but needs: the date and time ("tomorrow at 3"),
+    /// and what to do when a step had no effect.
+    public static func stepContext(now: Date = Date()) -> String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "EEEE d MMMM yyyy, HH:mm"
+        return " Today is \(f.string(from: now))."
+            + " Use the app's own button or menu for what is asked; if a previous action is marked as having changed nothing,"
+            + " do something different instead of repeating it."
+    }
+
     public static let historyShown = 4
 
     /// The user's text of a step request: the goal and the last steps taken.

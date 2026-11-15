@@ -18,7 +18,11 @@
 # than 0.03 under the start. Every new best is written out as a patch at once (PATCHNAME27-u<step>).
 # Step cases come from data/mac/agentnet/step_pick.json (tools/step_images.py).
 # Settings: UPDATES27, EVERY27, LR27, ACC27, TAG27, STEPS27 (training step cases), THOUGHT27, SIZES27,
-# GEN27, SMOKE27 (N updates, tiny score sets, nothing saved), PATCHNAME27.
+# GEN27, SMOKE27 (N updates, tiny score sets, nothing saved), PATCHNAME27, POINT_SHARE27, NEIGHBOUR27 (the
+# PLANNER27 (folders of planner turns in format v1, text only; with them the best round is the dev turns
+# fully right plus the neighbour slice), PLANNER_N27, PLANNER_DEV27; pointing part draws neighbour cases three times as often; the best round is then steps fully right plus
+# the held-out neighbour slice), NB_N27. Every round also scores generated answers on the held-out
+# neighbour slice and Mac windows when those sets are on the machine.
 import collections
 import json
 import math
@@ -53,6 +57,13 @@ SIZES = globals().get("SIZES27", (1280, 896))
 N_SCORE = 8 if SMOKE else 200
 N_GEN = 6 if SMOKE else globals().get("GEN27", 120)
 PATCHNAME = None if SMOKE else globals().get("PATCHNAME27", None)
+POINT_SHARE = globals().get("POINT_SHARE27", 0.25)   # share of the training samples that are plain pointing
+NEIGHBOUR = globals().get("NEIGHBOUR27", False)      # pointing list: neighbour cases 3x, Apple's apps 2x again, Fable and GroundCUA neighbours added
+ROLL_SHARE = globals().get("ROLL_SHARE27")          # e.g. 0.5: this share of every batch is rollout rows (states the planner reached, the oracle's step)
+ROLL_DISAGREE = globals().get("ROLL_DISAGREE27", False)   # rollout rows only from states where the planner's own step differed from the oracle's
+QUICK = globals().get("QUICK27", False)             # score only the planner dev turns, report and select (teacher-forced) and the tool dev cases
+EXPORT_ALL = globals().get("EXPORT_ALL27", False)   # write a patch at every scored step, not only at a best
+NB_N = 12 if SMOKE else globals().get("NB_N27", 150)  # cases of the held-out neighbour slice scored per round (generated answers)
 LAYERS = list(range(4, 32))
 rng = random.Random(27)
 if "mix" not in globals() or "fS" not in globals():
@@ -81,6 +92,24 @@ if len(train_cases) < min(50, N_STEPS) or not cases27["reserved"]:
 step_train = [actions.step_case(c, base=adir, thought=THOUGHT) for c in train_cases]
 step_test = [actions.step_case(c, base=adir, thought=THOUGHT) for c in cases27["reserved"][:N_SCORE]]
 step_gen = step_test[:N_GEN]
+# ---- planner turns in format v1 (text only: a list of controls instead of a screenshot; weightlab/planner.py)
+plan_train, plan_dev = [], []
+for _dir in globals().get("PLANNER27", ()):
+    _name, _dir = os.path.basename(_dir), f"{lab.root}/{_dir}"
+    if os.path.exists(_dir):
+        from weightlab import planner as planner27
+        importlib.reload(planner27)
+        plan_train += planner27.load(_dir, "train")
+        _d = planner27.load(_dir, "dev")                 # the dev turns of each folder are scored on their own
+        random.Random(272).shuffle(_d)
+        plan_dev += [dict(x, dev_set=_name) for x in _d[:8 if SMOKE else globals().get("PLANNER_DEV27", 150)]]
+_first = [x for x in plan_train if str(x["id"]).startswith("roll")]          # rollout turns (DAgger) are always kept
+plan_train = [x for x in plan_train if not str(x["id"]).startswith("roll")]
+random.Random(271).shuffle(plan_train)
+plan_train = _first + plan_train[:max(0, globals().get("PLANNER_N27", 6000) - len(_first))]
+if plan_train:
+    print("planner turns (format v1): %d for training %s, %d of the dev split for scoring" % (
+        len(plan_train), dict(collections.Counter(s["category"].split(":")[1] for s in plan_train)), len(plan_dev)), flush=True)
 print("step cases: training", dict(collections.Counter(c["step"]["action"] for c in train_cases)),
       "  reserved:", dict(collections.Counter(s["case"]["step"]["action"] for s in step_test)), "  thoughts:", THOUGHT)
 
@@ -96,13 +125,48 @@ def sized(sample):
 
 point_items = list(mix)
 rng.shuffle(point_items)
+if NEIGHBOUR:
+    _nb = set(json.load(open(f"{lab.root}/data/mac/neighbour_ids.json"))["ids"])
+    _apple = ("calendar", "ical", "finder", "mail", "notes", "reminders", "safari", "system_preferences", "systempreferences",
+              "system settings", "system_settings", "systemsettings", "messages", "mobilesms")
+    _pool = list(mix)
+    for _name, _n in (("mac:fable_teacher:train", 4198), ("mac:neighbour_gcua:train", 3000), ("mac:structured_s2ax:train", 6000)):
+        if os.path.exists(f"{lab.root}/data/mac/{_name.split(':')[1]}/cases.jsonl"):
+            _pool += [it for it in lab.data(_name, n=_n) if os.path.exists(it["path"])]
+    _pool = [dict(it, kind=None) for it in _pool]        # plain pointing cases: the Fable cases carry a kind (direct / intent / next) that the tuner would read as a chat sample
+    _w = [(3 if it["id"] in _nb else 1) * (2 if it["id"] in _nb and any(k in str(it.get("group", "")).lower() for k in _apple) else 1) for it in _pool]
+    print("pointing pool: %d cases, %d of them neighbour cases (drawn three times as often; Apple's apps twice again)" % (
+        len(_pool), sum(it["id"] in _nb for it in _pool)), flush=True)
 tool_cases = [json.loads(l) for l in open(f"{lab.root}/benchdata/toolcall/train_s11/cases.jsonl")]
 tools27 = [s for s in (chat.tool_case(c) for c in tool_cases) if s]
-n_point = round((len(step_train) + 900) / 3)             # a quarter of the whole
+n_point = round((len(step_train) + len(plan_train) + 900) * POINT_SHARE / (1 - POINT_SHARE))
+if NEIGHBOUR:
+    # about half of the pointing targets are small: smaller side under 24 px with the long side at 1280
+    _small = [min(it["bbox"][2] - it["bbox"][0], it["bbox"][3] - it["bbox"][1]) * 1280 / max(it["size"]) < 24 for it in _pool]
+    _a = [(it, w) for it, w, sm in zip(_pool, _w, _small) if sm]
+    _b = [(it, w) for it, w, sm in zip(_pool, _w, _small) if not sm]
+    point_items = (rng.choices([x[0] for x in _a], weights=[x[1] for x in _a], k=n_point // 2)
+                   + rng.choices([x[0] for x in _b], weights=[x[1] for x in _b], k=n_point - n_point // 2))
+    print("pointing part: %d cases, half of them with a target under 24 px (the pool has %d such cases of %d); structured descriptions: %d" % (
+        n_point, len(_a), len(_pool), sum(str(it["id"]).endswith("-struct") for it in point_items)), flush=True)
 train27 = (point_items[:n_point] + [s for s in tools27 if s["kind"] == "tool_call"][:600]
-           + [s for s in tools27 if s["kind"] == "no_call"][:300] + step_train)
+           + [s for s in tools27 if s["kind"] == "no_call"][:300] + step_train + plan_train)
 train27 = [sized(s) for s in train27]
 rng.shuffle(train27)
+if ROLL_SHARE and plan_train:
+    _roll = [x for x in plan_train if str(x["id"]).startswith("roll")]
+    if ROLL_DISAGREE:
+        _roll = [x for x in _roll if not ((x["turn"].get("meta") or {}).get("agrees"))]
+    _rest = [x for x in plan_train if not str(x["id"]).startswith("roll")]
+    _n = UPDATES * ACC
+    _nr = round(_n * ROLL_SHARE)
+    _np = round((_n - _nr) * 0.7); _npt = round((_n - _nr) * 0.2); _nt = _n - _nr - _np - _npt
+    rng.shuffle(_rest)
+    _tools = [x for x in tools27 if x["kind"] == "tool_call"][:600] + [x for x in tools27 if x["kind"] == "no_call"][:300]
+    train27 = (rng.choices(_roll, k=_nr) + _rest[:_np] + [sized(x) for x in rng.choices(point_items, k=_npt)] + rng.choices(_tools, k=_nt))
+    rng.shuffle(train27)
+    print("batches: %d samples = %d rollout rows (%.0f%%; drawn from %d states%s) + %d oracle, rule and verified turns + %d pointing + %d tool cases" % (
+        _n, _nr, 100 * _nr / _n, len(_roll), ", only those where the planner differed from the oracle" if ROLL_DISAGREE else "", _np, _npt, _nt), flush=True)
 print("training samples:", dict(collections.Counter(s.get("kind", "point") for s in train27)), flush=True)
 
 dev_cases = [json.loads(l) for l in open(f"{lab.root}/bench/toolcall/runs/dev_20261114/cases.jsonl")]
@@ -112,6 +176,14 @@ if SMOKE:
 rows = []
 out = {"tag": TAG, "updates": UPDATES, "every": EVERY, "lr": LR, "accumulate": ACC, "sizes": list(SIZES), "thought": THOUGHT,
        "train": dict(collections.Counter(s.get("kind", "point") for s in train27)), "state": list(lab.stack), "rows": rows}
+
+
+held27 = {}
+if os.path.exists(f"{lab.root}/data/mac/neighbour_test/cases.jsonl"):
+    _all = lab.data("mac:neighbour_test:test", n=600)
+    held27["neighbour slice"] = _all[::max(1, len(_all) // NB_N)][:NB_N]
+if os.path.exists(f"{lab.root}/data/mac/screen2ax_task/cases.jsonl"):
+    held27["Mac windows"] = lab.data("mac:screen2ax_task:test", n=8 if SMOKE else 60)
 
 
 def _point_item(case, words, point):
@@ -141,6 +213,22 @@ def pointer_test(items, tag):
 def measure(label):
     t = time.time()
     actions.install()
+    if QUICK:
+        a, b = fS.evaluate(4, tag=f"027:{TAG}:{label}:select"), fR.evaluate(4, tag=f"027:{TAG}:{label}:report")
+        fS.discard(); fR.discard()
+        tc = chat.score(lab, lab.B, tool_dev[:150], tag=f"027:{TAG}:{label}:tools")
+        _r = [planner27.score(x, chat.generate(lab, lab.B, x, max_new_tokens=96)[0]) for x in plan_dev]
+        pl = {"n": len(_r), "ok": sum(r["ok"] for r in _r) / len(_r), "action": sum(r["action"] for r in _r) / len(_r), "parsed": sum(r["parsed"] for r in _r) / len(_r), "by_set": {}}
+        for _n2 in sorted({x["dev_set"] for x in plan_dev}):
+            _q = [r for x, r in zip(plan_dev, _r) if x["dev_set"] == _n2]
+            pl["by_set"][_n2] = {"n": len(_q), "ok": sum(r["ok"] for r in _q) / len(_q), "action": sum(r["action"] for r in _q) / len(_q)}
+        row = {"label": label, "select": a, "report": b, "tools": tc, "planner_dev": pl, "held_out_pointing": {}, "steps_generated": {"correct": 0.0}, "seconds": time.time() - t}
+        rows.append(row)
+        print("%s  [%.0f s]   planner dev (%d): fully right %5.1f%%   action right %5.1f%%   | %s   | select %.3f report %.3f   tools %.1f%% holds back %.1f%%" % (
+            label, time.time() - t, pl["n"], 100 * pl["ok"], 100 * pl["action"],
+            "   ".join("%s: %.1f%% of %d" % (k, 100 * v["ok"], v["n"]) for k, v in pl["by_set"].items()), a["p_hit"], b["p_hit"],
+            100 * tc.get("tf_exact", 0), 100 * tc.get("holds_back", 0)), flush=True)
+        return row
     a, b = fS.evaluate(4, tag=f"027:{TAG}:{label}:select"), fR.evaluate(4, tag=f"027:{TAG}:{label}:report")
     fS.discard(); fR.discard()
     tc = chat.score(lab, lab.B, tool_dev, tag=f"027:{TAG}:{label}:tools")
@@ -157,9 +245,30 @@ def measure(label):
     actions.install()
     p_own, n_own = pointer_test(own, f"027:{TAG}:{label}:pointer_own")
     p_ref, _ = pointer_test(ref, f"027:{TAG}:{label}:pointer_ref")
+    pl = None
+    if plan_dev:                                         # planner turns of the dev split, generated
+        _r = [planner27.score(s, chat.generate(lab, lab.B, s, max_new_tokens=96)[0]) for s in plan_dev]
+        pl = {"n": len(_r), "ok": sum(r["ok"] for r in _r) / len(_r), "action": sum(r["action"] for r in _r) / len(_r),
+              "parsed": sum(r["parsed"] for r in _r) / len(_r)}
+        pl["by_set"] = {}
+        for _n in sorted({x["dev_set"] for x in plan_dev}):
+            _q = [r for x, r in zip(plan_dev, _r) if x["dev_set"] == _n]
+            pl["by_set"][_n] = {"n": len(_q), "ok": sum(r["ok"] for r in _q) / len(_q), "action": sum(r["action"] for r in _q) / len(_q)}
+        print("   planner turns, dev      generated (%d): fully right %5.1f%%   action right %5.1f%%   call parsed %5.1f%%   | %s" % (
+            pl["n"], 100 * pl["ok"], 100 * pl["action"], 100 * pl["parsed"],
+            "   ".join("%s: fully right %.1f%%, action right %.1f%% of %d" % (k, 100 * v["ok"], 100 * v["action"], v["n"]) for k, v in pl["by_set"].items())), flush=True)
+    extra = {}
+    for key, items in held27.items():                    # generated answers on the held-out pointing sets
+        ans = lab.score(lab.B, items, tag=f"027:{TAG}:{label}:{key}")["answers"]
+        ok = 0
+        for it, text in zip(items, ans):
+            nums = [float(v) for v in re.findall(r"-?\d+(?:\.\d+)?", text)]
+            bx = it["box1000"]
+            ok += len(nums) >= 2 and bx[0] <= nums[0] <= bx[2] and bx[1] <= nums[1] <= bx[3]
+        extra[key] = ok / len(items)
     can = lab.canary(lab.B, tag=f"027:{TAG}:{label}")["all"]
     row = {"label": label, "select": a, "report": b, "tools": tc, "steps_tf": st, "steps_generated": sg, "pointer_own_words": p_own,
-           "pointer_dataset_words": p_ref, "pointer_n": n_own, "canary": can, "examples": answers[:3], "seconds": time.time() - t}
+           "pointer_dataset_words": p_ref, "pointer_n": n_own, "canary": can, "held_out_pointing": extra, "planner_dev": pl, "examples": answers[:3], "seconds": time.time() - t}
     rows.append(row)
     pct = lambda v: "  n/a" if v is None else "%5.1f%%" % (100 * v)
     by = sg["by_action"]
@@ -168,7 +277,8 @@ def measure(label):
         sg["n"], pct(sg["correct"]), pct(sg["action"]), pct(sg["parsed"]), sg["mean_target_overlap"], 100 * st.get("tf_exact", 0), st.get("n_tool", 0)))
     print("   steps by action         " + "   ".join("%s %s of %d" % (k, pct(v["correct"]), v["n"]) for k, v in by.items()) + ("   | misses: %s" % sg["why"] if sg["why"] else ""))
     print("   pointer on its targets  within 24 px with the model's own words %s, with the dataset's words %s (%d targets; this model as the pointer)" % (pct(p_own), pct(p_ref), n_own))
-    print("   plain pointing          select %.3f   report %.3f" % (a["p_hit"], b["p_hit"]))
+    print("   plain pointing          select %.3f   report %.3f" % (a["p_hit"], b["p_hit"])
+          + "".join("   %s %.1f%% of %d on target (generated)" % (k, 100 * v, len(held27[k])) for k, v in extra.items()))
     print("   tool benchmark (dev)    every token right on %.1f%% of %d calls   holds back on %.1f%% of %d no-call cases   canary %s" % (
         100 * tc.get("tf_exact", 0), tc.get("n_tool", 0), 100 * tc.get("holds_back", 0), tc.get("n_no_call", 0), can), flush=True)
     return row
@@ -192,9 +302,16 @@ def export27(label, step):
 
 T27 = TaskTuner(lab, LAYERS, scales=True, head=True)
 snap27 = T27.snapshot()
-first = measure("start")
-best = {"label": "start", "step": 0, "score": first["steps_generated"]["correct"] or 0.0}
-floor = first["select"]["p_hit"] - 0.03
+if globals().get("NOSTART27"):                       # the start state was scored by the run that made it: go straight to training
+    first, best, floor = None, {"label": "start", "step": 0, "score": globals().get("NOSTART27") if isinstance(globals().get("NOSTART27"), float) else -1.0}, 0.0
+    _score = lambda r: ((r["planner_dev"]["ok"] if r.get("planner_dev") else (r["steps_generated"]["correct"] or 0.0))
+                        + (r["held_out_pointing"].get("neighbour slice", 0.0) if NEIGHBOUR else 0.0))
+else:
+    first = measure("start")
+    _score = lambda r: ((r["planner_dev"]["ok"] if r.get("planner_dev") else (r["steps_generated"]["correct"] or 0.0))
+                        + (r["held_out_pointing"].get("neighbour slice", 0.0) if NEIGHBOUR else 0.0))
+    best = {"label": "start", "step": 0, "score": _score(first)}
+    floor = first["select"]["p_hit"] - 0.03
 per_round, done = EVERY * ACC, 0
 while done < UPDATES:
     n = min(EVERY, UPDATES - done)
@@ -209,11 +326,13 @@ while done < UPDATES:
     mark = ""
     if not SMOKE:
         torch.save(T27.snapshot(), f"{lab.dir}/ckpt/tune_{TAG}_u{done}.pt")      # every scored round is kept
-    if row["select"]["p_hit"] >= floor and (row["steps_generated"]["correct"] or 0.0) > best["score"]:
-        best = {"label": row["label"], "step": done, "score": row["steps_generated"]["correct"]}
+    if row["select"]["p_hit"] >= floor and _score(row) > best["score"]:
+        best = {"label": row["label"], "step": done, "score": _score(row)}
         mark = "  <- best so far"
-        if PATCHNAME:
+        if PATCHNAME and not EXPORT_ALL:
             export27(row["label"], done)
+    if PATCHNAME and EXPORT_ALL:
+        export27(row["label"], done)
     print("   training loss %.3f -> %.3f%s" % (r["loss_start"], r["loss_end"], mark), flush=True)
     if not SMOKE:
         json.dump(out, open(f"{lab.dir}/exp027_{TAG}.json", "w"), indent=1)
@@ -223,5 +342,5 @@ if SMOKE:
 else:
     out["kept"] = best
     json.dump(out, open(f"{lab.dir}/exp027_{TAG}.json", "w"), indent=1)
-    print("027 done: best %s (generated steps fully right %.1f%%); the last round's multipliers are in memory, each round's in lab/ckpt/tune_%s_u*.pt" % (
+    print("027 done: best %s (score %.1f: steps fully right, plus the neighbour slice when NEIGHBOUR27 is set); the last round's multipliers are in memory, each round's in lab/ckpt/tune_%s_u*.pt" % (
         best["label"], 100 * best["score"], TAG), flush=True)

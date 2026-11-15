@@ -1,0 +1,6 @@
+# One request per line; lines that start with # are skipped.
+# Each is carried out as if typed into the assistant: it really clicks and types.
+open TextEdit
+is Wi-Fi on?
+set the volume to 20
+make a new note that says buy milk

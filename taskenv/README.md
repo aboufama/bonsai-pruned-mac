@@ -1,7 +1,10 @@
 # taskenv: a task-completion test for screen assistants
 
-**TEST ENVIRONMENT ONLY. Nothing in this folder (apps, tasks, seeds, screenshots, runs) may ever
-enter a training mix.** Every app and task here was written for the test; none of it shares
+**Split by app since 15 Nov 2026.** Seven apps (files, settings, mail, notes, reminders, calendar, browser) may
+be used to make planner training data with `plan_gen.py` and `plan_run.py` (seeds from 20001). Three apps (music,
+sheet, calculator), 14 held-out task templates of the training apps and the seeds 1 to 5 and 9101 to 9103 are
+test only and may never enter a training mix. `planmode.py` holds the lists; `docs/TASKENV.md` explains.
+Screenshots, pointing cases and the guided and agent runs of this folder stay test only. Nothing here shares
 templates, icons or word pools with `bench/pointing/pointgen`, whose screens were trained on.
 
 A model sees a screenshot of a Mac-style desktop, emits one action, the environment executes it

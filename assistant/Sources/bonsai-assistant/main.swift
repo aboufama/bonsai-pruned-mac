@@ -5,6 +5,10 @@
 //   bonsai-assistant --point shot.png "the Done button"         one pointing request
 //   bonsai-assistant --step shot.png "turn on dark mode"        one next-step request
 //   bonsai-assistant --samples ~/Bonsai-demo/samples            every request of hints.json, with hit or miss
+//   bonsai-assistant --batch requests.txt --out steps.json      the app, carrying out a file of requests with nobody at the keyboard
+//   bonsai-assistant --planner-prompt                            the planner's format v1 as the app sends it (no server needed)
+//   bonsai-assistant --route "put Safari and Notes side by side"  what a request would become (nothing is done, no server needed)
+//   bonsai-assistant --facts                                     the facts about this Mac that questions are answered from
 //
 // Options: --server URL (default LM Studio's), --model ID (default: the first Bonsai the server
 // lists), --side 1280|896, --out DIR (write each screenshot with the point drawn on it),
@@ -15,6 +19,33 @@ import AssistantCore
 
 let arguments = Array(CommandLine.arguments.dropFirst())
 
+// --own-permissions (or BONSAI_OWN_PERMISSIONS=1): start again as a process that answers for
+// itself. macOS decides Screen Recording and Accessibility by the program "responsible" for a
+// process, which for something started from a shell is the program the shell runs in. Started
+// this way the executable is its own responsible program, so the permissions are looked up
+// under this file's path whatever started it. Uses a system call that is not a public one;
+// if it is missing, the app starts as usual.
+var disclaimedChild: pid_t = 0
+if (arguments.contains("--own-permissions") || ProcessInfo.processInfo.environment["BONSAI_OWN_PERMISSIONS"] == "1"),
+   ProcessInfo.processInfo.environment["BONSAI_ANSWERS_FOR_ITSELF"] == nil,
+   let symbol = dlsym(UnsafeMutableRawPointer(bitPattern: -2), "responsibility_spawnattrs_setdisclaim"),
+   let path = Bundle.main.executablePath {
+    typealias Disclaim = @convention(c) (UnsafeMutablePointer<posix_spawnattr_t?>, Int32) -> Int32
+    var attributes: posix_spawnattr_t?
+    posix_spawnattr_init(&attributes)
+    _ = unsafeBitCast(symbol, to: Disclaim.self)(&attributes, 1)
+    var environment = ProcessInfo.processInfo.environment
+    environment["BONSAI_ANSWERS_FOR_ITSELF"] = "1"
+    let argv: [UnsafeMutablePointer<CChar>?] = CommandLine.arguments.map { strdup($0) } + [nil]
+    let envp: [UnsafeMutablePointer<CChar>?] = environment.map { strdup("\($0.key)=\($0.value)") } + [nil]
+    if posix_spawn(&disclaimedChild, path, nil, &attributes, argv, envp) == 0 {
+        for number in [SIGINT, SIGTERM, SIGHUP] { signal(number) { kill(disclaimedChild, $0) } }     // pass them on
+        var status: Int32 = 0
+        while waitpid(disclaimedChild, &status, 0) < 0 && errno == EINTR {}
+        exit((status & 0x7f) == 0 ? (status >> 8) & 0xff : 1)
+    }
+}
+
 func option(_ name: String) -> String? {
     guard let i = arguments.firstIndex(of: name), i + 1 < arguments.count else { return nil }
     return arguments[i + 1]
@@ -23,6 +54,29 @@ func option(_ name: String) -> String? {
 func fail(_ message: String) -> Never {
     FileHandle.standardError.write((message + "\n").data(using: .utf8)!)
     exit(2)
+}
+
+/// The planner's format v1 exactly as the app sends it, with no server: the system text (the
+/// built-in one, or the file named for this run), the next_step tool, the sentence added when
+/// the call is asked for as JSON, and a user message.
+func printPlannerPrompt() -> Never {
+    let replacement = Launch.plannerSystem
+    if let problem = replacement.problem { fail(problem) }
+    print("=== system (" + Launch.plannerSystemNote + ")")
+    print(replacement.text ?? Planner.system)
+    if let data = try? JSONSerialization.data(withJSONObject: Planner.tool, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]),
+       let text = String(data: data, encoding: .utf8) {
+        print("\n=== tool")
+        print(text)
+    }
+    print("\n=== added to the system text when the call is asked for as JSON")
+    print(Planner.asJSON)
+    print("\n=== user (an example)")
+    print(Planner.user(task: "Make a new event called Demo", apps: ["Finder", "Calendar", "Mail"], frontApp: "Calendar", window: "Calendar",
+                       done: ["open_app Calendar"],
+                       controls: [ListedControl(id: 1, role: "button", name: "Today"), ListedControl(id: 2, role: "text field", name: "Search", value: "demo"),
+                                  ListedControl(id: 3, role: "radio", name: "Month", value: "selected"), ListedControl(id: 4, role: "menu", name: "File")]))
+    exit(0)
 }
 
 func runCommandLine() async {
@@ -39,8 +93,10 @@ func runCommandLine() async {
         fail("the server lists no model")
     }
     let pipeline = Pipeline(client: client, model: model)
+    pipeline.pointer = Launch.pointerURL.flatMap { PointerHelper($0) }
     pipeline.separateImage = !arguments.contains("--one-message")     // --one-message: the lab's layout, a full read per question
     pipeline.plainStepPrompt = arguments.contains("--tools")
+    pipeline.plannerSystem = Launch.plannerSystem.text
     let outDir = option("--out")
     if let outDir { try? FileManager.default.createDirectory(atPath: outDir, withIntermediateDirectories: true) }
     print("server \(base.absoluteString) · model \(model) · image \(side) px · "
@@ -80,7 +136,20 @@ func runCommandLine() async {
         }
     }
 
-    if let i = arguments.firstIndex(of: "--point"), i + 2 < arguments.count {
+    if let i = arguments.firstIndex(of: "--plan-text"), i + 1 < arguments.count {
+        // One planning turn on a user message read from a file (format v1), to try the planner without a screen.
+        guard let user = try? String(contentsOfFile: arguments[i + 1], encoding: .utf8) else { fail("cannot read \(arguments[i + 1])") }
+        for turn in 1...(Int(option("--turns") ?? "") ?? 1) {
+            do {
+                let out = try await pipeline.plan(user: user.trimmingCharacters(in: .newlines))
+                print("  turn \(turn): \(String(format: "%.2f s", out.chat.seconds)) (\(out.chat.tokenNote)) · wrote \(out.chat.written.prefix(260))")
+                if let note = out.note { print("  note: \(note)") }
+                print("  step: " + (out.step.map { Planner.doneLine($0, control: nil) + " [\($0.action)]" } ?? "none could be read"))
+            } catch {
+                print("  ERROR: \(error)")
+            }
+        }
+    } else if let i = arguments.firstIndex(of: "--point"), i + 2 < arguments.count {
         _ = await point(arguments[i + 1], arguments[i + 2], tag: "point")
     } else if let i = arguments.firstIndex(of: "--step"), i + 2 < arguments.count {
         guard let full = ImageOps.load(path: arguments[i + 1]), let url = ImageOps.dataURL(ImageOps.shrunk(full, longSide: side)) else {
@@ -118,7 +187,107 @@ func runCommandLine() async {
     }
 }
 
-if let i = arguments.firstIndex(of: "--transcribe"), i + 1 < arguments.count {
+if arguments.contains("--help") || arguments.contains("-h") {
+    print("""
+    bonsai-assistant                       the menu-bar app (LM Studio on this Mac by default)
+    bonsai-assistant --batch FILE          the app carrying out a file of requests, one per line, with nobody at the keyboard
+
+    Options of the app (each also as an environment variable):
+      --server URL             BONSAI_SERVER             the model server (default http://localhost:1234/v1)
+      --plain-server           BONSAI_PLAIN_SERVER=1     any OpenAI-compatible server: no LM Studio, the model it lists, taken to see
+      --model ID               BONSAI_MODEL              the model to ask for (default: the server's)
+      --out FILE               BONSAI_OUT                where a batch writes its steps (default ~/Library/Logs/BonsaiAssistant/batch.json)
+      --timeout SECONDS        BONSAI_REQUEST_TIMEOUT    time allowed for one request of a batch (default 180)
+      --log FILE               BONSAI_LOG                the log (default ~/Library/Logs/BonsaiAssistant/assistant.log)
+      --side 1280|896          BONSAI_IMAGE_SIDE         longer side of the screenshot that is sent
+      --unattended             BONSAI_UNATTENDED=1       never ask a person anything (always so in a batch)
+      --skip-permission-check  BONSAI_SKIP_PERMISSION_CHECK=1   a batch goes on even if macOS says a permission is missing
+      --own-permissions        BONSAI_OWN_PERMISSIONS=1  macOS looks the permissions up under this executable, not the program that started it
+      --planner-system FILE    BONSAI_PLANNER_SYSTEM_FILE   a text file whose contents replace the planner's system text for this run
+      --plan-everything        BONSAI_PLAN_EVERYTHING=1  whatever is not a question is planned by the model; nothing is done directly
+      --second-look            BONSAI_SECOND_LOOK=1      a closer second look when something looked for is not a named control (a second read)
+      --speak                  BONSAI_SPEAK=1            spoken replies for this run (never in a batch)
+
+    A batch ends with: 0 every request ended well · 1 some did not · 2 no requests · 3 server not ready · 4 a permission is missing
+
+    Without the screen: --route "request" · --planner-prompt · --facts · --models · --point IMAGE "what" · --samples DIR
+    """)
+    exit(0)
+} else if let i = arguments.firstIndex(of: "--preview-bar"), i + 1 < arguments.count {
+    // A picture of the input bar and the menu's header drawn to a file (no window is shown; the
+    // glass itself cannot be drawn this way, so it stands on a plain dark ground).
+    _ = NSApplication.shared
+    let field = NSTextField(), face = NSTextField(labelWithString: Faces.typing(""))
+    let bar = InputBar.content(face: face, field: field)
+    bar.appearance = NSAppearance(named: .darkAqua)
+    let header = MenuHeader()
+    header.set("Ready · bonsai-2-9b-pointer", .ready)
+    header.appearance = NSAppearance(named: .darkAqua)
+    let canvas = NSView(frame: CGRect(x: 0, y: 0, width: 720, height: 240))
+    canvas.wantsLayer = true
+    canvas.layer?.backgroundColor = NSColor(calibratedWhite: 0.2, alpha: 1).cgColor
+    bar.setFrameOrigin(CGPoint(x: 40, y: 110))
+    header.setFrameOrigin(CGPoint(x: 40, y: 30))
+    canvas.addSubview(bar)
+    canvas.addSubview(header)
+    guard let rep = canvas.bitmapImageRepForCachingDisplay(in: canvas.bounds) else { exit(1) }
+    canvas.cacheDisplay(in: canvas.bounds, to: rep)
+    guard let data = rep.representation(using: .png, properties: [:]) else { exit(1) }
+    exit((try? data.write(to: URL(fileURLWithPath: arguments[i + 1]))) != nil ? 0 : 1)
+} else if arguments.contains("--planner-prompt") {
+    printPlannerPrompt()
+} else if let i = arguments.firstIndex(of: "--route"), i + 1 < arguments.count {
+    // What a request would become, without doing any of it. A request that says one thing
+    // comes after another is shown part by part.
+    func described(_ request: String) -> String {
+        switch Router.route(request, app: Apps.resolve) {
+        case .point: return "point at it (a screenshot and the pointing prompt)"
+        case .answer(let screen):
+            if Talk.fact(request) != nil { return "answer in words, from the Mac itself (no model)" }
+            if screen { return "answer in words, from the screenshot" }
+            let list = Talk.menu(request) != nil ? "the menu's items" : Talk.asksDock(request) ? "the Dock's apps" : "the front window's controls"
+            return "answer in words: asked of the planner with \(list) as its list; from the screenshot if it asks to look; by pointing if it sets off to act"
+        case .text(let skill):
+            return "the selected text: \(skill.caption)" + (skill.instruction.isEmpty ? " (no model)" : skill.replaces ? " (the result replaces the selection)" : " (the result is shown)")
+        case .direct(let steps):
+            return "done directly, without planning: " + steps.map { $0.action == Recipes.draftEmail ? "Drafting an email (the model writes it; never sent)" : Captions.step($0, control: nil) }
+                .joined(separator: "; ")
+        case .scripted(let steps): return "as spelled out: " + steps.map(\.historyLine).joined(separator: "; ")
+        case .plan: return "planned by the model, one step at a time"
+        }
+    }
+    let parts = Router.parts(arguments[i + 1], app: Apps.resolve)
+    if parts.count > 1 {
+        print("in \(parts.count) parts, one after another:")
+        for (n, part) in parts.enumerated() {
+            print("  \(n + 1). \"\(part)\": \(described(part))" + (n > 0 && Router.refersBack(part, apps: Apps.list) ? " (told what the parts before it did)" : ""))
+        }
+    } else {
+        print(described(arguments[i + 1]))
+    }
+    exit(0)
+} else if arguments.contains("--count-controls") {
+    // A check of the control lister on whatever window is in front: how many controls of each
+    // kind it finds and how long it takes. Only counts are printed, never a name or a text.
+    let start = Date()
+    let list = Access.screenList()
+    var kinds: [String: Int] = [:]
+    for control in list.controls { kinds[control.role, default: 0] += 1 }
+    let valued = list.controls.filter { !$0.value.isEmpty }.count
+    print("\(list.controls.count) controls in \(String(format: "%.2f", Date().timeIntervalSince(start))) s: "
+          + kinds.sorted { $0.key < $1.key }.map { "\($0.key) \($0.value)" }.joined(separator: ", ") + " · \(valued) with a value · window title \(list.window.isEmpty ? "empty" : "present")")
+    print(Access.readingCheck())
+    exit(0)
+} else if arguments.contains("--facts") {
+    // The few facts about this Mac that questions are answered from. Nothing is changed.
+    _ = NSApplication.shared
+    print(Mac.facts())
+    exit(0)
+} else if let i = arguments.firstIndex(of: "--preview"), i + 1 < arguments.count {
+    // A picture of the pointer drawn to a file, without touching the display.
+    _ = NSApplication.shared
+    exit(Overlay.preview(to: arguments[i + 1]) ? 0 : 1)
+} else if let i = arguments.firstIndex(of: "--transcribe"), i + 1 < arguments.count {
     // The speech model on a sound file: bonsai-assistant --transcribe request.wav   (no microphone needed)
     Task {
         do {
@@ -134,7 +303,9 @@ if let i = arguments.firstIndex(of: "--transcribe"), i + 1 < arguments.count {
         }
     }
     dispatchMain()
-} else if arguments.isEmpty || arguments == ["--smoke"] {
+} else if !arguments.contains(where: { ["--models", "--point", "--step", "--samples", "--plan-text"].contains($0) }) {
+    // The app: with no arguments, or with only its own options (--batch FILE, --out FILE,
+    // --timeout S, --server URL, --plain-server, --model ID, --log FILE, --unattended, --smoke).
     let app = NSApplication.shared
     let controller = AppController()
     app.delegate = controller

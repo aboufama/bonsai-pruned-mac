@@ -739,7 +739,11 @@ def need(raw, cases, out):
 # what to do and describes the target in plain words; a separate pointer finds it. The recorded
 # points stay in the case (`point`, `point_end`), never in the answer.
 STEP_ACTIONS = ("click", "double_click", "right_click", "drag", "type", "key", "scroll", "done")
-STEP_ORDER = ("target", "target_end", "text", "keys", "direction")
+# Planner format v1 (15 Nov): the same tool with more actions and arguments, for planning from a list of
+# controls without a screenshot. Old cases stay valid: they use the first eight actions and none of the
+# new arguments, and their calls are rendered exactly as before.
+STEP_ACTIONS_V1 = ("open_app", "open_url") + STEP_ACTIONS[:-1] + ("menu", "look", "done")
+STEP_ORDER = ("app", "url", "id", "path", "target", "target_end", "text", "keys", "direction")
 STEP_HISTORY = 4
 STEP_NAME = {"left_click": "click", "double_click": "double_click", "right_click": "right_click", "left_click_drag": "drag",
              "type": "type", "key": "key", "scroll": "scroll", "hscroll": "scroll", "terminate": "done"}
@@ -750,8 +754,13 @@ NEXT_STEP_TOOL = {"type": "function", "function": {
     "description": ("Say the next single step to take on the screen. Describe the target plainly enough that someone "
                     "could point at it: what it is, what it says, where it is. Do not give coordinates."),
     "parameters": {"type": "object", "required": ["action"], "properties": {
-        "action": {"type": "string", "enum": list(STEP_ACTIONS),
-                   "description": "What to do. `done` ends the task."},
+        "action": {"type": "string", "enum": list(STEP_ACTIONS_V1),
+                   "description": "What to do. Prefer `open_app`, `open_url`, `key` and `menu` over clicking. `look` asks for a "
+                                  "screenshot when the control you need is not in the list. `done` ends the task."},
+        "app": {"type": "string", "description": "For `open_app`: the application's name."},
+        "url": {"type": "string", "description": "For `open_url`: the address to open."},
+        "id": {"type": "integer", "description": "The number of a control from the list of controls, to press or fill it."},
+        "path": {"type": "string", "description": "For `menu`: the menu path, for example File > New Message."},
         "target": {"type": "string", "description": "The element to act on, in plain words. For `drag`, where the drag starts. "
                                                      "Required by `click`, `double_click`, `right_click` and `drag`."},
         "target_end": {"type": "string", "description": "Where the drag ends, in plain words. Only for `drag`."},
@@ -983,9 +992,14 @@ def parse_step(text):
     if raw is None or not str(raw.get("action", "")).strip():
         return None
     step = {"action": str(raw["action"]).strip()}
-    for k in ("target", "target_end", "direction"):
+    for k in ("target", "target_end", "direction", "app", "url", "path"):
         if k in raw:
             step[k] = str(raw[k]).strip()
+    if "id" in raw:
+        try:
+            step["id"] = int(str(raw["id"]).strip())
+        except ValueError:
+            step["id"] = str(raw["id"]).strip()
     if "text" in raw:
         step["text"] = raw["text"] if isinstance(raw["text"], str) else json.dumps(raw["text"], ensure_ascii=False)
     if "keys" in raw:
