@@ -280,7 +280,10 @@ do {
           && Router.direct("close the report file", app: find) == nil, "a window's own buttons, said any way and for a named app")
     check(Commands.isPoliteOrder("Hey, can you open my photobooth app?") && Commands.isPoliteOrder("Could you open Google Chrome?") && Commands.isPoliteOrder("would you please minimize this")
           && !Commands.isPoliteOrder("Can you see the Trash?") && !Commands.isPoliteOrder("could you tell me what this is?") && !Commands.isPoliteOrder("where is the Trash?")
-          && !Commands.isPoliteOrder("open Notes"), "an order said politely is still an order")
+          && !Commands.isPoliteOrder("open Notes") && !Commands.isPoliteOrder("can you still run without wifi") && !Commands.isPoliteOrder("Can you run without Wi-Fi?")
+          && Commands.isPoliteOrder("can you turn off the wifi") && Commands.isPoliteOrder("could you minimize the window") && !Commands.isPoliteOrder("can you hear me?"), "an order said politely is still an order")
+    check(Talk.fact("can you still run without wifi") == .offline && Talk.fact("Do you need the internet?") == .offline && Talk.fact("does this work offline?") == .offline
+          && Talk.fact("is wifi on?") == .wifi && Talk.fact("turn off wifi") == nil, "a question about running without Wi-Fi is answered, nothing is done")
     check(Router.direct("can you open my email on brave", app: find) == [PlannedStep(action: "open_url", app: "Brave Browser", url: "https://mail.google.com")]
           && AppNames.named(in: "can you check my email on brave", among: ["Mail", "Brave Browser", "Notes"]) == ["Brave Browser"]
           && AppNames.named(in: "send an email to Sam", among: ["Mail", "Brave Browser", "Notes"]) == ["Mail"], "email in a named browser is the web mail, and the browser is the app spoken of")

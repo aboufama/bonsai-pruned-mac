@@ -692,11 +692,15 @@ public enum Answers {
 /// question is about one), and the sentence it gives with `done` is the answer.
 public enum Talk {
     /// Things the Mac can say about itself with no model.
-    public enum Fact: Equatable { case wifi, internet, battery, time, date, appearance, volume }
+    public enum Fact: Equatable { case wifi, internet, battery, time, date, appearance, volume, offline }
 
     public static func fact(_ question: String) -> Fact? {
         let t = Commands.unquoted(question).lowercased().replacingOccurrences(of: "’", with: "'")
         let has = { (pattern: String) in Commands.match(pattern, t) != nil }
+        // about the assistant itself: "can you still run without Wi-Fi?", "do you need the internet?", "does this work offline?"
+        if has(#"\b(?:you|it|this|clicky|bonsai)\b.*\b(?:without|with\s+no|no)\s+(?:the\s+|any\s+)?(?:wi[\s-]?fi|internet|network|connection|cloud)\b"#)
+            || has(#"\b(?:you|it|this|clicky|bonsai)\b.*\b(?:work|run|function|operate)\w*\b.*\b(?:offline|locally)\b"#)
+            || has(#"\bdo\s+you\s+(?:need|use|require)\s+(?:the\s+|an?\s+)?(?:wi[\s-]?fi|internet|network|connection|cloud)\b"#) { return .offline }
         if has(#"\b(?:is|are)\b.*\bwi[\s-]?fi\b.*\b(?:on|off|enabled|disabled|turned|working)\b"#) { return .wifi }
         if has(#"\b(?:am\s+i|are\s+we|is\s+(?:the|this|my)\s+(?:mac|computer|laptop))\s+(?:online|offline|connected)\b|\bconnected\s+to\s+the\s+internet\b|\b(?:is\s+there|do\s+i\s+have|do\s+we\s+have)\s+(?:the\s+|an?\s+)?internet\b"#) { return .internet }
         if has(#"\bbattery\b|\bhow\s+much\s+(?:charge|power)\b|\bis\s+(?:it|the\s+mac|my\s+mac|this\s+mac)\s+(?:charging|plugged\s+in)\b"#) { return .battery }

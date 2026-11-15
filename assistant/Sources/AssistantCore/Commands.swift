@@ -29,8 +29,16 @@ public enum Commands {
         var t = request.trimmingCharacters(in: .whitespacesAndNewlines)
         while let m = match(#"^(?:hey|hi|hello|ok|okay|so|um|uh|please|clicky|bonsai)\b[\s,!.:-]*(.+)$"#, t) { t = m[1] }
         guard let m = match(#"^(?:can|could|would|will)\s+you\s+(?:please\s+|kindly\s+|just\s+|quickly\s+)?(\p{L}+)"#, t) else { return false }
-        let telling = ["see", "tell", "show", "find", "explain", "describe", "read", "say", "hear", "point", "locate", "help", "check", "confirm", "recommend", "suggest", "think", "guess"]
-        return !telling.contains(m[1].lowercased())
+        // only something to do counts: "can you still run without Wi-Fi?", "can you see this?" are questions
+        let doing: Set<String> = ["open", "close", "quit", "launch", "start", "stop", "turn", "switch", "toggle", "set", "put", "move", "make", "create", "add", "write", "type",
+                                  "click", "press", "play", "pause", "search", "google", "look", "go", "bring", "pull", "minimize", "minimise", "maximize", "maximise", "hide",
+                                  "save", "export", "delete", "remove", "rename", "copy", "paste", "send", "draft", "email", "remind", "schedule", "mute", "unmute", "raise",
+                                  "lower", "increase", "decrease", "enable", "disable", "connect", "disconnect", "take", "record", "caption", "scroll", "select", "zoom",
+                                  "resize", "arrange", "tile", "empty", "lock", "change", "navigate", "visit", "download", "print", "share", "fill", "enter", "mark",
+                                  "complete", "full", "fullscreen", "restart", "reload", "refresh", "summarize", "summarise", "rewrite", "translate", "fix", "run"]
+        let word = m[1].lowercased()
+        if word == "run" { return match(#"\brun\s+(?:without|with\s+no|offline|on\s+(?:this|my)\s+(?:mac|laptop|computer)|locally)\b"#, t.lowercased()) == nil }     // "run without Wi-Fi" asks what it can do
+        return doing.contains(word)
     }
 
     /// The parts of a request, split at "then", ";", line ends, sentence ends and at "and"

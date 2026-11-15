@@ -56,6 +56,9 @@ enum Mac {
         case .wifi:
             guard let wifi = CWWiFiClient.shared().interface() else { return "This Mac has no Wi-Fi." }
             return "Wi-Fi is \(wifi.powerOn() ? "on" : "off"), and the Mac is \(online ? "connected" : "not connected") to the internet."
+        case .offline:
+            let off = !(CWWiFiClient.shared().interface()?.powerOn() ?? false)
+            return "Yes. Everything I do runs on this Mac: Bonsai in LM Studio and speech through WhisperKit." + (off ? " Wi-Fi is off right now, and I am still here." : "")
         case .internet: return online ? "Yes, the Mac is connected to the internet." : "No, the Mac is not connected to the internet."
         case .battery: return battery() ?? "This Mac has no battery; it runs on mains power."
         case .time:
