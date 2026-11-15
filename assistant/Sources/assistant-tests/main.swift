@@ -284,6 +284,9 @@ do {
     check(Router.direct("can you open my email on brave", app: find) == [PlannedStep(action: "open_url", app: "Brave Browser", url: "https://mail.google.com")]
           && AppNames.named(in: "can you check my email on brave", among: ["Mail", "Brave Browser", "Notes"]) == ["Brave Browser"]
           && AppNames.named(in: "send an email to Sam", among: ["Mail", "Brave Browser", "Notes"]) == ["Mail"], "email in a named browser is the web mail, and the browser is the app spoken of")
+    check(Router.direct("turn off my computer wifi", app: find) == [PlannedStep(action: "wifi", text: "off")] && Router.direct("Turn Wi-Fi off", app: find) == [PlannedStep(action: "wifi", text: "off")]
+          && Router.direct("turn on wifi", app: find) == [PlannedStep(action: "wifi", text: "on")] && Router.direct("disable wi-fi", app: find) == [PlannedStep(action: "wifi", text: "off")]
+          && Router.direct("Hey, can you turn off the WiFi please?", app: find) == [PlannedStep(action: "wifi", text: "off")], "Wi-Fi on and off is a tool")
     check(Router.direct("start recording", app: find) == nil && Router.direct("start recording in photobooth", app: find) == nil
           && Router.direct("play the video on my desktop", app: find)?.first?.action == "play_video"
           && AppNames.named(in: "start recording in photobooth", among: ["Photo Booth", "Photos", "Notes"]) == ["Photo Booth"], "starting a recording is not playing a video")
@@ -352,7 +355,7 @@ do {
     do {
         let list = [ListedControl(id: 1, role: "button", name: "Today"), ListedControl(id: 2, role: "text field", name: "Search")]
         let fixed = Repair.step(PlannedStep(action: "open_app", id: 2), controls: list)
-        check(fixed.step == PlannedStep(action: "click", id: 2) && fixed.note != nil
+        check(fixed.step == PlannedStep(action: "open_app", id: 2) && fixed.note == nil
               && Repair.step(PlannedStep(action: "open_app", id: 9), controls: list).note == nil
               && Repair.step(PlannedStep(action: "open_app", app: "Mail", id: 2), controls: list).step.action == "open_app", "open_app with an id and no app is a click on that control")
         check(Repair.step(PlannedStep(action: "menu", text: "File > New Window"), controls: list).step == PlannedStep(action: "menu", path: "File > New Window")
@@ -597,8 +600,12 @@ do {
     let list = [ListedControl(id: 1, role: "button", name: "Add"), ListedControl(id: 2, role: "text field", name: "Search")]
     let filled = Repair.step(PlannedStep(action: "open_app", id: 2), controls: list, task: "Create a contact for Ada Lovelace in Contacts", apps: names, frontApp: "Finder")
     check(filled.step.action == "open_app" && filled.step.app == "Contacts" && filled.note != nil, "open_app with no app takes the app the task names")
-    check(Repair.step(PlannedStep(action: "open_app", id: 2), controls: list, task: "Create a contact in Contacts", apps: names, frontApp: "Contacts").step.action == "click",
-          "not when that app is already in front: then the id is a click")
+    check(Repair.step(PlannedStep(action: "open_app", id: 2), controls: list, task: "Create a contact in Contacts", apps: names, frontApp: "Contacts").step.action == "open_app",
+          "not when that app is already in front: then it is left as it is, and never becomes a click")
+    check(Repair.step(PlannedStep(action: "open_app", id: 1), controls: list, task: "pull up the presentation in my Downloads folder", apps: names + ["Finder"], frontApp: "System Settings").step.app == "Finder"
+          && Router.direct("open the clickypresentation", app: { _ in nil }) == [PlannedStep(action: "present")]
+          && Router.direct("can you pull up the presentation for this hackathon? It's in the Downloads folder.", app: { _ in nil }) == [PlannedStep(action: "present")],
+          "a file or folder with no app named is found in the Finder; the presentation said any way is the presentation")
     check(Repair.step(PlannedStep(action: "open_app"), controls: list, task: "Open Safari and Notes", apps: names, frontApp: "Finder").step.app == nil, "two apps named: nothing is guessed")
 
     check(Commands.plan("Move the Dock back to the bottom of the screen") == nil, "moving the Dock is not a drag")

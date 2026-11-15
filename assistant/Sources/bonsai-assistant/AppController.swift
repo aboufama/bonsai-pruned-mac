@@ -1839,6 +1839,12 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             if let failure = Mac.reveal(step.target ?? "") { return failure }
             return await inFront("Finder") ? nil : "the Finder did not come to the front with the folder"
         case "calendar_event": return await addCalendarEvent(kind: step.target ?? "event", rest: step.text ?? "")
+        case "wifi":
+            let on = step.text == "on"
+            let area = Mac.usableScreen()                                   // the pointer goes up to the controls at the right of the menu bar
+            let flight = overlay.point(at: CGPoint(x: area.maxX - 160, y: 12), .acting, on ? "Turning Wi-Fi on" : "Turning Wi-Fi off")
+            try? await Task.sleep(nanoseconds: UInt64((max(flight, 0.35) + 0.35) * 1_000_000_000))
+            return await Task.detached { Mac.setWiFi(on: on) }.value
         case "present": return await present()
         case "caption_video": return await captionVideo()
         case "play_video":
@@ -2436,6 +2442,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         var closing = ""                                   // the model's sentence with `done`
         var pressedReturn = false                          // the step before pressed Return
         var refusedReturns = 0
+        var refusedToggles = 0                             // a switch asked for again right after it was changed
         var budget = StepBudget()                          // steps that had no effect are counted against it
         var lastStep: PlannedStep?                         // the step carried out last, and whether it changed anything
         var lastChanged = false
@@ -2539,6 +2546,22 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     record(n, step, line: line, result: "not carried out: \(why)", planSeconds: out.chat.seconds, stepSeconds: 0, tokens: out.chat.tokenNote)
                     if budget.refusalsInARow >= 3 {
                         ending = "Stopped: the model kept repeating steps that have no effect"
+                        break steps
+                    }
+                    continue
+                }
+
+                // A switch or checkbox that the step before has just changed is not pressed again (a model
+                // that does not see the task is finished would turn it back, and then on again: Wi-Fi off,
+                // on, off). The planner is told; if it asks once more, the request ends as done.
+                if step.action == "click", lastChanged, let last = lastStep, last.action == "click", last.id == step.id, (last.target ?? "") == (step.target ?? ""),
+                   let control = listed.controls.first(where: { $0.id == step.id }), ["checkbox", "radio", "switch"].contains(control.role) {
+                    refusedToggles += 1
+                    log.add("    not pressed: this switch was changed by the step before, and pressing it again would undo that (the planner is told)")
+                    done.append(line + " (not pressed: the step before already changed this; if the task is finished, call done)")
+                    record(n, step, line: line, result: "not pressed: the step before already changed this switch", planSeconds: out.chat.seconds, stepSeconds: 0, tokens: out.chat.tokenNote)
+                    if refusedToggles >= 2 {
+                        ending = "Done (\(max(n - 2, 1)) step\(n - 2 == 1 ? "" : "s"))"
                         break steps
                     }
                     continue

@@ -25,8 +25,14 @@ public enum Repair {
                 return (s, "open_app with no app: the task speaks of \(named[0]) and of no other app")
             }
         }
+        // open_app with no app in a task about a file or a folder: files are found in the Finder
+        if step.action == "open_app", empty(step.app), frontApp != "Finder", apps.contains("Finder"),
+           Commands.match(#"\b(?:files?|folders?|documents?|pdf|\p{L}*presentation|slides|deck|downloads?|desktop|video|movie|recording|photos?|pictures?|images?)\b"#, Commands.unquoted(task).lowercased()) != nil {
+            s.app = "Finder"
+            return (s, "open_app with no app in a task about a file or folder: the Finder")
+        }
         switch step.action {
-        case "open_app" where empty(step.app), "open_url" where empty(step.url), "look" where empty(step.target):
+        case "open_url" where empty(step.url), "look" where empty(step.target):     // (an open_app with an id and no name is not a click: it sent the pointer to Back and Forward)
             if listed(step.id) {
                 s.action = "click"
                 return (s, "\(step.action) with id \(step.id ?? 0) and nothing to open or find: taken as a click on control \(step.id ?? 0)")

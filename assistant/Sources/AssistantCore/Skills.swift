@@ -174,8 +174,10 @@ public enum Skills {
     /// this (see the app's `Mac.presentation`) is shown, and whatever was in front is hidden.
     static func presentation(_ c: String) -> PlannedStep? {
         let shows = #"(?:bring\s+up|open|show|start|play|pull\s+up|put\s+up|launch|begin|go\s+(?:back\s+)?to|switch\s+to|back\s+to|present)"#
-        let deck = #"(?:presentation|slide\s?show|slides|slide|deck|pitch|keynote)"#
-        return Commands.match("^" + shows + "\\s+(?:the\\s+|my\\s+|our\\s+)?" + deck + "$", c) != nil ? PlannedStep(action: "present") : nil
+        let deck = #"(?:\p{L}*presentation|slide\s?show|slides|slide|deck|pitch|keynote)"#
+        // "pull up the presentation for this hackathon? It's in the Downloads folder", "open the Clicky presentation in my downloads", "open clickypresentation pdf"
+        let after = #"(?:\s+(?:pdf|file))?(?:[\s,.?!]+(?:for|of|about|from|in|on|that|it'?s|it\s+is|its)\b.*)?"#
+        return Commands.match("^" + shows + "\\s+(?:the\\s+|my\\s+|our\\s+)?(?:[\\p{L}\\p{N}'-]+\\s+){0,2}" + deck + after + "$", c) != nil ? PlannedStep(action: "present") : nil
     }
 
     /// "Caption the video I just recorded", "put subtitles on my last recording": the newest
@@ -277,6 +279,13 @@ public enum Skills {
         if Commands.match(#"^minimi[sz]e(?:\s+(?:this|it|this\s+window|the\s+window))?$"#, c) != nil { return PlannedStep(action: "window_button", target: "minimize") }
         if Commands.match(#"^close\s+(?:this\s+|the\s+)?window$"#, c) != nil { return PlannedStep(action: "window_button", target: "close") }
         if let button = windowButton(c, app: app) { return button }
+        // Wi-Fi on or off, said any way: "turn off my computer wifi", "turn Wi-Fi off", "disable wifi"
+        let wifi = #"(?:the\s+|my\s+)?(?:computer'?s?\s+|mac'?s?\s+|laptop'?s?\s+)?wi-?\s?fi(?:\s+connection)?"#
+        if let m = Commands.match("^(?:turn|switch|toggle|set|put)\\s+" + wifi + #"\s+(?:back\s+)?(on|off)$"#, c) ?? Commands.match(#"^(?:turn|switch)\s+(?:back\s+)?(on|off)\s+"# + wifi + "$", c) {
+            return PlannedStep(action: "wifi", text: m[1].lowercased())
+        }
+        if Commands.match("^(?:disable|disconnect|kill|shut\\s+off|stop|cut)\\s+" + wifi + "$", c) != nil || Commands.match(#"^(?:go|take\s+me)\s+offline$"#, c) != nil { return PlannedStep(action: "wifi", text: "off") }
+        if Commands.match("^(?:enable|connect|start|reconnect)\\s+" + wifi + "$", c) != nil || Commands.match(#"^(?:go|get)\s+(?:back\s+)?online$"#, c) != nil { return PlannedStep(action: "wifi", text: "on") }
         for (pattern, keys) in shortcuts where Commands.match(pattern, c) != nil { return PlannedStep(action: "key", keys: keys) }
         // a folder, by its name or its path
         if let m = Commands.match(#"^(?:open|show|reveal|go\s+to|take\s+me\s+to)\s+(?:the\s+folder\s+|folder\s+)?(.+)$"#, c), let folder = Places.folder(m[1]) {
@@ -512,6 +521,7 @@ public enum Skills {
         case "rename_file": return "rename \(step.target ?? "") to \(step.text ?? "")" + ((step.app ?? "").isEmpty ? "" : " in \(step.app ?? "")")
         case "move_file": return "move \(step.target ?? "") " + (step.text == "Trash" ? "to the Trash" : "into \(step.text == "it" ? "the folder made before" : step.text ?? "")")
         case "calculate": return "Calculator \(step.text ?? "") ="
+        case "wifi": return "Wi-Fi turned \(step.text ?? "off")"
         case "present": return "open the presentation"
         case "window_button": return "\(step.target == "zoom" ? "full screen" : step.target ?? "") the " + ((step.app ?? "").isEmpty ? "window" : "\(step.app ?? "") window")
         case "caption_video": return "subtitles put on the newest recording"
@@ -547,6 +557,7 @@ public enum Skills {
         case "rename_file": return "Renaming \(step.target ?? "the file")"
         case "move_file": return "Moving \(step.target ?? "the file")"
         case "calculate": return "Working out \(step.text ?? "")"
+        case "wifi": return step.text == "on" ? "Turning Wi-Fi on" : "Turning Wi-Fi off"
         case "present": return "Bringing up the presentation"
         case "window_button": return step.target == "close" ? "Closing the window" : step.target == "zoom" ? "Going full screen" : "Minimizing the window"
         case "caption_video": return "Captioning your recording"

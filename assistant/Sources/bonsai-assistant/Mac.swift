@@ -120,6 +120,17 @@ enum Mac {
     }
 
     /// "mute", "unmute", "up", "down" or a number from 0 to 100. Nil when it worked, else why not.
+    /// Wi-Fi switched on or off through CoreWLAN, and read back. Nil when it is as asked.
+    static func setWiFi(on: Bool) -> String? {
+        guard let wifi = CWWiFiClient.shared().interface() else { return "this Mac has no Wi-Fi" }
+        do { try wifi.setPower(on) } catch { return "macOS did not allow Wi-Fi to be switched (\(error.localizedDescription))" }
+        for _ in 0..<15 {
+            if wifi.powerOn() == on { return nil }
+            Thread.sleep(forTimeInterval: 0.2)
+        }
+        return "Wi-Fi did not turn \(on ? "on" : "off")"
+    }
+
     static func setVolume(_ what: String) -> String? {
         guard let device = outputDevice() else { return "there is no sound output" }
         if what == "mute" || what == "unmute" {
@@ -249,7 +260,7 @@ enum Mac {
             let lower = name.lowercased()
             return lower.hasPrefix("presentation") && kinds.contains((lower as NSString).pathExtension)
         }).sorted().first { return desk + "/" + onDesk }
-        let folders = [NSHomeDirectory() + "/Bonsai-demo/demo", (CommandLine.arguments.first.map { ($0 as NSString).deletingLastPathComponent } ?? "") + "/demo",
+        let folders = [NSHomeDirectory() + "/Downloads", NSHomeDirectory() + "/Bonsai-demo/demo", (CommandLine.arguments.first.map { ($0 as NSString).deletingLastPathComponent } ?? "") + "/demo",
                        CommandLine.arguments.first.map { ($0 as NSString).deletingLastPathComponent } ?? ""]
         for folder in folders where !folder.isEmpty {
             let files = ((try? FileManager.default.contentsOfDirectory(atPath: folder)) ?? []).filter { name in
@@ -258,6 +269,8 @@ enum Mac {
             }
             let ranked = files.sorted { a, b in
                 let ka = kinds.firstIndex(of: (a.lowercased() as NSString).pathExtension) ?? 9, kb = kinds.firstIndex(of: (b.lowercased() as NSString).pathExtension) ?? 9
+                let ca = a.lowercased().contains("clicky"), cb = b.lowercased().contains("clicky")      // the deck of this very app first
+                if ca != cb { return ca }
                 return ka != kb ? ka < kb : a < b
             }
             if let first = ranked.first { return folder + "/" + first }
